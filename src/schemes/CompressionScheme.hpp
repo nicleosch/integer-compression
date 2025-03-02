@@ -5,10 +5,10 @@
 //---------------------------------------------------------------------------
 namespace compression {
 //---------------------------------------------------------------------------
-enum class CompressionSchemeType : uint8_t {
-  kFOR = 0,
-  kBitPacking8 = 0,
-  kBitPacking16 = 0,
+enum class CompressionSchemeType : u8 {
+  kFOR = 1,
+  kBitPacking16 = 2,
+  kBitPacking8 = 3,
 };
 //---------------------------------------------------------------------------
 class CompressionScheme {

@@ -1,3 +1,6 @@
+# Data
+data
+
 # Build
 build
 
@@ -33,3 +36,9 @@ build
 *.exe
 *.out
 *.app
+
+# VSCode
+.vscode
+
+# MacOS
+.DS_Store

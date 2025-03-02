@@ -23,4 +23,5 @@ include("${CMAKE_SOURCE_DIR}/src/local.cmake")
 # Executable
 # ---------------------------------------------------------------------------
 add_executable(ic main.cpp)
+target_link_libraries(ic ${PROJECT_NAME})
 

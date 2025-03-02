@@ -4,4 +4,4 @@ FILE (GLOB_RECURSE IC_SRC ./*.cpp ./*.hpp)
 
 # Library
 # ---------------------------------------------------------------------------
-add_library(${project_name} STATIC ${IC_SRC})
+add_library(${PROJECT_NAME} STATIC ${IC_SRC})
