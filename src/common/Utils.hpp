@@ -56,6 +56,46 @@ inline const char* jumpToIthDelimiter(
   return begin;
 }
 //---------------------------------------------------------------------------
+/// @brief Dump a buffer to an ostream.
+/// @param data The data that should be dumped.
+/// @param length The length of the data.
+/// @param out The output stream.
+/// @param width The line width.
+inline void hex_dump(const std::byte* data, size_t length, std::ostream& out, std::size_t width = 16) {
+  const auto* begin = reinterpret_cast<const char*>(data);
+  const auto* end = begin + length;
+  size_t line_length = 0;
+  for (const auto* line = begin; line != end; line += line_length) {
+    out.width(4);
+    out.fill('0');
+    out << std::hex << line - begin << " : ";
+    line_length = std::min(width, static_cast<std::size_t>(end - line));
+    for (std::size_t pass = 1; pass <= 2; ++pass) {
+        for (const char* next = line; next != end && next != line + width; ++next) {
+            char ch = *next;
+            switch(pass) {
+                case 1:
+                    out << (ch < 32 ? '.' : ch);
+                    break;
+                case 2:
+                    if (next != line) {
+                        out << " ";
+                    }
+                    out.width(2);
+                    out.fill('0');
+                    out << std::hex << std::uppercase << static_cast<int>(static_cast<unsigned char>(ch));
+                    break;
+            }
+        }
+        if (pass == 1 && line_length != width) {
+            out << std::string(width - line_length, ' ');
+        }
+        out << " ";
+    }
+    out << std::endl;
+  }
+}
+//---------------------------------------------------------------------------
 }  // utils
 //---------------------------------------------------------------------------
 }  // compression
