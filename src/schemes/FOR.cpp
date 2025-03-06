@@ -23,17 +23,8 @@ void FOR::compress(
     normalized.push_back(src[i] - layout.reference);
   }
 
-  // TODO: Extract this into a global compressor functionality
-
   // Compress
-  INTEGER diff = stats->max - stats->min;
-  if(diff <= std::numeric_limits<u8>::max()) {
-    layout.next_scheme = static_cast<u8>(CompressionSchemeType::kBitPacking8);
-    pack<u8>(normalized.data(), layout.data, total_size, diff);
-  } else if(diff <= std::numeric_limits<u16>::max()) {
-    layout.next_scheme = static_cast<u8>(CompressionSchemeType::kBitPacking16);
-    pack<u16>(normalized.data(), layout.data, total_size, diff);
-  }
+  layout.pack_size = BitPacking::pack(normalized.data(), layout.data, total_size, stats->max - stats->min);
 }
 //---------------------------------------------------------------------------
 void FOR::decompress(
@@ -44,15 +35,8 @@ void FOR::decompress(
 ) {
   const auto& layout = *reinterpret_cast<const FORLayout*>(src);
 
-  // TODO: Extract this into a global decompressor functionality
-
   // Decompress
-  auto scheme = static_cast<CompressionSchemeType>(layout.next_scheme);
-  if(scheme == CompressionSchemeType::kBitPacking8) {
-    unpack<u8>(dest, layout.data, total_size);
-  } else if(scheme == CompressionSchemeType::kBitPacking16) {
-    unpack<u16>(dest, layout.data, total_size);
-  }
+  BitPacking::unpack(dest, layout.data, total_size, layout.pack_size);
 
   // Denormalize
   for(u32 i = 0; i < total_size; ++i) {
