@@ -14,7 +14,7 @@ class Column {
     //---------------------------------------------------------------------------
     Column() = delete;
     //---------------------------------------------------------------------------
-    explicit Column(vector<INTEGER> data) : data(std::move(data)) {}
+    explicit Column(vector<INTEGER> data) : raw_data(std::move(data)) {}
     //---------------------------------------------------------------------------
     /// @brief Reads a column from a file.
     /// @param path The path to the file.
@@ -29,10 +29,14 @@ class Column {
       return column;
     }
     //---------------------------------------------------------------------------
-    vector<INTEGER> data;
+    INTEGER* data();
+    //---------------------------------------------------------------------------
+    u32 size();
 
   private:
     void readFile(utils::MemoryMappedFile& file, u32 column_id, char delimiter);
+    //---------------------------------------------------------------------------
+    vector<INTEGER> raw_data;
 };
 //---------------------------------------------------------------------------
 }  // namespace storage

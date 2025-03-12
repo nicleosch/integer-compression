@@ -14,11 +14,19 @@ void Column::readFile(utils::MemoryMappedFile& file, u32 column_id, char delimit
     
     INTEGER value;
     std::from_chars(value_begin + 1, iter, value);
-    data.push_back(value);
+    raw_data.push_back(value);
 
     iter = utils::jumpToIthDelimiter(value_begin, end, '\n', 1);
     ++iter;
   }
+}
+//---------------------------------------------------------------------------
+INTEGER* Column::data() {
+  return raw_data.data();
+}
+//---------------------------------------------------------------------------
+u32 Column::size() {
+  return raw_data.size();
 }
 //---------------------------------------------------------------------------
 }  // namespace storage
