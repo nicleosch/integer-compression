@@ -28,9 +28,10 @@ class BitPacking {
       } else if(pack_size <= 16) {
         compress<u16>(src, dest, size, pack_size);
         return 16;
+      } else {
+        compress<u32>(src, dest, size, pack_size);
+        return 32;
       }
-
-      return 32;
     }
     //---------------------------------------------------------------------------
     /// @brief Unpack the given data.
@@ -43,6 +44,8 @@ class BitPacking {
         decompress<u8>(dest, src, size);
       } else if(pack_size <= 16) {
         decompress<u16>(dest, src, size);
+      } else {
+        decompress<u32>(dest, src, size);
       }
     }
   private:
