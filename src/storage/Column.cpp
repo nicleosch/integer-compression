@@ -10,10 +10,11 @@ void Column::readFile(utils::MemoryMappedFile& file, u32 column_id, char delimit
 
   while(iter != end) {
     auto value_begin = utils::jumpToIthDelimiter(iter, end, delimiter, column_id);
+    if(column_id > 0) ++value_begin;
     iter = utils::jumpToIthDelimiter(value_begin, end, delimiter, 1);
     
     INTEGER value;
-    std::from_chars(value_begin + 1, iter, value);
+    std::from_chars(value_begin, iter, value);
     raw_data.push_back(value);
 
     iter = utils::jumpToIthDelimiter(value_begin, end, '\n', 1);
