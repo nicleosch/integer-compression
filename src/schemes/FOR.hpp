@@ -12,7 +12,7 @@ struct FORLayout {
 //---------------------------------------------------------------------------
 class FOR : public CompressionScheme {
   public:
-    void compress(
+    u32 compress(
         const INTEGER* src,
         u8* dest,
         const Statistics* stats,

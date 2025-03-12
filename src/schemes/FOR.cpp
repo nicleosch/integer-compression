@@ -5,7 +5,7 @@
 //---------------------------------------------------------------------------
 namespace compression {
 //---------------------------------------------------------------------------
-void FOR::compress(
+u32 FOR::compress(
     const INTEGER* src,
     u8* dest,
     const Statistics* stats,
@@ -25,6 +25,8 @@ void FOR::compress(
 
   // Compress
   layout.pack_size = BitPacking::pack(normalized.data(), layout.data, total_size, stats->max - stats->min);
+
+  return offsetof(FORLayout, data) + layout.pack_size / 8 * total_size;
 }
 //---------------------------------------------------------------------------
 void FOR::decompress(

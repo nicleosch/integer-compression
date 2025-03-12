@@ -20,7 +20,8 @@ class CompressionScheme {
     /// @param stats Statistics for each block in the source data.
     /// @param total_size The number of integers over all blocks.
     /// @param block_size The number of integers within a block.
-    virtual void compress(
+    /// @return The size of the compressed data in bytes.
+    virtual u32 compress(
         const INTEGER* src,
         u8* dest,
         const Statistics* stats,

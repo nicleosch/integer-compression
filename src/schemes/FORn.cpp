@@ -6,7 +6,7 @@
 //---------------------------------------------------------------------------
 namespace compression {
 //---------------------------------------------------------------------------
-void FORn::compress(
+u32 FORn::compress(
   const INTEGER* src,
   u8* dest,
   const Statistics* stats,
@@ -39,6 +39,7 @@ void FORn::compress(
     src += size;
   }
 
+  return sizeof(FORnLayout) + block_count * sizeof(FORnSlot) + offset;
 }
 //---------------------------------------------------------------------------
 void FORn::decompress(
