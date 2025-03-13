@@ -24,7 +24,7 @@ u32 FOR::compress(
   }
 
   // Compress
-  layout.pack_size = BitPacking::pack(normalized.data(), layout.data, total_size, stats->max - stats->min);
+  layout.pack_size = BitPacking::packFixed(normalized.data(), layout.data, total_size, stats->max - stats->min);
 
   return offsetof(FORLayout, data) + layout.pack_size / 8 * total_size;
 }

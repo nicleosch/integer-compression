@@ -90,7 +90,7 @@ u8 FORn::compressBlock(
   }
 
   // Compress
-  u8 pack_size = BitPacking::pack(normalized.data(), dest, size, stats.max - stats.min);
+  u8 pack_size = BitPacking::packFixed(normalized.data(), dest, size, stats.max - stats.min);
 
   return pack_size;
 }
