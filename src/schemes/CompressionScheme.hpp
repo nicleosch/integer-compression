@@ -8,6 +8,7 @@ namespace compression {
 enum class CompressionSchemeType : u8 {
   kFOR = 1,
   kFORn = 2,
+  kAdaptiveFORn = 3,
 };
 //---------------------------------------------------------------------------
 class CompressionScheme {

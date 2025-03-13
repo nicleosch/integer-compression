@@ -1,6 +1,6 @@
 #pragma once
 //---------------------------------------------------------------------------
-#include "schemes/CompressionScheme.hpp"
+#include "schemes/FOR.hpp"
 //---------------------------------------------------------------------------
 namespace compression {
 //---------------------------------------------------------------------------
@@ -19,7 +19,7 @@ struct FORnLayout {
   u8 data[];
 };
 //---------------------------------------------------------------------------
-class FORn : public CompressionScheme {
+class FORn : public FOR {
   public:
     u32 compress(
       const INTEGER* src,
@@ -37,16 +37,16 @@ class FORn : public CompressionScheme {
     ) override;
     //---------------------------------------------------------------------------
     CompressionSchemeType getType() override;
-
-  private:
-    u8 compressBlock(
+  
+  protected:
+    u32 compressImpl(
       const INTEGER* src,
       u8* dest,
-      FORnSlot& slot,
-      const Statistics& stats,
-      const u32 size
+      const Statistics* stats,
+      const u32 total_size,
+      const u16 block_size,
+      u8(*pack_func)(const INTEGER*, u8*, const u32, INTEGER)
     );
-
 };
 //---------------------------------------------------------------------------
 }  // namespace compression

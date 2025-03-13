@@ -1,16 +1,10 @@
 #pragma once
 //---------------------------------------------------------------------------
-#include "schemes/CompressionScheme.hpp"
+#include "schemes/FORn.hpp"
 //---------------------------------------------------------------------------
 namespace compression {
 //---------------------------------------------------------------------------
-struct FORLayout {
-  INTEGER reference;
-  u8 pack_size;
-  u8 data[];
-};
-//---------------------------------------------------------------------------
-class FOR : public CompressionScheme {
+class AdaptiveFORn : public FORn {
   public:
     u32 compress(
       const INTEGER* src,
@@ -28,23 +22,6 @@ class FOR : public CompressionScheme {
     ) override;
     //---------------------------------------------------------------------------
     CompressionSchemeType getType() override;
-  
-  protected:
-    u8 compressImpl(
-      const INTEGER* src,
-      u8* dest,
-      const Statistics* stats,
-      const u32 total_size,
-      u8(*bitpack_func)(const INTEGER*, u8*, const u32, INTEGER)
-    );
-    //---------------------------------------------------------------------------
-    void decompressImpl(
-      INTEGER* dest,
-      const u8* src,
-      const u32 total_size,
-      const u32 reference,
-      const u8 pack_size
-    );
 };
 //---------------------------------------------------------------------------
-}  // compression
+}  // namespace compression
