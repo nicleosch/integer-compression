@@ -1,3 +1,5 @@
+#include <cmath>
+//---------------------------------------------------------------------------
 #include "compression/Compressor.hpp"
 #include "schemes/AdaptiveFORn.hpp"
 #include "schemes/FOR.hpp"
