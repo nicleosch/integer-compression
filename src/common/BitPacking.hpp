@@ -6,10 +6,6 @@
 //---------------------------------------------------------------------------
 namespace compression {
 //---------------------------------------------------------------------------
-template <typename T> struct BitPackingLayout {
-  T data[];
-};
-//---------------------------------------------------------------------------
 class BitPacking {
 public:
   /// @brief Bitpack the given data into fixed bit-widths (8, 16 or 32).
@@ -84,7 +80,7 @@ private:
   template <typename T>
   static void compress(const INTEGER *src, u8 *dest, const u32 size,
                        const u8 pack_size) {
-    auto &layout = *reinterpret_cast<BitPackingLayout<T> *>(dest);
+    auto data = reinterpret_cast<T *>(dest);
 
     // The size of T in bits.
     u8 t_size = sizeof(T) * 8;
@@ -96,7 +92,7 @@ private:
     for (u32 src_i = 0; src_i < size; ++src_i) {
       if (rest >= pack_size) { // There is space for another value.
         rest -= pack_size;
-        layout.data[dest_i] |= (static_cast<T>(src[src_i]) << rest);
+        data[dest_i] |= (static_cast<T>(src[src_i]) << rest);
       } else { // There is not enough space for another value, thus wrap the
                // value.
         ++dest_i;
@@ -112,9 +108,8 @@ private:
         T left_mask = ((1ULL << (pack_size + 1)) - 1) << right_bits;
 
         auto value = static_cast<T>(src[src_i]);
-        layout.data[dest_i - 1] |=
-            ((value & left_mask) >> (pack_size - left_bits));
-        layout.data[dest_i] |= ((value & right_mask) << (t_size - right_bits));
+        data[dest_i - 1] |= ((value & left_mask) >> (pack_size - left_bits));
+        data[dest_i] |= ((value & right_mask) << (t_size - right_bits));
 
         rest = t_size - right_bits;
       }
@@ -124,7 +119,7 @@ private:
   template <typename T>
   static void decompress(INTEGER *dest, const u8 *src, const u32 size,
                          const u8 pack_size) {
-    const auto &layout = *reinterpret_cast<const BitPackingLayout<T> *>(src);
+    const auto &data = reinterpret_cast<const T *>(src);
 
     // The size of T in bits.
     u8 t_size = sizeof(T) * 8;
@@ -138,8 +133,7 @@ private:
     for (u32 dest_i = 0; dest_i < size; ++dest_i) {
       if (rest >= pack_size) { // There is another value in current T.
         rest -= pack_size;
-        dest[dest_i] =
-            static_cast<INTEGER>((layout.data[src_i] >> rest) & pack_mask);
+        dest[dest_i] = static_cast<INTEGER>((data[src_i] >> rest) & pack_mask);
       } else { // The value is wrapped to the next T.
         ++src_i;
 
@@ -154,9 +148,8 @@ private:
         // A mask for the part that is located in the left T.
         T left_mask = (1ULL << (left_bits)) - 1;
 
-        T left_part = (layout.data[src_i - 1] & left_mask) << right_bits;
-        T right_part =
-            (layout.data[src_i] & right_mask) >> (t_size - right_bits);
+        T left_part = (data[src_i - 1] & left_mask) << right_bits;
+        T right_part = (data[src_i] & right_mask) >> (t_size - right_bits);
         dest[dest_i] = static_cast<INTEGER>(left_part | right_part);
 
         rest = t_size - right_bits;

@@ -14,14 +14,14 @@ u32 FORn::compress(const INTEGER *src, u8 *dest, const Statistics *stats,
 void FORn::decompress(INTEGER *dest, const u8 *src, const u32 total_size,
                       const u16 block_size) {
   const auto &layout = *reinterpret_cast<const FORnLayout *>(src);
-  const auto &header = *reinterpret_cast<const FORnSlots *>(layout.data);
+  const auto &header = reinterpret_cast<const FORnSlot *>(layout.data);
 
   const u32 block_count =
       std::ceil(static_cast<double>(total_size) / block_size);
 
   const u8 *read_ptr;
   for (u32 block_i = 0; block_i < block_count; ++block_i) {
-    auto &slot = header.slots[block_i];
+    auto &slot = header[block_i];
     u32 size = std::min(static_cast<u32>(block_size),
                         total_size - block_i * block_size);
     read_ptr = layout.data + layout.data_offset + slot.offset;
@@ -38,9 +38,8 @@ u32 FORn::compressImpl(const INTEGER *src, u8 *dest, const Statistics *stats,
                        const u32 total_size, const u16 block_size,
                        u8 (*bitpack_func)(const INTEGER *, u8 *, const u32,
                                           INTEGER)) {
-  // Layout: SLOTS | COMPRESSED DATA
   auto &layout = *reinterpret_cast<FORnLayout *>(dest);
-  auto &header = *reinterpret_cast<FORnSlots *>(layout.data);
+  auto header = reinterpret_cast<FORnSlot *>(layout.data);
 
   const u32 block_count =
       std::ceil(static_cast<double>(total_size) / block_size);
@@ -51,7 +50,7 @@ u32 FORn::compressImpl(const INTEGER *src, u8 *dest, const Statistics *stats,
   u8 *data_ptr = layout.data + layout.data_offset;
   u32 offset = 0;
   for (u32 block_i = 0; block_i < block_count; ++block_i) {
-    auto &slot = header.slots[block_i];
+    auto &slot = header[block_i];
     u32 size = std::min(static_cast<u32>(block_size),
                         total_size - block_i * block_size);
 
