@@ -1,6 +1,6 @@
 #include <cassert>
 //---------------------------------------------------------------------------
-#include "common/BitPacking.hpp"
+#include "bitpacking/BitPacking.hpp"
 #include "schemes/FOR.hpp"
 //---------------------------------------------------------------------------
 namespace compression {

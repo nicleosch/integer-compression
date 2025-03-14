@@ -1,6 +1,6 @@
 #include <cmath>
 //---------------------------------------------------------------------------
-#include "common/BitPacking.hpp"
+#include "bitpacking/BitPacking.hpp"
 #include "schemes/FORn.hpp"
 //---------------------------------------------------------------------------
 namespace compression {

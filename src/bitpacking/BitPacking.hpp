@@ -15,20 +15,7 @@ public:
   /// @param diff The difference between min and max in the source data.
   /// @return The amount of bits used to pack the data.
   static u8 packFixed(const INTEGER *src, u8 *dest, const u32 size,
-                      INTEGER diff) {
-    auto pack_size = packSizeFor(diff);
-
-    if (pack_size <= 8) {
-      compress<u8>(src, dest, size, 8);
-      return 8;
-    } else if (pack_size <= 16) {
-      compress<u16>(src, dest, size, 16);
-      return 16;
-    } else {
-      compress<u32>(src, dest, size, 32);
-      return 32;
-    }
-  }
+                      INTEGER diff);
   //---------------------------------------------------------------------------
   /// @brief Bitpack the given data into arbitrary bit-widths.
   /// @param src The integers to be packed.
@@ -37,19 +24,7 @@ public:
   /// @param diff The difference between min and max in the source data.
   /// @return The amount of bits used to pack the data.
   static u8 packArbitrary(const INTEGER *src, u8 *dest, const u32 size,
-                          INTEGER diff) {
-    auto pack_size = packSizeFor(diff);
-
-    if (pack_size <= 8) {
-      compress<u8>(src, dest, size, pack_size);
-    } else if (pack_size <= 16) {
-      compress<u16>(src, dest, size, pack_size);
-    } else {
-      compress<u32>(src, dest, size, pack_size);
-    }
-
-    return pack_size;
-  }
+                          INTEGER diff);
   //---------------------------------------------------------------------------
   /// @brief Unpack the given data.
   /// @param dest The resulting integers.
@@ -57,25 +32,10 @@ public:
   /// @param size The amount of integers to be unpacked.
   /// @param pack_size The amount of bits used for packing.
   static void unpack(INTEGER *dest, const u8 *src, const u32 size,
-                     const u8 pack_size) {
-    if (pack_size <= 8) {
-      decompress<u8>(dest, src, size, pack_size);
-    } else if (pack_size <= 16) {
-      decompress<u16>(dest, src, size, pack_size);
-    } else {
-      decompress<u32>(dest, src, size, pack_size);
-    }
-  }
+                     const u8 pack_size);
 
 private:
-  static u8 packSizeFor(INTEGER value) {
-    if (value < 0)
-      return 32; // TODO: Improve handling negative integers
-    if (value == 0)
-      value += 1;
-    return static_cast<u8>(sizeof(INTEGER) * 8) -
-           __builtin_clz(static_cast<u32>(value));
-  }
+  static u8 packSizeFor(INTEGER value);
   //---------------------------------------------------------------------------
   template <typename T>
   static void compress(const INTEGER *src, u8 *dest, const u32 size,

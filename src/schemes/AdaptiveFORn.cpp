@@ -1,5 +1,5 @@
 #include "schemes/AdaptiveFORn.hpp"
-#include "common/BitPacking.hpp"
+#include "bitpacking/BitPacking.hpp"
 //---------------------------------------------------------------------------
 namespace compression {
 //---------------------------------------------------------------------------
