@@ -1,56 +1,91 @@
+#include <simdcomp.h>
+//---------------------------------------------------------------------------
 #include "bitpacking/BitPacking.hpp"
 //---------------------------------------------------------------------------
 namespace compression {
 //---------------------------------------------------------------------------
-u8 BitPacking::packFixed(const INTEGER *src, u8 *dest, const u32 size,
-                         INTEGER diff) {
-  auto pack_size = packSizeFor(diff);
-
-  if (pack_size <= 8) {
-    compress<u8>(src, dest, size, 8);
-    return 8;
-  } else if (pack_size <= 16) {
-    compress<u16>(src, dest, size, 16);
-    return 16;
-  } else {
-    compress<u32>(src, dest, size, 32);
-    return 32;
+namespace bitpacking {
+//---------------------------------------------------------------------------
+static void pack64(const INTEGER *src, u8 *dest, const u8 pack_size) {
+  simdpack_shortlength(reinterpret_cast<const u32*>(src), 64, reinterpret_cast<__m128i*>(dest), pack_size);
+}
+//---------------------------------------------------------------------------
+static void pack128(const INTEGER *src, u8 *dest, const u8 pack_size) {
+  simdpack(reinterpret_cast<const u32*>(src), reinterpret_cast<__m128i*>(dest), pack_size);
+}
+//---------------------------------------------------------------------------
+static void pack256(const INTEGER *src, u8 *dest, const u8 pack_size) {
+  avxpack(reinterpret_cast<const u32*>(src), reinterpret_cast<__m256i*>(dest), pack_size);
+}
+//---------------------------------------------------------------------------
+static void pack512(const INTEGER *src, u8 *dest, const u8 pack_size) {
+  avx512pack(reinterpret_cast<const u32*>(src), reinterpret_cast<__m512i*>(dest), pack_size);
+}
+//---------------------------------------------------------------------------
+static void packArbitrary(const INTEGER *src, u8 *dest, const u32 length, const u8 pack_size) {
+  simdpack_length(reinterpret_cast<const u32*>(src), length, reinterpret_cast<__m128i*>(dest), pack_size);
+}
+//---------------------------------------------------------------------------
+static void unpack64(INTEGER *dest, const u8 *src, const u8 pack_size) {
+  simdunpack_shortlength(reinterpret_cast<const __m128i*>(src), 64, reinterpret_cast<u32*>(dest), pack_size);
+}
+//---------------------------------------------------------------------------
+static void unpack128(INTEGER *dest, const u8 *src, const u8 pack_size) {
+  simdunpack(reinterpret_cast<const __m128i*>(src), reinterpret_cast<u32*>(dest), pack_size);
+}
+//---------------------------------------------------------------------------
+static void unpack256(INTEGER *dest, const u8 *src, const u8 pack_size) {
+  avxunpack(reinterpret_cast<const __m256i*>(src), reinterpret_cast<u32*>(dest), pack_size);
+}
+//---------------------------------------------------------------------------
+static void unpack512(INTEGER *dest, const u8 *src, const u8 pack_size) {
+  avx512unpack(reinterpret_cast<const __m512i*>(src), reinterpret_cast<u32*>(dest), pack_size);
+}
+//---------------------------------------------------------------------------
+static void unpackArbitrary(INTEGER *dest, const u8 *src, const u32 length, const u8 pack_size) {
+  simdunpack_length(reinterpret_cast<const __m128i*>(src), length, reinterpret_cast<u32*>(dest), pack_size);
+}
+//---------------------------------------------------------------------------
+void pack(const INTEGER *src, u8 *dest, const u32 length, const u8 pack_size) {
+  switch(length) {
+  case 64:  
+    pack64(src, dest, pack_size);
+    return;
+  case 128:
+    pack128(src, dest, pack_size);
+    return;
+  case 256:
+    pack256(src, dest, pack_size);
+    return;
+  case 512:
+    pack512(src, dest, pack_size);
+    return;
+  default:
+    packArbitrary(src, dest, length, pack_size);
+    break;
   }
 }
 //---------------------------------------------------------------------------
-u8 BitPacking::packArbitrary(const INTEGER *src, u8 *dest, const u32 size,
-                             INTEGER diff) {
-  auto pack_size = packSizeFor(diff);
-
-  if (pack_size <= 8) {
-    compress<u8>(src, dest, size, pack_size);
-  } else if (pack_size <= 16) {
-    compress<u16>(src, dest, size, pack_size);
-  } else {
-    compress<u32>(src, dest, size, pack_size);
-  }
-
-  return pack_size;
-}
-//---------------------------------------------------------------------------
-void BitPacking::unpack(INTEGER *dest, const u8 *src, const u32 size,
-                        const u8 pack_size) {
-  if (pack_size <= 8) {
-    decompress<u8>(dest, src, size, pack_size);
-  } else if (pack_size <= 16) {
-    decompress<u16>(dest, src, size, pack_size);
-  } else {
-    decompress<u32>(dest, src, size, pack_size);
+void unpack(INTEGER *dest, const u8 *src, const u32 length, const u8 pack_size) {
+  switch(length) {
+  case 64:  
+    unpack64(dest, src, pack_size);
+    return;
+  case 128:
+    unpack128(dest, src, pack_size);
+    return;
+  case 256:
+    unpack256(dest, src, pack_size);
+    return;
+  case 512:
+    unpack512(dest, src, pack_size);
+    return;
+  default:
+    unpackArbitrary(dest, src, length, pack_size);
+    break;
   }
 }
 //---------------------------------------------------------------------------
-u8 BitPacking::packSizeFor(INTEGER value) {
-  if (value < 0)
-    return 32; // TODO: Improve handling negative integers
-  if (value == 0)
-    value += 1;
-  return static_cast<u8>(sizeof(INTEGER) * 8) -
-         __builtin_clz(static_cast<u32>(value));
-}
+}  // namespace bitpacking
 //---------------------------------------------------------------------------
-} // namespace compression
+}  // namespace compression
