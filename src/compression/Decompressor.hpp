@@ -1,8 +1,8 @@
 #pragma once
 //---------------------------------------------------------------------------
 #include "common/Units.hpp"
-#include "schemes/AdaptiveFORn.hpp"
 #include "schemes/FORn.hpp"
+#include "schemes/TinyBlocks.hpp"
 #include "storage/Column.hpp"
 //---------------------------------------------------------------------------
 namespace compression {
@@ -25,16 +25,16 @@ void decompressFORn(vector<INTEGER> &dest, u32 total_size, u8 *src) {
   cForN.decompress<kBlockSize>(dest.data(), total_size, src);
 }
 //---------------------------------------------------------------------------
-/// @brief Decompresses given adaptive blockwise Frame-Of-Reference compressed
-/// source data to provided destination.
+/// @brief Decompresses given TinyBlocks-compressed source data to
+/// provided destination.
 template <const u16 kBlockSize>
-void decompressAdaptiveFORn(vector<INTEGER> &dest, u32 total_size, u8 *src) {
+void decompressTinyBlocks(vector<INTEGER> &dest, u32 total_size, u8 *src) {
   // allocate space
   dest.reserve(total_size);
 
   // decompress
-  AdaptiveFORn cAdaptiveForN;
-  cAdaptiveForN.decompress<kBlockSize>(dest.data(), total_size, src);
+  TinyBlocks cTinyBlocks;
+  cTinyBlocks.decompress<kBlockSize>(dest.data(), total_size, src);
 }
 //---------------------------------------------------------------------------
 } // namespace decompressor

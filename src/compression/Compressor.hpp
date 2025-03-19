@@ -4,8 +4,8 @@
 #include <memory>
 //---------------------------------------------------------------------------
 #include "common/Units.hpp"
-#include "schemes/AdaptiveFORn.hpp"
 #include "schemes/FORn.hpp"
+#include "schemes/TinyBlocks.hpp"
 #include "statistics/Statistics.hpp"
 #include "storage/Column.hpp"
 //---------------------------------------------------------------------------
@@ -40,13 +40,12 @@ u32 compressFORn(storage::Column col, std::unique_ptr<u8[]> &dest) {
                                     stats.data());
 }
 //---------------------------------------------------------------------------
-/// @brief Compresses given column to provided destination using
-/// blockwise Frame-Of-Reference encoding and subsequent blockwise bitpacking.
-/// Compared to the regular FORn, this compression scheme packs data into
-/// arbitrary bit widths.
+/// @brief Compresses given column to provided destination using TinyBlocks-
+/// compression. Compared to the regular FORn, this compression scheme packs
+/// data into arbitrary bit widths.
 /// @return The size of the compressed data in bytes.
 template <const u16 kBlockSize>
-u32 compressAdaptiveFORn(storage::Column col, std::unique_ptr<u8[]> &dest) {
+u32 compressTinyBlocks(storage::Column col, std::unique_ptr<u8[]> &dest) {
   // allocate space
   dest = std::make_unique<u8[]>(col.size() * sizeof(INTEGER));
 
@@ -59,9 +58,9 @@ u32 compressAdaptiveFORn(storage::Column col, std::unique_ptr<u8[]> &dest) {
   }
 
   // compress
-  AdaptiveFORn cAdaptiveForN;
-  return cAdaptiveForN.compress<kBlockSize>(col.data(), col.size(), dest.get(),
-                                            stats.data());
+  TinyBlocks cTinyBlocks;
+  return cTinyBlocks.compress<kBlockSize>(col.data(), col.size(), dest.get(),
+                                          stats.data());
 }
 //---------------------------------------------------------------------------
 } // namespace compressor

@@ -8,30 +8,30 @@
 //---------------------------------------------------------------------------
 namespace compression {
 //---------------------------------------------------------------------------
-struct AdaptiveFORnSlot {
+struct TinyBlocksSlot {
   INTEGER reference;
   u32 offset;
   u8 pack_size;
 };
 //---------------------------------------------------------------------------
-struct AdaptiveFORnLayout {
+struct TinyBlocksLayout {
   u32 data_offset;
   // SLOTS [] | COMPRESSED DATA []
   u8 data[];
 };
 //---------------------------------------------------------------------------
-class AdaptiveFORn {
+class TinyBlocks {
 public:
   //---------------------------------------------------------------------------
   template <const u16 kBlockSize>
   u32 compress(const INTEGER *src, const u32 total_size, u8 *dest,
                const Statistics *stats) {
-    auto &layout = *reinterpret_cast<AdaptiveFORnLayout *>(dest);
-    auto header = reinterpret_cast<AdaptiveFORnSlot *>(layout.data);
+    auto &layout = *reinterpret_cast<TinyBlocksLayout *>(dest);
+    auto header = reinterpret_cast<TinyBlocksSlot *>(layout.data);
 
     const u32 block_count = total_size / kBlockSize;
 
-    layout.data_offset = block_count * sizeof(AdaptiveFORnSlot);
+    layout.data_offset = block_count * sizeof(TinyBlocksSlot);
 
     // Compress data
     u8 *data_ptr = layout.data + layout.data_offset;
@@ -49,15 +49,14 @@ public:
       src += kBlockSize;
     }
 
-    return sizeof(AdaptiveFORnLayout) + block_count * sizeof(AdaptiveFORnSlot) +
+    return sizeof(TinyBlocksLayout) + block_count * sizeof(TinyBlocksSlot) +
            offset;
   }
   //---------------------------------------------------------------------------
   template <const u16 kBlockSize>
   void decompress(INTEGER *dest, const u32 total_size, const u8 *src) {
-    const auto &layout = *reinterpret_cast<const AdaptiveFORnLayout *>(src);
-    const auto &header =
-        reinterpret_cast<const AdaptiveFORnSlot *>(layout.data);
+    const auto &layout = *reinterpret_cast<const TinyBlocksLayout *>(src);
+    const auto &header = reinterpret_cast<const TinyBlocksSlot *>(layout.data);
 
     const u32 block_count = total_size / kBlockSize;
 
@@ -75,8 +74,7 @@ public:
 private:
   //---------------------------------------------------------------------------
   template <const u16 kLength>
-  void compressImpl(const INTEGER *src, u8 *dest,
-                    const AdaptiveFORnSlot &slot) {
+  void compressImpl(const INTEGER *src, u8 *dest, const TinyBlocksSlot &slot) {
     // Normalize
     vector<INTEGER> normalized;
     for (u32 i = 0; i < kLength; ++i) {
@@ -89,7 +87,7 @@ private:
   //---------------------------------------------------------------------------
   template <const u16 kLength>
   void decompressImpl(INTEGER *dest, const u8 *src,
-                      const AdaptiveFORnSlot &slot) {
+                      const TinyBlocksSlot &slot) {
     // Decompress
     bitpacking::unpack(dest, src, kLength, slot.pack_size);
 
