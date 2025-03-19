@@ -3,7 +3,8 @@
 //---------------------------------------------------------------------------
 #pragma once
 //---------------------------------------------------------------------------
-#include "schemes/CompressionScheme.hpp"
+#include "common/Units.hpp"
+#include "statistics/Statistics.hpp"
 //---------------------------------------------------------------------------
 namespace compression {
 //---------------------------------------------------------------------------
@@ -13,51 +14,25 @@ struct FORLayout {
   u8 data[];
 };
 //---------------------------------------------------------------------------
-class FOR : public CompressionScheme {
+class FOR {
 public:
-  u32 compress(const INTEGER *src, u8 *dest, const Statistics *stats,
-               const u32 total_size, const u16 block_size) override;
   //---------------------------------------------------------------------------
-  void decompress(INTEGER *dest, const u8 *src, const u32 total_size,
-                  const u16 block_size) override;
+  u32 compress(const INTEGER *src, const u32 total_size, u8 *dest,
+               const Statistics *stats);
   //---------------------------------------------------------------------------
-  CompressionSchemeType getType() override;
+  void decompress(INTEGER *dest, const u32 total_size, const u8 *src);
 
-protected:
-  u8 compressDispatch(const INTEGER *src, u8 *dest, const Statistics *stats,
-                      const u32 size) {
-    if (stats->required_bits <= 8) {
-      compressImpl<u8>(src, dest, stats, size);
-      return 8;
-    } else if (stats->required_bits <= 16) {
-      compressImpl<u16>(src, dest, stats, size);
-      return 16;
-    } else {
-      compressImpl<u32>(src, dest, stats, size);
-      return 32;
-    }
-  }
+private:
   //---------------------------------------------------------------------------
-  void decompressDispatch(INTEGER *dest, const u8 *src, const u32 reference,
-                          const u32 size, const u8 pack_size) {
-    switch (pack_size) {
-    case 8:
-      decompressImpl<u8>(dest, src, reference, size);
-      return;
-    case 16:
-      decompressImpl<u16>(dest, src, reference, size);
-      return;
-    case 32:
-      decompressImpl<u32>(dest, src, reference, size);
-      return;
-    default:
-      break;
-    }
-  }
+  u8 compressDispatch(const INTEGER *src, const u32 size, u8 *dest,
+                      const Statistics *stats);
+  //---------------------------------------------------------------------------
+  void decompressDispatch(INTEGER *dest, const u32 size, const u8 *src,
+                          const u32 reference, const u8 pack_size);
   //---------------------------------------------------------------------------
   template <typename T>
-  void compressImpl(const INTEGER *src, u8 *dest, const Statistics *stats,
-                    const u32 size) {
+  void compressImpl(const INTEGER *src, const u32 size, u8 *dest,
+                    const Statistics *stats) {
     auto data = reinterpret_cast<T *>(dest);
     for (u32 i = 0; i < size; ++i) {
       data[i] = static_cast<T>(src[i] - stats->min);
@@ -65,8 +40,8 @@ protected:
   }
   //---------------------------------------------------------------------------
   template <typename T>
-  void decompressImpl(INTEGER *dest, const u8 *src, const u32 reference,
-                      const u32 size) {
+  void decompressImpl(INTEGER *dest, const u32 size, const u8 *src,
+                      const u32 reference) {
     const auto &data = reinterpret_cast<const T *>(src);
     for (u32 i = 0; i < size; ++i) {
       dest[i] = data[i] + reference;

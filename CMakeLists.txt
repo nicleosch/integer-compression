@@ -20,7 +20,6 @@ add_compile_options(-mavx2 -mavx512f)
 # ---------------------------------------------------------------------------
 include_directories(${CMAKE_SOURCE_DIR}/src)
 
-
 # DEPENDENCIES
 # ---------------------------------------------------------------------------
 set(VENDOR_DIR "${CMAKE_SOURCE_DIR}/vendor/")
@@ -32,5 +31,7 @@ include_directories(${SIMDCOMP_INCLUDE_DIR})
 # ---------------------------------------------------------------------------
 include("${CMAKE_SOURCE_DIR}/src/local.cmake")
 
+# EXECUTABLE
+# ---------------------------------------------------------------------------
 add_executable(ic main.cpp)
 target_link_libraries(ic ${PROJECT_NAME} SIMDcomp)
