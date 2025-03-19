@@ -4,7 +4,7 @@
 //---------------------------------------------------------------------------
 namespace compression {
 //---------------------------------------------------------------------------
-class AdaptiveFORn : public FORn {
+class AdaptiveFORn : public CompressionScheme {
 public:
   u32 compress(const INTEGER *src, u8 *dest, const Statistics *stats,
                const u32 total_size, const u16 block_size) override;
