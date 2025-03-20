@@ -12,9 +12,15 @@ u32 FOR::compress(const INTEGER *src, const u32 total_size, u8 *dest,
 }
 //---------------------------------------------------------------------------
 void FOR::decompress(INTEGER *dest, const u32 total_size, const u8 *src) {
+  decompress(dest, total_size, src, 0);
+}
+//---------------------------------------------------------------------------
+void FOR::decompress(INTEGER *dest, const u32 total_size, const u8 *src,
+                     const u32 offset) {
   const auto &layout = *reinterpret_cast<const FORLayout *>(src);
-  decompressDispatch(dest, total_size, layout.data, layout.reference,
-                     layout.pack_size);
+  decompressDispatch(dest, total_size,
+                     layout.data + offset * (layout.pack_size / 8),
+                     layout.reference, layout.pack_size);
 }
 //---------------------------------------------------------------------------
 u8 FOR::compressDispatch(const INTEGER *src, const u32 size, u8 *dest,

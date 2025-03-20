@@ -55,10 +55,16 @@ public:
   //---------------------------------------------------------------------------
   template <const u16 kBlockSize>
   void decompress(INTEGER *dest, const u32 total_size, const u8 *src) {
+    decompress<kBlockSize>(dest, total_size, src, 0);
+  }
+  //---------------------------------------------------------------------------
+  template <const u16 kBlockSize>
+  void decompress(INTEGER *dest, const u32 total_size, const u8 *src,
+                  const u32 block_offset) {
     const u32 block_count = total_size / kBlockSize;
 
     // Layout: HEADER [kBlockSize] | COMPRESSED DATA
-    const u8 *header_ptr = src;
+    const u8 *header_ptr = src + block_offset * FORnSlot::size();
     const u8 *data_ptr = src;
 
     for (u32 block_i = 0; block_i < block_count; ++block_i) {
