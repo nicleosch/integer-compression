@@ -9,15 +9,16 @@
 namespace compression {
 //---------------------------------------------------------------------------
 struct TinyBlocksSlot {
+  /// The reference of the corresponding frame.
   INTEGER reference;
+  /// The offset into the data array.
   u32 offset;
+  /// The number of bits used to store an integer in corresponding frame.
   u8 pack_size;
-};
-//---------------------------------------------------------------------------
-struct TinyBlocksLayout {
-  u32 data_offset;
-  // SLOTS [] | COMPRESSED DATA []
-  u8 data[];
+  /// The unpadded size of a slot.
+  static u8 size() {
+    return sizeof(reference) + sizeof(offset) + sizeof(pack_size);
+  }
 };
 //---------------------------------------------------------------------------
 class TinyBlocks {
@@ -26,48 +27,55 @@ public:
   template <const u16 kBlockSize>
   u32 compress(const INTEGER *src, const u32 total_size, u8 *dest,
                const Statistics *stats) {
-    auto &layout = *reinterpret_cast<TinyBlocksLayout *>(dest);
-    auto header = reinterpret_cast<TinyBlocksSlot *>(layout.data);
-
     const u32 block_count = total_size / kBlockSize;
 
-    layout.data_offset = block_count * sizeof(TinyBlocksSlot);
+    // Layout: HEADER [kBlockSize] | COMPRESSED DATA
+    u8 *header_ptr = dest;
+    u8 *data_ptr = dest;
 
-    // Compress data
-    u8 *data_ptr = layout.data + layout.data_offset;
-    u32 offset = 0;
+    u32 data_offset = block_count * TinyBlocksSlot::size();
     for (u32 block_i = 0; block_i < block_count; ++block_i) {
-      auto &slot = header[block_i];
+      data_ptr = dest + data_offset;
 
+      // Update header
+      auto &slot = *reinterpret_cast<TinyBlocksSlot *>(header_ptr);
       slot.reference = stats[block_i].min;
       slot.pack_size = stats[block_i].required_bits;
-      slot.offset = offset;
+      slot.offset = data_offset;
 
-      compressImpl<kBlockSize>(src, data_ptr + offset, slot);
+      // Compress frame
+      compressImpl<kBlockSize>(src, data_ptr, slot);
 
-      offset += std::ceil(static_cast<double>(slot.pack_size * kBlockSize) / 8);
+      // Update iterators
+      data_offset +=
+          std::ceil(static_cast<double>(slot.pack_size * kBlockSize) / 8);
       src += kBlockSize;
+      header_ptr += TinyBlocksSlot::size();
     }
 
-    return sizeof(TinyBlocksLayout) + block_count * sizeof(TinyBlocksSlot) +
-           offset;
+    return data_offset;
   }
   //---------------------------------------------------------------------------
   template <const u16 kBlockSize>
   void decompress(INTEGER *dest, const u32 total_size, const u8 *src) {
-    const auto &layout = *reinterpret_cast<const TinyBlocksLayout *>(src);
-    const auto &header = reinterpret_cast<const TinyBlocksSlot *>(layout.data);
-
     const u32 block_count = total_size / kBlockSize;
 
-    const u8 *read_ptr;
+    // Layout: HEADER [kBlockSize] | COMPRESSED DATA
+    const u8 *header_ptr = src;
+    const u8 *data_ptr = src;
+
     for (u32 block_i = 0; block_i < block_count; ++block_i) {
-      auto &slot = header[block_i];
 
-      read_ptr = layout.data + layout.data_offset + slot.offset;
-      decompressImpl<kBlockSize>(dest, read_ptr, slot);
+      // Read header
+      auto &slot = *reinterpret_cast<const TinyBlocksSlot *>(header_ptr);
+      data_ptr = src + slot.offset;
 
+      // Decompress payload
+      decompressImpl<kBlockSize>(dest, data_ptr, slot);
+
+      // Update iterators
       dest += kBlockSize;
+      header_ptr += 9;
     }
   }
 

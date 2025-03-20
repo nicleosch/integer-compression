@@ -8,15 +8,16 @@
 namespace compression {
 //---------------------------------------------------------------------------
 struct FORnSlot {
+  /// The reference of the corresponding frame.
   INTEGER reference;
+  /// The offset into the data array.
   u32 offset;
+  /// The number of bits used to store an integer in corresponding frame.
   u8 pack_size;
-};
-//---------------------------------------------------------------------------
-struct FORnLayout {
-  u32 data_offset;
-  // SLOTS [] | COMPRESSED DATA []
-  u8 data[];
+  /// The unpadded size of a slot.
+  static u8 size() {
+    return sizeof(reference) + sizeof(offset) + sizeof(pack_size);
+  }
 };
 //---------------------------------------------------------------------------
 class FORn {
@@ -25,47 +26,54 @@ public:
   template <const u16 kBlockSize>
   u32 compress(const INTEGER *src, const u32 total_size, u8 *dest,
                const Statistics *stats) {
-    auto &layout = *reinterpret_cast<FORnLayout *>(dest);
-    auto header = reinterpret_cast<FORnSlot *>(layout.data);
-
     const u32 block_count = total_size / kBlockSize;
 
-    layout.data_offset = block_count * sizeof(FORnSlot);
+    // Layout: HEADER [kBlockSize] | COMPRESSED DATA
+    u8 *header_ptr = dest;
+    u8 *data_ptr = dest;
 
-    // Compress data
-    u8 *data_ptr = layout.data + layout.data_offset;
-    u32 offset = 0;
+    u32 data_offset = block_count * FORnSlot::size();
     for (u32 block_i = 0; block_i < block_count; ++block_i) {
-      auto &slot = header[block_i];
+      data_ptr = dest + data_offset;
 
+      // Update header
+      auto &slot = *reinterpret_cast<FORnSlot *>(header_ptr);
       slot.pack_size =
-          compressDispatch<kBlockSize>(src, data_ptr + offset, &stats[block_i]);
+          compressDispatch<kBlockSize>(src, data_ptr, &stats[block_i]);
       slot.reference = stats[block_i].min;
-      slot.offset = offset;
+      slot.offset = data_offset;
 
-      offset += std::ceil(static_cast<double>(slot.pack_size * kBlockSize) / 8);
+      // Update iterators
+      data_offset +=
+          std::ceil(static_cast<double>(slot.pack_size * kBlockSize) / 8);
       src += kBlockSize;
+      header_ptr += FORnSlot::size();
     }
 
-    return sizeof(FORnLayout) + block_count * sizeof(FORnSlot) + offset;
+    return data_offset;
   }
   //---------------------------------------------------------------------------
   template <const u16 kBlockSize>
   void decompress(INTEGER *dest, const u32 total_size, const u8 *src) {
-    const auto &layout = *reinterpret_cast<const FORnLayout *>(src);
-    const auto &header = reinterpret_cast<const FORnSlot *>(layout.data);
-
     const u32 block_count = total_size / kBlockSize;
 
-    const u8 *read_ptr;
-    for (u32 block_i = 0; block_i < block_count; ++block_i) {
-      auto &slot = header[block_i];
-      read_ptr = layout.data + layout.data_offset + slot.offset;
+    // Layout: HEADER [kBlockSize] | COMPRESSED DATA
+    const u8 *header_ptr = src;
+    const u8 *data_ptr = src;
 
-      decompressDispatch<kBlockSize>(dest, read_ptr, slot.reference,
+    for (u32 block_i = 0; block_i < block_count; ++block_i) {
+
+      // Read header
+      auto &slot = *reinterpret_cast<const FORnSlot *>(header_ptr);
+      data_ptr = src + slot.offset;
+
+      // Decompress payload
+      decompressDispatch<kBlockSize>(dest, data_ptr, slot.reference,
                                      slot.pack_size);
 
+      // Update iterators
       dest += kBlockSize;
+      header_ptr += 9;
     }
   }
 
