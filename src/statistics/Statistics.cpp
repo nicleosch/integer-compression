@@ -17,10 +17,8 @@ Statistics Statistics::generateFrom(INTEGER *src, u32 count) {
 }
 //---------------------------------------------------------------------------
 u8 Statistics::requiredBits(INTEGER value) {
-  if (value < 0)
-    return 32; // TODO: Improve handling negative integers
   if (value == 0)
-    value += 1;
+    return 65;
   return static_cast<u8>(sizeof(INTEGER) * 8) -
          __builtin_clz(static_cast<u32>(value));
 }

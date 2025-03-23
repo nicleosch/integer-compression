@@ -43,12 +43,10 @@ public:
       slot.pack_size = stats[block_i].required_bits;
       slot.offset = data_offset;
 
-      // Compress frame
-      compressImpl<kBlockSize>(src, data_ptr, slot);
+      // Compress block
+      data_offset += compressDispatch<kBlockSize>(src, data_ptr, slot);
 
       // Update iterators
-      data_offset +=
-          std::ceil(static_cast<double>(slot.pack_size * kBlockSize) / 8);
       src += kBlockSize;
       header_ptr += TinyBlocksSlot::size();
     }
@@ -77,7 +75,7 @@ public:
       data_ptr = src + slot.offset;
 
       // Decompress payload
-      decompressImpl<kBlockSize>(dest, data_ptr, slot);
+      decompressDispatch<kBlockSize>(dest, data_ptr, slot);
 
       // Update iterators
       dest += kBlockSize;
@@ -87,12 +85,37 @@ public:
 
 private:
   //---------------------------------------------------------------------------
+  template <const u16 kBlockSize>
+  u16 compressDispatch(const INTEGER *src, u8 *dest,
+                       const TinyBlocksSlot &slot) {
+    switch (slot.pack_size) {
+    case 65: // OneValue
+      return 0;
+    default: // Regular Bit-Size
+      compressImpl<kBlockSize>(src, dest, slot);
+      return std::ceil(static_cast<double>(slot.pack_size * kBlockSize) / 8);
+    }
+  }
+  //---------------------------------------------------------------------------
+  template <const u16 kBlockSize>
+  void decompressDispatch(INTEGER *dest, const u8 *src,
+                          const TinyBlocksSlot &slot) {
+    switch (slot.pack_size) {
+    case 65: // OneValue
+      broadcast<kBlockSize>(dest, slot.reference);
+      return;
+    default: // Regular Bit-Size
+      decompressImpl<kBlockSize>(dest, src, slot);
+      return;
+    }
+  }
+  //---------------------------------------------------------------------------
   template <const u16 kLength>
   void compressImpl(const INTEGER *src, u8 *dest, const TinyBlocksSlot &slot) {
     // Normalize
-    vector<INTEGER> normalized;
+    vector<INTEGER> normalized(kLength);
     for (u32 i = 0; i < kLength; ++i) {
-      normalized.push_back(src[i] - slot.reference);
+      normalized[i] = src[i] - slot.reference;
     }
 
     // Compress
@@ -108,6 +131,12 @@ private:
     // Denormalize
     for (u32 i = 0; i < kLength; ++i) {
       dest[i] += slot.reference;
+    }
+  }
+  //---------------------------------------------------------------------------
+  template <const u16 kLength> void broadcast(INTEGER *dest, INTEGER value) {
+    for (u16 i = 0; i < kLength; ++i) {
+      dest[i] = value;
     }
   }
 };
