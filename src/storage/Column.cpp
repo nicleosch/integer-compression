@@ -21,6 +21,7 @@ void Column::readFile(utils::MemoryMappedFile &file, u32 column_id,
     raw_data.push_back(value);
 
     iter = utils::jumpToIthDelimiter(value_begin, end, '\n', 1);
+    if(iter == end) return;
     ++iter;
   }
 }
