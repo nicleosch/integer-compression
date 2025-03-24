@@ -13,7 +13,7 @@ namespace cd = c::decompressor;
 //---------------------------------------------------------------------------
 // Verifies that the data remains unchanged after compression and decompression.
 TEST(TinyBlocksTest, DecompressionInvariant) {
-  auto path = "../data/tpch/partsupp.tbl";
+  auto path = "../data/tpch/sf1/partsupp.tbl";
   auto column = cs::Column::fromFile(path, 0, '|');
   constexpr c::u16 kBlockSize = 256;
   column.padToMultipleOf(kBlockSize);

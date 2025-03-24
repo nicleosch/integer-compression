@@ -1,9 +1,21 @@
 #include <cmath>
+#include <cstring>
 //---------------------------------------------------------------------------
 #include "compression/Compressor.hpp"
 #include "schemes/FOR.hpp"
 //---------------------------------------------------------------------------
 namespace compression {
+//---------------------------------------------------------------------------
+u32 compressor::compressUncompressed(storage::Column col,
+                                     std::unique_ptr<u8[]> &dest) {
+  // allocate space
+  dest = std::make_unique<u8[]>(col.size() * sizeof(INTEGER));
+
+  // copy
+  std::memcpy(dest.get(), col.data(), col.size() * sizeof(INTEGER));
+
+  return col.size() * sizeof(INTEGER);
+};
 //---------------------------------------------------------------------------
 u32 compressor::compressFOR(storage::Column col, std::unique_ptr<u8[]> &dest) {
   // allocate space

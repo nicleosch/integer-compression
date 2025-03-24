@@ -11,7 +11,7 @@ namespace cd = compression::decompressor;
 //---------------------------------------------------------------------------
 // Verifies that the data remains unchanged after compression and decompression.
 TEST(FORTest, DecompressionInvariant) {
-  auto path = "../data/tpch/partsupp.tbl";
+  auto path = "../data/tpch/sf1/partsupp.tbl";
   auto column = cs::Column::fromFile(path, 0, '|');
 
   // compress

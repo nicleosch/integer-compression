@@ -13,6 +13,11 @@ namespace compression {
 //---------------------------------------------------------------------------
 namespace compressor {
 //---------------------------------------------------------------------------
+/// @brief Copies the uncompressed column to the target. Used for comparison
+/// with compression schemes.
+/// @return The size of the compressed data in bytes.
+u32 compressUncompressed(storage::Column col, std::unique_ptr<u8[]> &dest);
+//---------------------------------------------------------------------------
 /// @brief Compresses given column to provided destination using
 /// Frame-Of-Reference encoding and subsequent bitpacking.
 /// @return The size of the compressed data in bytes.

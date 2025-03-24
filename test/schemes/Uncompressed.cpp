@@ -10,20 +10,18 @@ namespace cc = compression::compressor;
 namespace cd = compression::decompressor;
 //---------------------------------------------------------------------------
 // Verifies that the data remains unchanged after compression and decompression.
-TEST(FORnTest, DecompressionInvariant) {
+TEST(UncompressedTest, DecompressionInvariant) {
   auto path = "../data/tpch/sf1/partsupp.tbl";
   auto column = cs::Column::fromFile(path, 0, '|');
-  constexpr uint16_t block_size = 256;
-  column.padToMultipleOf(block_size);
 
   // compress
   std::unique_ptr<compression::u8[]> compression_out;
-  cc::compressFORn<block_size>(column, compression_out);
+  cc::compressUncompressed(column, compression_out);
 
   // decompress
   std::vector<compression::INTEGER> decompression_out;
-  cd::decompressFORn<block_size>(decompression_out, column.size(),
-                                 compression_out.get());
+  cd::decompressUncompressed(decompression_out, column.size(),
+                             compression_out.get());
 
   // verify
   for (size_t i = 0; i < column.size(); ++i) {

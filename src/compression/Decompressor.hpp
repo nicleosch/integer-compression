@@ -1,5 +1,7 @@
 #pragma once
 //---------------------------------------------------------------------------
+#include <cstring>
+//---------------------------------------------------------------------------
 #include "common/Units.hpp"
 #include "schemes/FOR.hpp"
 #include "schemes/FORn.hpp"
@@ -9,6 +11,9 @@
 namespace compression {
 //---------------------------------------------------------------------------
 namespace decompressor {
+//---------------------------------------------------------------------------
+/// @brief Copies the given uncompressed source data to provided destination.
+void decompressUncompressed(vector<INTEGER> &dest, u32 total_size, u8 *src);
 //---------------------------------------------------------------------------
 /// @brief Decompresses given Frame-Of-Reference compressed source data to
 /// provided destination.
@@ -39,6 +44,22 @@ void decompressTinyBlocks(vector<INTEGER> &dest, u32 total_size, u8 *src) {
 }
 //---------------------------------------------------------------------------
 namespace morsel {
+//---------------------------------------------------------------------------
+/// @brief Copies the given uncompressed source data into small
+/// (i.e. L1 resident) buffers called morsels.
+template <const u16 kMorselSize>
+void decompressUncompressed(u8 *src, u32 total_size) {
+  // allocate space
+  vector<INTEGER> dest(kMorselSize);
+
+  auto morsel_count = total_size / kMorselSize;
+
+  // copy
+  for (u32 i = 0; i < morsel_count; ++i) {
+    std::memcpy(dest.data(), src + i * kMorselSize,
+                kMorselSize * sizeof(INTEGER));
+  }
+};
 //---------------------------------------------------------------------------
 /// @brief Decompresses given Frame-Of-Reference compressed source data into
 /// small (i.e. L1 resident) buffers called morsels.
