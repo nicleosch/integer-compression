@@ -1,5 +1,6 @@
 #include <cmath>
 #include <cstring>
+#include <lz4.h>
 //---------------------------------------------------------------------------
 #include "compression/Compressor.hpp"
 #include "schemes/FOR.hpp"
@@ -16,6 +17,17 @@ u32 compressor::compressUncompressed(storage::Column col,
 
   return col.size() * sizeof(INTEGER);
 };
+//---------------------------------------------------------------------------
+u32 compressor::compressLZ4(storage::Column col, std::unique_ptr<u8[]> &dest) {
+  auto size = col.size() * sizeof(INTEGER);
+  // allocate space
+  dest = std::make_unique<u8[]>(size);
+
+  // compress
+  return static_cast<u32>(
+      LZ4_compress_default(reinterpret_cast<const char *>(col.data()),
+                           reinterpret_cast<char *>(dest.get()), size, size));
+}
 //---------------------------------------------------------------------------
 u32 compressor::compressFOR(storage::Column col, std::unique_ptr<u8[]> &dest) {
   // allocate space

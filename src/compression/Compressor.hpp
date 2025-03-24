@@ -18,13 +18,17 @@ namespace compressor {
 /// @return The size of the compressed data in bytes.
 u32 compressUncompressed(storage::Column col, std::unique_ptr<u8[]> &dest);
 //---------------------------------------------------------------------------
+/// @brief Compresses given column to provided destination using LZ4.
+/// @return The size of the compressed data in bytes.
+u32 compressLZ4(storage::Column col, std::unique_ptr<u8[]> &dest);
+//---------------------------------------------------------------------------
 /// @brief Compresses given column to provided destination using
-/// Frame-Of-Reference encoding and subsequent bitpacking.
+/// Frame-Of-Reference compression.
 /// @return The size of the compressed data in bytes.
 u32 compressFOR(storage::Column col, std::unique_ptr<u8[]> &dest);
 //---------------------------------------------------------------------------
 /// @brief Compresses given column to provided destination using
-/// blockwise Frame-Of-Reference encoding and subsequent blockwise bitpacking.
+/// blockwise Frame-Of-Reference compression.
 /// @return The size of the compressed data in bytes.
 template <const u16 kBlockSize>
 u32 compressFORn(storage::Column col, std::unique_ptr<u8[]> &dest) {

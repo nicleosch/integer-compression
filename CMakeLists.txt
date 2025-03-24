@@ -25,11 +25,13 @@ include_directories(${CMAKE_SOURCE_DIR}/src)
 set(VENDOR_DIR "${CMAKE_SOURCE_DIR}/vendor/")
 
 include("${VENDOR_DIR}/SIMDcomp/simdcomp.cmake")
-include("${CMAKE_SOURCE_DIR}/vendor/GoogleTest/googletest.cmake")
+include("${VENDOR_DIR}/GoogleTest/googletest.cmake")
+include("${VENDOR_DIR}/LZ4/lz4.cmake")
 
 include_directories(
     ${SIMDCOMP_INCLUDE_DIR}
     ${GTEST_INCLUDE_DIR}
+    ${LZ4_INCLUDE_DIR}
 )
 
 # COMPONENTS
@@ -40,12 +42,12 @@ include("${CMAKE_SOURCE_DIR}/test/local.cmake")
 # EXECUTABLE
 # ---------------------------------------------------------------------------
 add_executable(ic main.cpp)
-target_link_libraries(ic ${PROJECT_NAME} SIMDcomp)
+target_link_libraries(ic ${PROJECT_NAME} SIMDcomp lz4)
 
 # TEST
 # ---------------------------------------------------------------------------
 
 add_executable(ic_test test/test.cpp ${TEST_SRC})
-target_link_libraries(ic_test ${PROJECT_NAME} SIMDcomp gtest)
+target_link_libraries(ic_test ${PROJECT_NAME} SIMDcomp lz4 gtest)
 enable_testing()
 add_test(${PROJECT_NAME} ic_test)

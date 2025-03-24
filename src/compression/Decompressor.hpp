@@ -15,6 +15,11 @@ namespace decompressor {
 /// @brief Copies the given uncompressed source data to provided destination.
 void decompressUncompressed(vector<INTEGER> &dest, u32 total_size, u8 *src);
 //---------------------------------------------------------------------------
+/// @brief Decompresses given LZ4 compressed source data to provided
+/// destination.
+void decompressLZ4(vector<INTEGER> &dest, u32 total_size, u8 *src,
+                   u32 compressed_size);
+//---------------------------------------------------------------------------
 /// @brief Decompresses given Frame-Of-Reference compressed source data to
 /// provided destination.
 void decompressFOR(vector<INTEGER> &dest, u32 total_size, u8 *src);
