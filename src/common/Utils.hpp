@@ -1,6 +1,8 @@
 #pragma once
 //---------------------------------------------------------------------------
+#include <chrono>
 #include <fcntl.h>
+#include <iostream>
 #include <ostream>
 #include <sys/mman.h>
 #include <unistd.h>
@@ -101,6 +103,21 @@ inline void hex_dump(const std::byte *data, size_t length, std::ostream &out,
     out << std::endl;
   }
 }
+//---------------------------------------------------------------------------
+class Timer {
+public:
+  explicit Timer() : start(std::chrono::high_resolution_clock::now()) {}
+  ~Timer() {
+    auto end = std::chrono::high_resolution_clock::now();
+    auto duration =
+        std::chrono::duration_cast<std::chrono::microseconds>(end - start)
+            .count();
+    std::cout << "Time: " << duration << std::endl;
+  }
+
+private:
+  std::chrono::high_resolution_clock::time_point start;
+};
 //---------------------------------------------------------------------------
 } // namespace utils
 //---------------------------------------------------------------------------
