@@ -17,12 +17,16 @@ class MemoryMappedFile {
 public:
   explicit MemoryMappedFile(const char *path) {
     fd = open(path, O_RDONLY);
-    if (fd < 0)
+    if (fd < 0) {
+      std::cerr << "Memory mapping the file failed. The path does not exist."
+                << std::endl;
       exit(1);
+    }
     file_size = lseek(fd, 0, SEEK_END);
     data = static_cast<char *>(
         mmap(nullptr, file_size, PROT_READ, MAP_SHARED, fd, 0));
     if (data == MAP_FAILED) {
+      std::cerr << "Memory mapping the file failed." << std::endl;
       close(fd);
       exit(1);
     }
