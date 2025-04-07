@@ -34,22 +34,31 @@ set_property(TARGET btrblocks PROPERTY IMPORTED_LOCATION ${BTRBLOCKS_LIBRARY_PAT
 set_property(TARGET btrblocks APPEND PROPERTY INTERFACE_INCLUDE_DIRECTORIES ${BTRBLOCKS_INCLUDE_DIR})
 
 # DEPENDENCIES
-# ---------------------------------------------------------------------------
+# ---------------------------------------------------------------------------´
 
 # FSST
+set(FSST_INCLUDE_DIR ${BINARY_DIR}/vendor/cwida/fsst/src/fsst_src)
+file(MAKE_DIRECTORY ${FSST_INCLUDE_DIR})
+
 add_library(fsst STATIC IMPORTED)
 set_property(TARGET fsst PROPERTY IMPORTED_LOCATION ${BINARY_DIR}/vendor/cwida/fsst/src/fsst_src-build/libfsst.a)
-set_property(TARGET fsst PROPERTY INTERFACE_INCLUDE_DIRECTORIES ${BINARY_DIR}/vendor/cwida/fsst/src/fsst_src)
+set_property(TARGET fsst PROPERTY INTERFACE_INCLUDE_DIRECTORIES ${FSST_INCLUDE_DIR})
 
 # Croaring
+set(CROARING_INCLUDE_DIR ${BINARY_DIR}/vendor/croaring/include)
+file(MAKE_DIRECTORY ${CROARING_INCLUDE_DIR})
+
 add_library(croaring SHARED IMPORTED)
 set_property(TARGET croaring PROPERTY IMPORTED_LOCATION ${BINARY_DIR}/vendor/croaring/lib/libroaring.so)
-set_property(TARGET croaring PROPERTY INTERFACE_INCLUDE_DIRECTORIES ${BINARY_DIR}/vendor/croaring/include)
+set_property(TARGET croaring PROPERTY INTERFACE_INCLUDE_DIRECTORIES ${CROARING_INCLUDE_DIR})
 
 # FastPFOR
+set(FASTPFOR_INCLUDE_DIR ${BINARY_DIR}/vendor/lemire/fastpfor/src/fastpfor_src/headers)
+file(MAKE_DIRECTORY ${FASTPFOR_INCLUDE_DIR})
+
 add_library(fastpfor STATIC IMPORTED)
 set_property(TARGET fastpfor PROPERTY IMPORTED_LOCATION ${BINARY_DIR}/vendor/lemire/fastpfor/src/fastpfor_src-build/libFastPFOR.a)
-set_property(TARGET fastpfor PROPERTY INTERFACE_INCLUDE_DIRECTORIES ${BINARY_DIR}/vendor/lemire/fastpfor/src/fastpfor_src/headers)
+set_property(TARGET fastpfor PROPERTY INTERFACE_INCLUDE_DIRECTORIES ${FASTPFOR_INCLUDE_DIR})
 
 set_property(TARGET btrblocks APPEND PROPERTY INTERFACE_LINK_LIBRARIES 
     fsst 
