@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 //---------------------------------------------------------------------------
-#include "compression/Compressor.hpp"
-#include "compression/Decompressor.hpp"
+#include "core/Compressor.hpp"
+#include "core/Decompressor.hpp"
 #include "statistics/Statistics.hpp"
 #include "storage/Column.hpp"
 //---------------------------------------------------------------------------

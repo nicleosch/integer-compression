@@ -1,6 +1,6 @@
 #pragma once
 //---------------------------------------------------------------------------
-#include "common/Units.hpp"
+#include "common/Types.hpp"
 #include "statistics/Statistics.hpp"
 //---------------------------------------------------------------------------
 namespace compression {

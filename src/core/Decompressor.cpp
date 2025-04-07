@@ -1,6 +1,6 @@
 #include <lz4.h>
 //---------------------------------------------------------------------------
-#include "compression/Decompressor.hpp"
+#include "core/Decompressor.hpp"
 #include "schemes/FOR.hpp"
 //---------------------------------------------------------------------------
 namespace compression {

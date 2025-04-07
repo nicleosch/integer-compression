@@ -2,7 +2,7 @@
 #include <cstring>
 #include <lz4.h>
 //---------------------------------------------------------------------------
-#include "compression/Compressor.hpp"
+#include "core/Compressor.hpp"
 #include "schemes/FOR.hpp"
 //---------------------------------------------------------------------------
 namespace compression {

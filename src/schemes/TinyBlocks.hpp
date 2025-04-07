@@ -3,7 +3,7 @@
 #include <cmath>
 //---------------------------------------------------------------------------
 #include "bitpacking/BitPacking.hpp"
-#include "common/Units.hpp"
+#include "common/Types.hpp"
 #include "statistics/Statistics.hpp"
 //---------------------------------------------------------------------------
 namespace compression {

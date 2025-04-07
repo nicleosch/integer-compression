@@ -2,8 +2,9 @@
 //---------------------------------------------------------------------------
 #include "bootstrap/cli.hpp"
 #include "common/Utils.hpp"
-#include "compression/Compressor.hpp"
-#include "compression/Decompressor.hpp"
+#include "core/Compressor.hpp"
+#include "core/Decompressor.hpp"
+#include "extern/BtrBlocks.hpp"
 #include "storage/Column.hpp"
 //---------------------------------------------------------------------------
 int main(int argc, char **argv) {
@@ -18,7 +19,7 @@ int main(int argc, char **argv) {
   constexpr u16 morsel_size = 1024;
 
   // Read integer column
-  auto column = storage::Column::fromFile(cli.data.c_str(), 0, '|');
+  auto column = storage::Column::fromFile(cli.data.c_str(), cli.column, '|');
   column.padToMultipleOf(morsel_size);
 
   u64 uncompressed_size = column.size() * sizeof(INTEGER);
@@ -85,6 +86,38 @@ int main(int argc, char **argv) {
       decompressor::decompressLZ4(decompress_out, column.size(),
                                   compress_out.get(), compressed_size);
     }
+  } else if (cli.algorithm == "btrblocks") {
+    // setup
+    btrblocks::BtrBlocksConfig::configure(
+        [&](btrblocks::BtrBlocksConfig &config) {
+          if (argc > 1) {
+            auto max_depth = 5;
+            config.integers.max_cascade_depth = max_depth;
+          }
+          config.integers.schemes.enableAll();
+        });
+
+    btrblocks::Vector<INTEGER> vec{column.size()};
+    for (auto i = 0; i < vec.count; ++i) {
+      vec[i] = column.data()[i];
+    }
+
+    // compress
+    btrblocks::Relation to_compress;
+    to_compress.addColumn({"ints", std::move(vec)});
+    btrblocks::Range range(0, to_compress.tuple_count);
+    btrblocks::Chunk input = to_compress.getChunk({range}, 0);
+    btrblocks::Datablock compressor(to_compress);
+
+    auto stats = compressor.compress(input, compress_out);
+    compressed_size = stats.total_data_size;
+
+    // decompress
+    {
+      utils::Timer timer;
+      btrblocks::Chunk decompressed = compressor.decompress(compress_out);
+    }
+
   } else {
     std::cout << "Unknown algorithm" << std::endl;
     return 1;
@@ -97,8 +130,9 @@ int main(int argc, char **argv) {
 
   // Log (de)compressed data.
   if (cli.logging) {
-    if (cli.morsel) {
-      std::cout << "Logging not allowed when decompressing into morsels."
+    if (cli.morsel || cli.algorithm == "btrblocks") {
+      std::cout << "Logging not allowed when decompressing into morsels or "
+                   "when using btrblocks."
                 << std::endl;
       return 1;
     }
