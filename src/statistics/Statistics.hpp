@@ -15,6 +15,7 @@ public:
   INTEGER min;
   INTEGER max;
   u8 required_bits;
+  u8 step_size;
   //---------------------------------------------------------------------------
   /// @brief Generates statistics from given data.
   /// @param src The data to generate the statistic from.

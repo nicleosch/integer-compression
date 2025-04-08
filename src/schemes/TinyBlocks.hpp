@@ -44,7 +44,8 @@ public:
       slot.offset = data_offset;
 
       // Compress block
-      data_offset += compressDispatch<kBlockSize>(src, data_ptr, slot);
+      data_offset +=
+          compressDispatch<kBlockSize>(src, data_ptr, stats[block_i], slot);
 
       // Update iterators
       src += kBlockSize;
@@ -86,10 +87,13 @@ public:
 private:
   //---------------------------------------------------------------------------
   template <const u16 kBlockSize>
-  u16 compressDispatch(const INTEGER *src, u8 *dest,
-                       const TinyBlocksSlot &slot) {
+  u16 compressDispatch(const INTEGER *src, u8 *dest, const Statistics &stats,
+                       TinyBlocksSlot &slot) {
     switch (slot.pack_size) {
-    case 65: // OneValue
+    case 0: // OneValue
+      return 0;
+    case 65: // Monotonically Increasing
+      slot.pack_size = (slot.pack_size & (step_mask + 1)) | stats.step_size;
       return 0;
     default: // Regular Bit-Size
       compressImpl<kBlockSize>(src, dest, slot);
@@ -100,14 +104,12 @@ private:
   template <const u16 kBlockSize>
   void decompressDispatch(INTEGER *dest, const u8 *src,
                           const TinyBlocksSlot &slot) {
-    switch (slot.pack_size) {
-    case 65: // OneValue
+    if (slot.pack_size == 0) // OneValue
       broadcast<kBlockSize>(dest, slot.reference);
-      return;
-    default: // Regular Bit-Size
+    else if (slot.pack_size >= 65) // Monotonically Increasing
+      decompressMonoInc<kBlockSize>(dest, slot);
+    else // Regular Bit-Size
       decompressImpl<kBlockSize>(dest, src, slot);
-      return;
-    }
   }
   //---------------------------------------------------------------------------
   template <const u16 kLength>
@@ -134,11 +136,25 @@ private:
     }
   }
   //---------------------------------------------------------------------------
+  template <const u16 kLength>
+  void decompressMonoInc(INTEGER *dest, const TinyBlocksSlot &slot) {
+    u8 step_size = slot.pack_size & step_mask;
+
+    dest[0] = slot.reference;
+    for (u16 i = 1; i < kLength; ++i) {
+      dest[i] = dest[i - 1] + step_size;
+    }
+  }
+  //---------------------------------------------------------------------------
   template <const u16 kLength> void broadcast(INTEGER *dest, INTEGER value) {
     for (u16 i = 0; i < kLength; ++i) {
       dest[i] = value;
     }
   }
+  //---------------------------------------------------------------------------
+  /// A mask to highlight the step size.
+  /// Used for compressing monotonically increasing data.
+  u8 step_mask = 0x40 - 1;
 };
 //---------------------------------------------------------------------------
 } // namespace compression
