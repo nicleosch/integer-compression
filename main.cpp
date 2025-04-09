@@ -14,7 +14,7 @@ int main(int argc, char **argv) {
   auto cli = bootstrap::parseCommandLine(argc, argv);
 
   // Size of an integer block.
-  constexpr u16 block_size = 64;
+  constexpr u16 block_size = 128;
   // Size of a morsel.
   constexpr u16 morsel_size = 1024;
 
@@ -40,6 +40,29 @@ int main(int argc, char **argv) {
       decompressor::decompressUncompressed(decompress_out, column.size(),
                                            compress_out.get());
     }
+  } else if (cli.algorithm == "bitpacking") {
+    compressed_size =
+        compressor::compressBitPacking<block_size>(column, compress_out);
+
+    if (cli.morsel) {
+      std::cout << "Not Implemented yet." << std::endl;
+      return 1;
+    } else {
+      utils::Timer timer;
+      decompressor::decompressBitPacking<block_size>(
+          decompress_out, column.size(), compress_out.get());
+    }
+  } else if (cli.algorithm == "delta") {
+    compressed_size = compressor::compressDelta(column, compress_out);
+
+    if (cli.morsel) {
+      std::cout << "Not Implemented yet." << std::endl;
+      return 1;
+    } else {
+      utils::Timer timer;
+      decompressor::decompressDelta(decompress_out, column.size(),
+                                    compress_out.get());
+    }
   } else if (cli.algorithm == "for") {
     compressed_size = compressor::compressFOR(column, compress_out);
 
@@ -64,6 +87,17 @@ int main(int argc, char **argv) {
       utils::Timer timer;
       decompressor::decompressFORn<block_size>(decompress_out, column.size(),
                                                compress_out.get());
+    }
+  } else if (cli.algorithm == "rle") {
+    compressed_size = compressor::compressRLE(column, compress_out);
+
+    if (cli.morsel) {
+      std::cout << "Not Implemented yet." << std::endl;
+      return 1;
+    } else {
+      utils::Timer timer;
+      decompressor::decompressRLE(decompress_out, column.size(),
+                                  compress_out.get());
     }
   } else if (cli.algorithm == "tinyblocks") {
     compressed_size =

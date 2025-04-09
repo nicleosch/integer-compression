@@ -25,10 +25,10 @@ void FOR::decompress(INTEGER *dest, const u32 total_size, const u8 *src,
 //---------------------------------------------------------------------------
 u8 FOR::compressDispatch(const INTEGER *src, const u32 size, u8 *dest,
                          const Statistics *stats) {
-  if (stats->required_bits <= 8) {
+  if (stats->diff_bits <= 8) {
     compressImpl<u8>(src, size, dest, stats);
     return 8;
-  } else if (stats->required_bits <= 16) {
+  } else if (stats->diff_bits <= 16) {
     compressImpl<u16>(src, size, dest, stats);
     return 16;
   } else {

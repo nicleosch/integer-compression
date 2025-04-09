@@ -1,7 +1,9 @@
 #include <lz4.h>
 //---------------------------------------------------------------------------
 #include "core/Decompressor.hpp"
-#include "schemes/FOR.hpp"
+#include "schemes/BitPacking.hpp"
+#include "schemes/Delta.hpp"
+#include "schemes/RLE.hpp"
 //---------------------------------------------------------------------------
 namespace compression {
 //---------------------------------------------------------------------------
@@ -24,6 +26,26 @@ void decompressor::decompressLZ4(vector<INTEGER> &dest, u32 total_size, u8 *src,
                       reinterpret_cast<char *>(dest.data()), compressed_size,
                       total_size * sizeof(INTEGER));
 }
+//---------------------------------------------------------------------------
+void decompressor::decompressDelta(vector<INTEGER> &dest, u32 total_size,
+                                   u8 *src) {
+  // allocate space
+  dest.reserve(total_size);
+
+  // decompress
+  Delta cDelta;
+  cDelta.decompress(dest.data(), total_size, src);
+};
+//---------------------------------------------------------------------------
+void decompressor::decompressRLE(vector<INTEGER> &dest, u32 total_size,
+                                 u8 *src) {
+  // allocate space
+  dest.reserve(total_size);
+
+  // decompress
+  RLE cRLE;
+  cRLE.decompress(dest.data(), total_size, src);
+};
 //---------------------------------------------------------------------------
 void decompressor::decompressFOR(vector<INTEGER> &dest, u32 total_size,
                                  u8 *src) {

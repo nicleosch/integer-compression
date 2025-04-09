@@ -87,10 +87,10 @@ private:
   //---------------------------------------------------------------------------
   template <const u16 kLength>
   u8 compressDispatch(const INTEGER *src, u8 *dest, const Statistics *stats) {
-    if (stats->required_bits <= 8) {
+    if (stats->diff_bits <= 8) {
       compressImpl<u8, kLength>(src, dest, stats);
       return 8;
-    } else if (stats->required_bits <= 16) {
+    } else if (stats->diff_bits <= 16) {
       compressImpl<u16, kLength>(src, dest, stats);
       return 16;
     } else {

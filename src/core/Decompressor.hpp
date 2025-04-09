@@ -3,6 +3,7 @@
 #include <cstring>
 //---------------------------------------------------------------------------
 #include "common/Types.hpp"
+#include "schemes/BitPacking.hpp"
 #include "schemes/FOR.hpp"
 #include "schemes/FORn.hpp"
 #include "schemes/TinyBlocks.hpp"
@@ -20,9 +21,29 @@ void decompressUncompressed(vector<INTEGER> &dest, u32 total_size, u8 *src);
 void decompressLZ4(vector<INTEGER> &dest, u32 total_size, u8 *src,
                    u32 compressed_size);
 //---------------------------------------------------------------------------
+/// @brief Decompresses given delta compressed source data to provided
+/// destination.
+void decompressDelta(vector<INTEGER> &dest, u32 total_size, u8 *src);
+//---------------------------------------------------------------------------
+/// @brief Decompresses given run-length encoded source data to provided
+/// destination.
+void decompressRLE(vector<INTEGER> &dest, u32 total_size, u8 *src);
+//---------------------------------------------------------------------------
 /// @brief Decompresses given Frame-Of-Reference compressed source data to
 /// provided destination.
 void decompressFOR(vector<INTEGER> &dest, u32 total_size, u8 *src);
+//---------------------------------------------------------------------------
+/// @brief Decompresses given bit-packed source data to
+/// provided destination.
+template <const u16 kBlockSize>
+void decompressBitPacking(vector<INTEGER> &dest, u32 total_size, u8 *src) {
+  // allocate space
+  dest.reserve(total_size);
+
+  // decompress
+  BitPacking cBitPacking;
+  cBitPacking.decompress<kBlockSize>(dest.data(), total_size, src);
+}
 //---------------------------------------------------------------------------
 /// @brief Decompresses given blockwise Frame-Of-Reference compressed source
 /// data to provided destination.

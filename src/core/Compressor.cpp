@@ -3,7 +3,9 @@
 #include <lz4.h>
 //---------------------------------------------------------------------------
 #include "core/Compressor.hpp"
+#include "schemes/Delta.hpp"
 #include "schemes/FOR.hpp"
+#include "schemes/RLE.hpp"
 //---------------------------------------------------------------------------
 namespace compression {
 //---------------------------------------------------------------------------
@@ -27,6 +29,31 @@ u32 compressor::compressLZ4(storage::Column col, std::unique_ptr<u8[]> &dest) {
   return static_cast<u32>(
       LZ4_compress_default(reinterpret_cast<const char *>(col.data()),
                            reinterpret_cast<char *>(dest.get()), size, size));
+}
+//---------------------------------------------------------------------------
+u32 compressor::compressDelta(storage::Column col,
+                              std::unique_ptr<u8[]> &dest) {
+  // allocate space
+  dest = std::make_unique<u8[]>(col.size() * sizeof(INTEGER));
+
+  // compute statistics
+  auto stats = Statistics::generateFrom(col.data(), col.size());
+
+  // compress
+  Delta cDelta;
+  return cDelta.compress(col.data(), col.size(), dest.get(), &stats);
+}
+//---------------------------------------------------------------------------
+u32 compressor::compressRLE(storage::Column col, std::unique_ptr<u8[]> &dest) {
+  // allocate space
+  dest = std::make_unique<u8[]>(col.size() * sizeof(INTEGER));
+
+  // compute statistics
+  auto stats = Statistics::generateFrom(col.data(), col.size());
+
+  // compress
+  RLE cRLE;
+  return cRLE.compress(col.data(), col.size(), dest.get(), &stats);
 }
 //---------------------------------------------------------------------------
 u32 compressor::compressFOR(storage::Column col, std::unique_ptr<u8[]> &dest) {
