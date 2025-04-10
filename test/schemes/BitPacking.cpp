@@ -27,6 +27,6 @@ TEST(BitPackingTest, DecompressionInvariant) {
 
   // verify
   for (size_t i = 0; i < column.size(); ++i) {
-    EXPECT_EQ(column.data()[i], decompression_out[i]);
+    ASSERT_EQ(column.data()[i], decompression_out[i]);
   }
 }

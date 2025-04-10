@@ -157,9 +157,11 @@ int main(int argc, char **argv) {
     return 1;
   }
 
-  std::cout << "Before compression: " << uncompressed_size << " Byte"
+  std::cout << "Uncompressed Size: " << uncompressed_size << " Byte"
             << std::endl;
-  std::cout << "After compression : " << compressed_size << " Byte"
+  std::cout << "Compressed Size: " << compressed_size << " Byte" << std::endl;
+  std::cout << "Compression Rate: "
+            << static_cast<double>(uncompressed_size) / compressed_size
             << std::endl;
 
   // Log (de)compressed data.
