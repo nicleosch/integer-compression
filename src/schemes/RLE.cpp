@@ -11,9 +11,9 @@ u32 RLE::compress(const INTEGER *src, const u32 total_size, u8 *dest,
   // Array of values
   vector<INTEGER> values;
 
-  INTEGER cur;
-  u32 run_length = 0;
-  for (u32 i = 0; i < total_size; ++i) {
+  INTEGER cur = src[0];
+  u32 run_length = 1;
+  for (u32 i = 1; i < total_size; ++i) {
     if (src[i] == cur) {
       ++run_length;
     } else {
@@ -22,6 +22,10 @@ u32 RLE::compress(const INTEGER *src, const u32 total_size, u8 *dest,
       run_length = 1;
       cur = src[i];
     }
+  }
+  if (run_length > 1) {
+    run_lengths[values.size()] = run_length;
+    values.push_back(cur);
   }
 
   layout.value_offset = values.size() * sizeof(run_length);
