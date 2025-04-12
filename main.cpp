@@ -2,8 +2,9 @@
 //---------------------------------------------------------------------------
 #include "bootstrap/cli.hpp"
 #include "common/Utils.hpp"
+#include "core/BlockCompressor.hpp"
+#include "core/ColumnCompressor.hpp"
 #include "core/Compressor.hpp"
-#include "core/Decompressor.hpp"
 #include "extern/BtrBlocks.hpp"
 #include "storage/Column.hpp"
 //---------------------------------------------------------------------------
@@ -14,114 +15,33 @@ int main(int argc, char **argv) {
   auto cli = bootstrap::parseCommandLine(argc, argv);
 
   // Size of an integer block.
-  constexpr u16 block_size = 128;
+  constexpr u16 kBlockSize = 256;
   // Size of a morsel.
-  constexpr u16 morsel_size = 1024;
+  constexpr u16 kMorselSize = 1024;
 
   // Read integer column
   auto column = storage::Column::fromFile(cli.data.c_str(), cli.column, '|');
-  column.padToMultipleOf(morsel_size);
 
+  // Choose the compressor
+  std::unique_ptr<Compressor> compressor;
+  if (cli.blocks) {
+    column.padToMultipleOf(kDefaultDataBlockSize);
+    compressor =
+        std::make_unique<BlockCompressor<kDefaultDataBlockSize, kBlockSize>>(
+            column);
+  } else {
+    column.padToMultipleOf(kMorselSize);
+    compressor = std::make_unique<ColumnCompressor<kBlockSize>>(column);
+  }
   u64 uncompressed_size = column.size() * sizeof(INTEGER);
-  u64 compressed_size;
 
   // Compression & Decompression
+  CompressionStats stats;
   std::unique_ptr<compression::u8[]> compress_out;
   std::vector<compression::INTEGER> decompress_out;
-  if (cli.algorithm == "uncompressed") {
-    compressed_size = compressor::compressUncompressed(column, compress_out);
 
-    if (cli.morsel) {
-      utils::Timer timer;
-      decompressor::morsel::decompressUncompressed<morsel_size>(
-          compress_out.get(), column.size());
-    } else {
-      utils::Timer timer;
-      decompressor::decompressUncompressed(decompress_out, column.size(),
-                                           compress_out.get());
-    }
-  } else if (cli.algorithm == "bitpacking") {
-    compressed_size =
-        compressor::compressBitPacking<block_size>(column, compress_out);
-
-    if (cli.morsel) {
-      std::cout << "Not Implemented yet." << std::endl;
-      return 1;
-    } else {
-      utils::Timer timer;
-      decompressor::decompressBitPacking<block_size>(
-          decompress_out, column.size(), compress_out.get());
-    }
-  } else if (cli.algorithm == "delta") {
-    compressed_size = compressor::compressDelta(column, compress_out);
-
-    if (cli.morsel) {
-      std::cout << "Not Implemented yet." << std::endl;
-      return 1;
-    } else {
-      utils::Timer timer;
-      decompressor::decompressDelta(decompress_out, column.size(),
-                                    compress_out.get());
-    }
-  } else if (cli.algorithm == "for") {
-    compressed_size = compressor::compressFOR(column, compress_out);
-
-    if (cli.morsel) {
-      utils::Timer timer;
-      decompressor::morsel::decompressFOR<morsel_size>(compress_out.get(),
-                                                       column.size());
-    } else {
-      utils::Timer timer;
-      decompressor::decompressFOR(decompress_out, column.size(),
-                                  compress_out.get());
-    }
-  } else if (cli.algorithm == "forn") {
-    compressed_size =
-        compressor::compressFORn<block_size>(column, compress_out);
-
-    if (cli.morsel) {
-      utils::Timer timer;
-      decompressor::morsel::decompressFORn<morsel_size, block_size>(
-          compress_out.get(), column.size());
-    } else {
-      utils::Timer timer;
-      decompressor::decompressFORn<block_size>(decompress_out, column.size(),
-                                               compress_out.get());
-    }
-  } else if (cli.algorithm == "rle") {
-    compressed_size = compressor::compressRLE(column, compress_out);
-
-    if (cli.morsel) {
-      std::cout << "Not Implemented yet." << std::endl;
-      return 1;
-    } else {
-      utils::Timer timer;
-      decompressor::decompressRLE(decompress_out, column.size(),
-                                  compress_out.get());
-    }
-  } else if (cli.algorithm == "tinyblocks") {
-    compressed_size =
-        compressor::compressTinyBlocks<block_size>(column, compress_out);
-
-    if (cli.morsel) {
-      utils::Timer timer;
-      decompressor::morsel::decompressTinyBlocks<morsel_size, block_size>(
-          compress_out.get(), column.size());
-    } else {
-      utils::Timer timer;
-      decompressor::decompressTinyBlocks<block_size>(
-          decompress_out, column.size(), compress_out.get());
-    }
-  } else if (cli.algorithm == "lz4") {
-    compressed_size = compressor::compressLZ4(column, compress_out);
-
-    {
-      utils::Timer timer;
-      decompressor::decompressLZ4(decompress_out, column.size(),
-                                  compress_out.get(), compressed_size);
-    }
-  } else if (cli.algorithm == "btrblocks") {
-    // setup
+  // BtrBlocks is treated special
+  if (cli.algorithm == "btrblocks") {
     btrblocks::BtrBlocksConfig::configure(
         [&](btrblocks::BtrBlocksConfig &config) {
           if (argc > 1) {
@@ -143,26 +63,57 @@ int main(int argc, char **argv) {
     btrblocks::Chunk input = to_compress.getChunk({range}, 0);
     btrblocks::Datablock compressor(to_compress);
 
-    auto stats = compressor.compress(input, compress_out);
-    compressed_size = stats.total_data_size;
+    auto btr_stats = compressor.compress(input, compress_out);
+    stats.compressed_size = btr_stats.total_data_size;
+    stats.uncompressed_size = uncompressed_size;
+    stats.compression_rate =
+        static_cast<double>(stats.uncompressed_size) / stats.compressed_size;
 
     // decompress
     {
       utils::Timer timer;
       btrblocks::Chunk decompressed = compressor.decompress(compress_out);
     }
-
   } else {
-    std::cout << "Unknown algorithm" << std::endl;
-    return 1;
+    if (cli.algorithm == "uncompressed") {
+      compressor->setScheme(CompressionSchemeType::kUncompressed);
+    } else if (cli.algorithm == "bitpacking") {
+      compressor->setScheme(CompressionSchemeType::kBitPacking);
+    } else if (cli.algorithm == "delta") {
+      compressor->setScheme(CompressionSchemeType::kDelta);
+    } else if (cli.algorithm == "for") {
+      compressor->setScheme(CompressionSchemeType::kFOR);
+    } else if (cli.algorithm == "forn") {
+      compressor->setScheme(CompressionSchemeType::kFORn);
+    } else if (cli.algorithm == "rle") {
+      compressor->setScheme(CompressionSchemeType::kRLE);
+    } else if (cli.algorithm == "tinyblocks") {
+      compressor->setScheme(CompressionSchemeType::kTinyBlocks);
+    } else if (cli.algorithm == "lz4") {
+      compressor->setScheme(CompressionSchemeType::kLZ4);
+    } else {
+      std::cout << "Unknown algorithm" << std::endl;
+      return 1;
+    }
+
+    // compress
+    stats = compressor->compress(compress_out);
+
+    // decompress
+    if (cli.morsel) {
+      utils::Timer timer;
+      compressor->decompress(compress_out.get());
+    } else {
+      utils::Timer timer;
+      compressor->decompress(decompress_out, compress_out.get());
+    }
   }
 
-  std::cout << "Uncompressed Size: " << uncompressed_size << " Byte"
+  std::cout << "Uncompressed Size: " << stats.uncompressed_size << " Byte"
             << std::endl;
-  std::cout << "Compressed Size: " << compressed_size << " Byte" << std::endl;
-  std::cout << "Compression Rate: "
-            << static_cast<double>(uncompressed_size) / compressed_size
+  std::cout << "Compressed Size: " << stats.compressed_size << " Byte"
             << std::endl;
+  std::cout << "Compression Rate: " << stats.compression_rate << std::endl;
 
   // Log (de)compressed data.
   if (cli.logging) {
@@ -175,12 +126,12 @@ int main(int argc, char **argv) {
 
     std::cout << "Compressed" << std::endl;
     compression::utils::hex_dump(
-        reinterpret_cast<const std::byte *>(compress_out.get()), block_size,
+        reinterpret_cast<const std::byte *>(compress_out.get()), kBlockSize,
         std::cout);
 
     std::cout << "Decompressed" << std::endl;
     compression::utils::hex_dump(
-        reinterpret_cast<const std::byte *>(decompress_out.data()), block_size,
+        reinterpret_cast<const std::byte *>(decompress_out.data()), kBlockSize,
         std::cout);
   }
 }

@@ -1,0 +1,42 @@
+#pragma once
+//---------------------------------------------------------------------------
+#include "common/Types.hpp"
+#include "statistics/Statistics.hpp"
+//---------------------------------------------------------------------------
+namespace compression {
+//---------------------------------------------------------------------------
+enum class CompressionSchemeType {
+  kBitPacking = 0,
+  kDelta = 1,
+  kFOR = 2,
+  kFORn = 3,
+  kRLE = 4,
+  kTinyBlocks = 5,
+  kUncompressed = 6,
+  kLZ4 = 7
+};
+//---------------------------------------------------------------------------
+/// This class represents an interface for lightweight compression schemes.
+class CompressionScheme {
+public:
+  //---------------------------------------------------------------------------
+  /// Compress data from src to dest.
+  /// @param src The integers to be compressed.
+  /// @param size The amount of integers to be compressed.
+  /// @param dest The destination to compress the data to.
+  /// @param stats Statistics on the data required to compress it.
+  /// @return The size of the compressed data.
+  virtual u32 compress(const INTEGER *src, const u32 size, u8 *dest,
+                       const Statistics *stats) = 0;
+  //---------------------------------------------------------------------------
+  /// Decompress data from src to dest.
+  /// @param dest The decompressed integers.
+  /// @param size The amount of integers to be decompressed.
+  /// @param src The compressed data.
+  virtual void decompress(INTEGER *dest, const u32 size, const u8 *src) = 0;
+  //---------------------------------------------------------------------------
+  /// Whether the scheme compresses partitions the data before compressing it.
+  virtual bool isPartitioningScheme() = 0;
+};
+//---------------------------------------------------------------------------
+} // namespace compression

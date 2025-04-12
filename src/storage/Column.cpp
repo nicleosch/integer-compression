@@ -21,15 +21,16 @@ void Column::readFile(utils::MemoryMappedFile &file, u32 column_id,
     raw_data.push_back(value);
 
     iter = utils::jumpToIthDelimiter(value_begin, end, '\n', 1);
-    if(iter == end) return;
+    if (iter == end)
+      return;
     ++iter;
   }
 }
 //---------------------------------------------------------------------------
-void Column::padToMultipleOf(u16 length) {
+void Column::padToMultipleOf(u32 length) {
   u16 rest = length - (raw_data.size() % length);
   for (u16 i = 0; i < rest; ++i) {
-    raw_data.push_back(0);
+    raw_data.push_back(raw_data[raw_data.size() - 1]);
   }
 }
 //---------------------------------------------------------------------------

@@ -1,7 +1,6 @@
 #pragma once
 //---------------------------------------------------------------------------
-#include "common/Types.hpp"
-#include "statistics/Statistics.hpp"
+#include "schemes/CompressionScheme.hpp"
 //---------------------------------------------------------------------------
 namespace compression {
 //---------------------------------------------------------------------------
@@ -11,16 +10,18 @@ struct FORLayout {
   u8 data[];
 };
 //---------------------------------------------------------------------------
-class FOR {
+class FOR : public CompressionScheme {
 public:
   //---------------------------------------------------------------------------
-  u32 compress(const INTEGER *src, const u32 total_size, u8 *dest,
-               const Statistics *stats);
+  u32 compress(const INTEGER *src, const u32 size, u8 *dest,
+               const Statistics *stats) override;
   //---------------------------------------------------------------------------
-  void decompress(INTEGER *dest, const u32 total_size, const u8 *src);
+  void decompress(INTEGER *dest, const u32 size, const u8 *src) override;
   //---------------------------------------------------------------------------
-  void decompress(INTEGER *dest, const u32 total_size, const u8 *src,
+  void decompress(INTEGER *dest, const u32 size, const u8 *src,
                   const u32 offset);
+  //---------------------------------------------------------------------------
+  bool isPartitioningScheme() override;
 
 private:
   //---------------------------------------------------------------------------

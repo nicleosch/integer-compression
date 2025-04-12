@@ -3,8 +3,7 @@
 #include <cmath>
 //---------------------------------------------------------------------------
 #include "bitpacking/BitPacking.hpp"
-#include "common/Types.hpp"
-#include "statistics/Statistics.hpp"
+#include "schemes/CompressionScheme.hpp"
 //---------------------------------------------------------------------------
 namespace compression {
 //---------------------------------------------------------------------------
@@ -21,13 +20,12 @@ struct TinyBlocksSlot {
   }
 };
 //---------------------------------------------------------------------------
-class TinyBlocks {
+template <const u16 kBlockSize> class TinyBlocks : public CompressionScheme {
 public:
   //---------------------------------------------------------------------------
-  template <const u16 kBlockSize>
-  u32 compress(const INTEGER *src, const u32 total_size, u8 *dest,
-               const Statistics *stats) {
-    const u32 block_count = total_size / kBlockSize;
+  u32 compress(const INTEGER *src, const u32 size, u8 *dest,
+               const Statistics *stats) override {
+    const u32 block_count = size / kBlockSize;
 
     // Layout: HEADER [kBlockSize] | COMPRESSED DATA
     u8 *header_ptr = dest;
@@ -44,8 +42,7 @@ public:
       slot.offset = data_offset;
 
       // Compress block
-      data_offset +=
-          compressDispatch<kBlockSize>(src, data_ptr, stats[block_i], slot);
+      data_offset += compressDispatch(src, data_ptr, stats[block_i], slot);
 
       // Update iterators
       src += kBlockSize;
@@ -55,15 +52,13 @@ public:
     return data_offset;
   }
   //---------------------------------------------------------------------------
-  template <const u16 kBlockSize>
-  void decompress(INTEGER *dest, const u32 total_size, const u8 *src) {
-    decompress<kBlockSize>(dest, total_size, src, 0);
+  void decompress(INTEGER *dest, const u32 size, const u8 *src) override {
+    decompress(dest, size, src, 0);
   }
   //---------------------------------------------------------------------------
-  template <const u16 kBlockSize>
-  void decompress(INTEGER *dest, const u32 total_size, const u8 *src,
+  void decompress(INTEGER *dest, const u32 size, const u8 *src,
                   const u32 block_offset) {
-    const u32 block_count = total_size / kBlockSize;
+    const u32 block_count = size / kBlockSize;
 
     // Layout: HEADER [kBlockSize] | COMPRESSED DATA
     const u8 *header_ptr = src + block_offset * TinyBlocksSlot::size();
@@ -76,17 +71,18 @@ public:
       data_ptr = src + slot.offset;
 
       // Decompress payload
-      decompressDispatch<kBlockSize>(dest, data_ptr, slot);
+      decompressDispatch(dest, data_ptr, slot);
 
       // Update iterators
       dest += kBlockSize;
       header_ptr += 9;
     }
   }
+  //---------------------------------------------------------------------------
+  bool isPartitioningScheme() override { return true; }
 
 private:
   //---------------------------------------------------------------------------
-  template <const u16 kBlockSize>
   u16 compressDispatch(const INTEGER *src, u8 *dest, const Statistics &stats,
                        TinyBlocksSlot &slot) {
     switch (slot.pack_size) {
@@ -96,58 +92,54 @@ private:
       slot.pack_size = (slot.pack_size & (step_mask + 1)) | stats.step_size;
       return 0;
     default: // Regular Bit-Size
-      compressImpl<kBlockSize>(src, dest, slot);
+      compressImpl(src, dest, slot);
       return std::ceil(static_cast<double>(slot.pack_size * kBlockSize) / 8);
     }
   }
   //---------------------------------------------------------------------------
-  template <const u16 kBlockSize>
   void decompressDispatch(INTEGER *dest, const u8 *src,
                           const TinyBlocksSlot &slot) {
     if (slot.pack_size == 0) // OneValue
-      broadcast<kBlockSize>(dest, slot.reference);
+      broadcast(dest, slot.reference);
     else if (slot.pack_size >= 65) // Monotonically Increasing
-      decompressMonoInc<kBlockSize>(dest, slot);
+      decompressMonoInc(dest, slot);
     else // Regular Bit-Size
-      decompressImpl<kBlockSize>(dest, src, slot);
+      decompressImpl(dest, src, slot);
   }
   //---------------------------------------------------------------------------
-  template <const u16 kLength>
   void compressImpl(const INTEGER *src, u8 *dest, const TinyBlocksSlot &slot) {
     // Normalize
-    vector<INTEGER> normalized(kLength);
-    for (u32 i = 0; i < kLength; ++i) {
+    vector<INTEGER> normalized(kBlockSize);
+    for (u32 i = 0; i < kBlockSize; ++i) {
       normalized[i] = src[i] - slot.reference;
     }
 
     // Compress
-    bitpacking::pack(normalized.data(), dest, kLength, slot.pack_size);
+    bitpacking::pack(normalized.data(), dest, kBlockSize, slot.pack_size);
   }
   //---------------------------------------------------------------------------
-  template <const u16 kLength>
   void decompressImpl(INTEGER *dest, const u8 *src,
                       const TinyBlocksSlot &slot) {
     // Decompress
-    bitpacking::unpack(dest, src, kLength, slot.pack_size);
+    bitpacking::unpack(dest, src, kBlockSize, slot.pack_size);
 
     // Denormalize
-    for (u32 i = 0; i < kLength; ++i) {
+    for (u32 i = 0; i < kBlockSize; ++i) {
       dest[i] += slot.reference;
     }
   }
   //---------------------------------------------------------------------------
-  template <const u16 kLength>
   void decompressMonoInc(INTEGER *dest, const TinyBlocksSlot &slot) {
     u8 step_size = slot.pack_size & step_mask;
 
     dest[0] = slot.reference;
-    for (u16 i = 1; i < kLength; ++i) {
+    for (u16 i = 1; i < kBlockSize; ++i) {
       dest[i] = dest[i - 1] + step_size;
     }
   }
   //---------------------------------------------------------------------------
-  template <const u16 kLength> void broadcast(INTEGER *dest, INTEGER value) {
-    for (u16 i = 0; i < kLength; ++i) {
+  void broadcast(INTEGER *dest, INTEGER value) {
+    for (u16 i = 0; i < kBlockSize; ++i) {
       dest[i] = value;
     }
   }

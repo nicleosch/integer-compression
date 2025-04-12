@@ -2,26 +2,27 @@
 //---------------------------------------------------------------------------
 namespace compression {
 //---------------------------------------------------------------------------
-u32 FOR::compress(const INTEGER *src, const u32 total_size, u8 *dest,
+u32 FOR::compress(const INTEGER *src, const u32 size, u8 *dest,
                   const Statistics *stats) {
   auto &layout = *reinterpret_cast<FORLayout *>(dest);
   layout.reference = stats->min;
-  layout.pack_size = compressDispatch(src, total_size, layout.data, stats);
+  layout.pack_size = compressDispatch(src, size, layout.data, stats);
 
-  return offsetof(FORLayout, data) + layout.pack_size / 8 * total_size;
+  return offsetof(FORLayout, data) + layout.pack_size / 8 * size;
 }
 //---------------------------------------------------------------------------
-void FOR::decompress(INTEGER *dest, const u32 total_size, const u8 *src) {
-  decompress(dest, total_size, src, 0);
+void FOR::decompress(INTEGER *dest, const u32 size, const u8 *src) {
+  decompress(dest, size, src, 0);
 }
 //---------------------------------------------------------------------------
-void FOR::decompress(INTEGER *dest, const u32 total_size, const u8 *src,
+void FOR::decompress(INTEGER *dest, const u32 size, const u8 *src,
                      const u32 offset) {
   const auto &layout = *reinterpret_cast<const FORLayout *>(src);
-  decompressDispatch(dest, total_size,
-                     layout.data + offset * (layout.pack_size / 8),
+  decompressDispatch(dest, size, layout.data + offset * (layout.pack_size / 8),
                      layout.reference, layout.pack_size);
 }
+//---------------------------------------------------------------------------
+bool FOR::isPartitioningScheme() { return false; }
 //---------------------------------------------------------------------------
 u8 FOR::compressDispatch(const INTEGER *src, const u32 size, u8 *dest,
                          const Statistics *stats) {

@@ -1,7 +1,6 @@
 #pragma once
 //---------------------------------------------------------------------------
-#include "common/Utils.hpp"
-#include "statistics/Statistics.hpp"
+#include "schemes/CompressionScheme.hpp"
 //---------------------------------------------------------------------------
 namespace compression {
 //---------------------------------------------------------------------------
@@ -10,13 +9,15 @@ struct RLELayout {
   u8 data[];
 };
 //---------------------------------------------------------------------------
-class RLE {
+class RLE : public CompressionScheme {
 public:
   //---------------------------------------------------------------------------
-  u32 compress(const INTEGER *src, const u32 total_size, u8 *dest,
-               const Statistics *stats);
+  u32 compress(const INTEGER *src, const u32 size, u8 *dest,
+               const Statistics *stats) override;
   //---------------------------------------------------------------------------
-  void decompress(INTEGER *dest, const u32 total_size, const u8 *src);
+  void decompress(INTEGER *dest, const u32 size, const u8 *src) override;
+  //---------------------------------------------------------------------------
+  bool isPartitioningScheme() override;
 };
 //---------------------------------------------------------------------------
 } // namespace compression

@@ -1,26 +1,56 @@
 #include <gtest/gtest.h>
 //---------------------------------------------------------------------------
-#include "core/Compressor.hpp"
-#include "core/Decompressor.hpp"
-#include "statistics/Statistics.hpp"
+#include "core/BlockCompressor.hpp"
+#include "core/ColumnCompressor.hpp"
 #include "storage/Column.hpp"
 //---------------------------------------------------------------------------
-namespace cs = compression::storage;
-namespace cc = compression::compressor;
-namespace cd = compression::decompressor;
+using namespace compression;
 //---------------------------------------------------------------------------
-// Verifies that the data remains unchanged after compression and decompression.
-TEST(DeltaTest, DecompressionInvariant) {
+// Verifies that the data remains unchanged after columnar compression and
+// decompression.
+TEST(DeltaTest, ColumnDecompressionInvariant) {
+  constexpr uint16_t kBlockSize = 256;
+
   auto path = "../data/tpch/sf1/partsupp.tbl";
-  auto column = cs::Column::fromFile(path, 0, '|');
+  auto column = storage::Column::fromFile(path, 0, '|');
+
+  ColumnCompressor<kBlockSize> compressor(column,
+                                          CompressionSchemeType::kDelta);
 
   // compress
   std::unique_ptr<compression::u8[]> compression_out;
-  cc::compressDelta(column, compression_out);
+  compressor.compress(compression_out);
 
   // decompress
   std::vector<compression::INTEGER> decompression_out;
-  cd::decompressDelta(decompression_out, column.size(), compression_out.get());
+  compressor.decompress(decompression_out, compression_out.get());
+
+  // verify
+  for (size_t i = 0; i < column.size(); ++i) {
+    ASSERT_EQ(column.data()[i], decompression_out[i]);
+  }
+}
+//---------------------------------------------------------------------------
+// Verifies that the data remains unchanged after block-wise compression and
+// decompression.
+TEST(DeltaTest, BlockDecompressionInvariant) {
+  constexpr uint16_t kBlockSize = 256;
+
+  auto path = "../data/tpch/sf1/partsupp.tbl";
+  auto column = storage::Column::fromFile(path, 0, '|');
+
+  column.padToMultipleOf(kDefaultDataBlockSize);
+
+  BlockCompressor<kDefaultDataBlockSize, kBlockSize> compressor(
+      column, CompressionSchemeType::kDelta);
+
+  // compress
+  std::unique_ptr<compression::u8[]> compression_out;
+  compressor.compress(compression_out);
+
+  // decompress
+  std::vector<compression::INTEGER> decompression_out;
+  compressor.decompress(decompression_out, compression_out.get());
 
   // verify
   for (size_t i = 0; i < column.size(); ++i) {

@@ -3,8 +3,7 @@
 #include <cmath>
 //---------------------------------------------------------------------------
 #include "bitpacking/BitPacking.hpp"
-#include "common/Types.hpp"
-#include "statistics/Statistics.hpp"
+#include "schemes/CompressionScheme.hpp"
 //---------------------------------------------------------------------------
 namespace compression {
 //---------------------------------------------------------------------------
@@ -17,13 +16,16 @@ struct BitPackingSlot {
   static u8 size() { return sizeof(offset) + sizeof(pack_size); }
 };
 //---------------------------------------------------------------------------
-class BitPacking {
+/// This class implements bit-packing. For implementation, bit-packing operates
+/// on smaller data blocks, with the block size specified as a template
+/// parameter.
+/// @tparam kBlockSize: The size of a block.
+template <const u16 kBlockSize> class BitPacking : public CompressionScheme {
 public:
   //---------------------------------------------------------------------------
-  template <const u16 kBlockSize>
-  u32 compress(const INTEGER *src, const u32 total_size, u8 *dest,
-               const Statistics *stats) {
-    const u32 block_count = total_size / kBlockSize;
+  u32 compress(const INTEGER *src, const u32 size, u8 *dest,
+               const Statistics *stats) override {
+    const u32 block_count = size / kBlockSize;
 
     // Layout: HEADER | COMPRESSED DATA
     u8 *header_ptr = dest;
@@ -51,12 +53,16 @@ public:
     return data_offset;
   }
   //---------------------------------------------------------------------------
-  template <const u16 kBlockSize>
-  void decompress(INTEGER *dest, const u32 total_size, const u8 *src) {
-    const u32 block_count = total_size / kBlockSize;
+  void decompress(INTEGER *dest, const u32 size, const u8 *src) override {
+    decompress(dest, size, src, 0);
+  }
+  //---------------------------------------------------------------------------
+  void decompress(INTEGER *dest, const u32 size, const u8 *src,
+                  const u32 block_offset) {
+    const u32 block_count = size / kBlockSize;
 
     // Layout: HEADER | COMPRESSED DATA
-    const u8 *header_ptr = src;
+    const u8 *header_ptr = src + block_offset * BitPackingSlot::size();
     const u8 *data_ptr = src;
 
     for (u32 block_i = 0; block_i < block_count; ++block_i) {
@@ -73,6 +79,8 @@ public:
       header_ptr += BitPackingSlot::size();
     }
   }
+  //---------------------------------------------------------------------------
+  bool isPartitioningScheme() override { return true; }
 };
 //---------------------------------------------------------------------------
 } // namespace compression

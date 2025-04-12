@@ -2,8 +2,7 @@
 //---------------------------------------------------------------------------
 #include <cmath>
 //---------------------------------------------------------------------------
-#include "common/Types.hpp"
-#include "statistics/Statistics.hpp"
+#include "schemes/CompressionScheme.hpp"
 //---------------------------------------------------------------------------
 namespace compression {
 //---------------------------------------------------------------------------
@@ -20,13 +19,12 @@ struct FORnSlot {
   }
 };
 //---------------------------------------------------------------------------
-class FORn {
+template <const u16 kBlockSize> class FORn : public CompressionScheme {
 public:
   //---------------------------------------------------------------------------
-  template <const u16 kBlockSize>
-  u32 compress(const INTEGER *src, const u32 total_size, u8 *dest,
-               const Statistics *stats) {
-    const u32 block_count = total_size / kBlockSize;
+  u32 compress(const INTEGER *src, const u32 size, u8 *dest,
+               const Statistics *stats) override {
+    const u32 block_count = size / kBlockSize;
 
     // Layout: HEADER [kBlockSize] | COMPRESSED DATA
     u8 *header_ptr = dest;
@@ -38,8 +36,7 @@ public:
 
       // Update header
       auto &slot = *reinterpret_cast<FORnSlot *>(header_ptr);
-      slot.pack_size =
-          compressDispatch<kBlockSize>(src, data_ptr, &stats[block_i]);
+      slot.pack_size = compressDispatch(src, data_ptr, &stats[block_i]);
       slot.reference = stats[block_i].min;
       slot.offset = data_offset;
 
@@ -53,15 +50,13 @@ public:
     return data_offset;
   }
   //---------------------------------------------------------------------------
-  template <const u16 kBlockSize>
-  void decompress(INTEGER *dest, const u32 total_size, const u8 *src) {
-    decompress<kBlockSize>(dest, total_size, src, 0);
+  void decompress(INTEGER *dest, const u32 size, const u8 *src) override {
+    decompress(dest, size, src, 0);
   }
   //---------------------------------------------------------------------------
-  template <const u16 kBlockSize>
-  void decompress(INTEGER *dest, const u32 total_size, const u8 *src,
+  void decompress(INTEGER *dest, const u32 size, const u8 *src,
                   const u32 block_offset) {
-    const u32 block_count = total_size / kBlockSize;
+    const u32 block_count = size / kBlockSize;
 
     // Layout: HEADER [kBlockSize] | COMPRESSED DATA
     const u8 *header_ptr = src + block_offset * FORnSlot::size();
@@ -74,61 +69,60 @@ public:
       data_ptr = src + slot.offset;
 
       // Decompress payload
-      decompressDispatch<kBlockSize>(dest, data_ptr, slot.reference,
-                                     slot.pack_size);
+      decompressDispatch(dest, data_ptr, slot.reference, slot.pack_size);
 
       // Update iterators
       dest += kBlockSize;
       header_ptr += 9;
     }
   }
+  //---------------------------------------------------------------------------
+  bool isPartitioningScheme() override { return true; }
 
 private:
   //---------------------------------------------------------------------------
-  template <const u16 kLength>
   u8 compressDispatch(const INTEGER *src, u8 *dest, const Statistics *stats) {
     if (stats->diff_bits <= 8) {
-      compressImpl<u8, kLength>(src, dest, stats);
+      compressImpl<u8>(src, dest, stats);
       return 8;
     } else if (stats->diff_bits <= 16) {
-      compressImpl<u16, kLength>(src, dest, stats);
+      compressImpl<u16>(src, dest, stats);
       return 16;
     } else {
-      compressImpl<u32, kLength>(src, dest, stats);
+      compressImpl<u32>(src, dest, stats);
       return 32;
     }
   }
   //---------------------------------------------------------------------------
-  template <const u16 kLength>
   void decompressDispatch(INTEGER *dest, const u8 *src, const u32 reference,
                           const u8 pack_size) {
     switch (pack_size) {
     case 8:
-      decompressImpl<u8, kLength>(dest, src, reference);
+      decompressImpl<u8>(dest, src, reference);
       return;
     case 16:
-      decompressImpl<u16, kLength>(dest, src, reference);
+      decompressImpl<u16>(dest, src, reference);
       return;
     case 32:
-      decompressImpl<u32, kLength>(dest, src, reference);
+      decompressImpl<u32>(dest, src, reference);
       return;
     default:
       break;
     }
   }
   //---------------------------------------------------------------------------
-  template <typename T, const u16 kLength>
+  template <typename T>
   void compressImpl(const INTEGER *src, u8 *dest, const Statistics *stats) {
     auto data = reinterpret_cast<T *>(dest);
-    for (u32 i = 0; i < kLength; ++i) {
+    for (u32 i = 0; i < kBlockSize; ++i) {
       data[i] = static_cast<T>(src[i] - stats->min);
     }
   }
   //---------------------------------------------------------------------------
-  template <typename T, const u16 kLength>
+  template <typename T>
   void decompressImpl(INTEGER *dest, const u8 *src, const u32 reference) {
     const auto &data = reinterpret_cast<const T *>(src);
-    for (u32 i = 0; i < kLength; ++i) {
+    for (u32 i = 0; i < kBlockSize; ++i) {
       dest[i] = data[i] + reference;
     }
   }

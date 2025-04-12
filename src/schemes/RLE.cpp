@@ -2,7 +2,7 @@
 //---------------------------------------------------------------------------
 namespace compression {
 //---------------------------------------------------------------------------
-u32 RLE::compress(const INTEGER *src, const u32 total_size, u8 *dest,
+u32 RLE::compress(const INTEGER *src, const u32 size, u8 *dest,
                   const Statistics *stats) {
   auto &layout = *reinterpret_cast<RLELayout *>(dest);
 
@@ -13,7 +13,7 @@ u32 RLE::compress(const INTEGER *src, const u32 total_size, u8 *dest,
 
   INTEGER cur = src[0];
   u32 run_length = 1;
-  for (u32 i = 1; i < total_size; ++i) {
+  for (u32 i = 1; i < size; ++i) {
     if (src[i] == cur) {
       ++run_length;
     } else {
@@ -35,10 +35,11 @@ u32 RLE::compress(const INTEGER *src, const u32 total_size, u8 *dest,
     varr[i] = values[i];
   }
 
-  return layout.value_offset + values.size() * sizeof(INTEGER);
+  return sizeof(RLELayout) + layout.value_offset +
+         values.size() * sizeof(INTEGER);
 }
 //---------------------------------------------------------------------------
-void RLE::decompress(INTEGER *dest, const u32 total_size, const u8 *src) {
+void RLE::decompress(INTEGER *dest, const u32 size, const u8 *src) {
   const auto &layout = *reinterpret_cast<const RLELayout *>(src);
 
   const auto *run_lengths = reinterpret_cast<const u32 *>(layout.data);
@@ -55,5 +56,7 @@ void RLE::decompress(INTEGER *dest, const u32 total_size, const u8 *src) {
     }
   }
 }
+//---------------------------------------------------------------------------
+bool RLE::isPartitioningScheme() { return false; }
 //---------------------------------------------------------------------------
 } // namespace compression
