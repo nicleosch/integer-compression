@@ -1,6 +1,5 @@
 #pragma once
 //---------------------------------------------------------------------------
-#include <cstring>
 #include <lz4.h>
 //---------------------------------------------------------------------------
 #include "core/Compressor.hpp"
@@ -10,6 +9,7 @@
 #include "schemes/FORn.hpp"
 #include "schemes/RLE.hpp"
 #include "schemes/TinyBlocks.hpp"
+#include "schemes/Uncompressed.hpp"
 #include "statistics/Statistics.hpp"
 //---------------------------------------------------------------------------
 namespace compression {
@@ -54,7 +54,7 @@ public:
       compressed_size = compress<TinyBlocks<kTinyBlockSize>>(dest.get());
       break;
     case CompressionSchemeType::kUncompressed:
-      compressed_size = compressUncompressed(dest.get());
+      compressed_size = compress<Uncompressed>(dest.get());
       break;
     case CompressionSchemeType::kLZ4:
       compressed_size = compressLZ4(dest.get());
@@ -91,7 +91,7 @@ public:
       decompress<TinyBlocks<kTinyBlockSize>>(dest.data(), src);
       return;
     case CompressionSchemeType::kUncompressed:
-      decompressUncompressed(dest.data(), src);
+      decompress<Uncompressed>(dest.data(), src);
       return;
     case CompressionSchemeType::kLZ4:
       decompressLZ4(dest.data(), src);
@@ -117,7 +117,7 @@ public:
       decompress<TinyBlocks<kTinyBlockSize>>(src);
       return;
     case CompressionSchemeType::kUncompressed:
-      decompressUncompressed(src);
+      decompress<Uncompressed>(src);
       return;
     default:
       throw std::runtime_error(
@@ -152,12 +152,6 @@ private:
     return size;
   }
   //---------------------------------------------------------------------------
-  u32 compressUncompressed(u8 *dest) {
-    auto size = this->column.size() * sizeof(INTEGER);
-    std::memcpy(dest, this->column.data(), size);
-    return size;
-  }
-  //---------------------------------------------------------------------------
   u32 compressLZ4(u8 *dest) {
     return static_cast<u32>(LZ4_compress_default(
         reinterpret_cast<const char *>(this->column.data()),
@@ -187,22 +181,6 @@ private:
       for (u32 i = 0; i < morsel_count; ++i) {
         scheme.decompress(dest.data(), kMorselSize, src, i * kMorselSize);
       }
-    }
-  }
-  //---------------------------------------------------------------------------
-  void decompressUncompressed(INTEGER *dest, u8 *src) {
-    std::memcpy(dest, src, this->column.size() * sizeof(INTEGER));
-  }
-  //---------------------------------------------------------------------------
-  void decompressUncompressed(u8 *src) {
-    // allocate space
-    vector<INTEGER> dest(kMorselSize);
-
-    auto morsel_count = this->column.size() / kMorselSize;
-
-    for (u32 i = 0; i < morsel_count; ++i) {
-      std::memcpy(dest.data(), src + i * kMorselSize,
-                  kMorselSize * sizeof(INTEGER));
     }
   }
   //---------------------------------------------------------------------------
