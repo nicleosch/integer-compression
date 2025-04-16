@@ -39,24 +39,24 @@ inline u32 pack<INTEGER, 64>(const INTEGER *src, u8 *dest, const u8 pack_size) {
 template <>
 inline u32 pack<INTEGER, 128>(const INTEGER *src, u8 *dest,
                               const u8 pack_size) {
-  simdpack(reinterpret_cast<const u32 *>(src),
-           reinterpret_cast<__m128i *>(dest), pack_size);
+  simdpackwithoutmask(reinterpret_cast<const u32 *>(src),
+                      reinterpret_cast<__m128i *>(dest), pack_size);
   return std::ceil(static_cast<double>(pack_size * 128) / 8);
 }
 //---------------------------------------------------------------------------
 template <>
 inline u32 pack<INTEGER, 256>(const INTEGER *src, u8 *dest,
                               const u8 pack_size) {
-  avxpack(reinterpret_cast<const u32 *>(src), reinterpret_cast<__m256i *>(dest),
-          pack_size);
+  avxpackwithoutmask(reinterpret_cast<const u32 *>(src),
+                     reinterpret_cast<__m256i *>(dest), pack_size);
   return std::ceil(static_cast<double>(pack_size * 256) / 8);
 }
 //---------------------------------------------------------------------------
 template <>
 inline u32 pack<INTEGER, 512>(const INTEGER *src, u8 *dest,
                               const u8 pack_size) {
-  avx512pack(reinterpret_cast<const u32 *>(src),
-             reinterpret_cast<__m512i *>(dest), pack_size);
+  avx512packwithoutmask(reinterpret_cast<const u32 *>(src),
+                        reinterpret_cast<__m512i *>(dest), pack_size);
   return std::ceil(static_cast<double>(pack_size * 512) / 8);
 }
 //---------------------------------------------------------------------------
@@ -70,22 +70,22 @@ inline u32 pack<BIGINT, 64>(const BIGINT *src, u8 *dest, const u8 pack_size) {
 //---------------------------------------------------------------------------
 template <>
 inline u32 pack<BIGINT, 128>(const BIGINT *src, u8 *dest, const u8 pack_size) {
-  simd64::simdpack(reinterpret_cast<const u64 *>(src),
-                   reinterpret_cast<__m128i *>(dest), pack_size);
+  simd64::simdpackwithoutmask(reinterpret_cast<const u64 *>(src),
+                              reinterpret_cast<__m128i *>(dest), pack_size);
   return std::ceil(static_cast<double>(pack_size * 128) / 8);
 }
 //---------------------------------------------------------------------------
 template <>
 inline u32 pack<BIGINT, 256>(const BIGINT *src, u8 *dest, const u8 pack_size) {
-  simd64::avxpack(reinterpret_cast<const u64 *>(src),
-                  reinterpret_cast<__m256i *>(dest), pack_size);
+  simd64::avxpackwithoutmask(reinterpret_cast<const u64 *>(src),
+                             reinterpret_cast<__m256i *>(dest), pack_size);
   return std::ceil(static_cast<double>(pack_size * 256) / 8);
 }
 //---------------------------------------------------------------------------
 template <>
 inline u32 pack<BIGINT, 512>(const BIGINT *src, u8 *dest, const u8 pack_size) {
-  simd64::avx512pack(reinterpret_cast<const u64 *>(src),
-                     reinterpret_cast<__m512i *>(dest), pack_size);
+  simd64::avx512packwithoutmask(reinterpret_cast<const u64 *>(src),
+                                reinterpret_cast<__m512i *>(dest), pack_size);
   return std::ceil(static_cast<double>(pack_size * 512) / 8);
 }
 //---------------------------------------------------------------------------
