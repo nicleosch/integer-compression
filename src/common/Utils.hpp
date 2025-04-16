@@ -13,6 +13,7 @@ namespace compression {
 //---------------------------------------------------------------------------
 namespace utils {
 //---------------------------------------------------------------------------
+/// @brief Representation of a memory mapped file.
 class MemoryMappedFile {
 public:
   explicit MemoryMappedFile(const char *path) {
@@ -108,6 +109,7 @@ inline void hex_dump(const std::byte *data, size_t length, std::ostream &out,
   }
 }
 //---------------------------------------------------------------------------
+/// @brief A utility to time operations.
 class Timer {
 public:
   explicit Timer() : start(std::chrono::high_resolution_clock::now()) {}
@@ -122,6 +124,22 @@ public:
 private:
   std::chrono::high_resolution_clock::time_point start;
 };
+//---------------------------------------------------------------------------
+/// @brief Template specialization to determine the number of required bits to
+/// represent an integer.
+template <typename T> inline u8 requiredBits(T value);
+template <> inline u8 requiredBits(INTEGER value) {
+  if (value == 0)
+    return 0;
+  return static_cast<u8>(sizeof(INTEGER) * 8) -
+         __builtin_clz(static_cast<u32>(value));
+}
+template <> inline u8 requiredBits(BIGINT value) {
+  if (value == 0)
+    return 0;
+  return static_cast<u8>(sizeof(BIGINT) * 8) -
+         __builtin_clzll(static_cast<u64>(value));
+}
 //---------------------------------------------------------------------------
 } // namespace utils
 //---------------------------------------------------------------------------

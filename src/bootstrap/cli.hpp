@@ -9,16 +9,18 @@ namespace bootstrap {
 struct CLIOptions {
   /// Path to the data.
   string data;
-  /// Integer column.
+  /// The column index.
   u16 column;
-  /// Compression algorithm.
-  string algorithm;
+  /// The type of the column.
+  string type;
+  /// Compression scheme to be used.
+  string scheme;
   /// Whether the column should be divided into DataBlocks for (de)compression.
-  bool blocks;
+  bool blocks = false;
   /// Whether to decompress into morsels.
-  bool morsel;
+  bool morsel = false;
   /// Whether to log the first block of (de)compressed data.
-  bool logging;
+  bool logging = false;
 };
 //---------------------------------------------------------------------------
 CLIOptions parseCommandLine(int argc, char **argv);

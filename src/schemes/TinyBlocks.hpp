@@ -7,24 +7,25 @@
 //---------------------------------------------------------------------------
 namespace compression {
 //---------------------------------------------------------------------------
-struct TinyBlocksSlot {
-  /// The reference of the corresponding frame.
-  INTEGER reference;
-  /// The offset into the data array.
-  u32 offset;
-  /// The number of bits used to store an integer in corresponding frame.
-  u8 pack_size;
-  /// The unpadded size of a slot.
-  static u8 size() {
-    return sizeof(reference) + sizeof(offset) + sizeof(pack_size);
-  }
-};
-//---------------------------------------------------------------------------
-template <const u16 kBlockSize> class TinyBlocks : public CompressionScheme {
+template <typename DataType, const u16 kBlockSize>
+class TinyBlocks : public CompressionScheme<DataType> {
 public:
   //---------------------------------------------------------------------------
-  u32 compress(const INTEGER *src, const u32 size, u8 *dest,
-               const Statistics *stats) override {
+  struct TinyBlocksSlot {
+    /// The reference of the corresponding frame.
+    DataType reference;
+    /// The offset into the data array.
+    u32 offset;
+    /// The number of bits used to store an integer in corresponding frame.
+    u8 pack_size;
+    /// The unpadded size of a slot.
+    static u8 size() {
+      return sizeof(reference) + sizeof(offset) + sizeof(pack_size);
+    }
+  };
+  //---------------------------------------------------------------------------
+  u32 compress(const DataType *src, const u32 size, u8 *dest,
+               const Statistics<DataType> *stats) override {
     const u32 block_count = size / kBlockSize;
 
     // Layout: HEADER [kBlockSize] | COMPRESSED DATA
@@ -52,11 +53,11 @@ public:
     return data_offset;
   }
   //---------------------------------------------------------------------------
-  void decompress(INTEGER *dest, const u32 size, const u8 *src) override {
+  void decompress(DataType *dest, const u32 size, const u8 *src) override {
     decompress(dest, size, src, 0);
   }
   //---------------------------------------------------------------------------
-  void decompress(INTEGER *dest, const u32 size, const u8 *src,
+  void decompress(DataType *dest, const u32 size, const u8 *src,
                   const u32 block_offset) {
     const u32 block_count = size / kBlockSize;
 
@@ -75,7 +76,7 @@ public:
 
       // Update iterators
       dest += kBlockSize;
-      header_ptr += 9;
+      header_ptr += TinyBlocksSlot::size();
     }
   }
   //---------------------------------------------------------------------------
@@ -83,7 +84,8 @@ public:
 
 private:
   //---------------------------------------------------------------------------
-  u16 compressDispatch(const INTEGER *src, u8 *dest, const Statistics &stats,
+  u16 compressDispatch(const DataType *src, u8 *dest,
+                       const Statistics<DataType> &stats,
                        TinyBlocksSlot &slot) {
     switch (slot.pack_size) {
     case 0: // OneValue
@@ -92,12 +94,11 @@ private:
       slot.pack_size = (slot.pack_size & (step_mask + 1)) | stats.step_size;
       return 0;
     default: // Regular Bit-Size
-      compressImpl(src, dest, slot);
-      return std::ceil(static_cast<double>(slot.pack_size * kBlockSize) / 8);
+      return compressImpl(src, dest, slot);
     }
   }
   //---------------------------------------------------------------------------
-  void decompressDispatch(INTEGER *dest, const u8 *src,
+  void decompressDispatch(DataType *dest, const u8 *src,
                           const TinyBlocksSlot &slot) {
     if (slot.pack_size == 0) // OneValue
       broadcast(dest, slot.reference);
@@ -107,21 +108,22 @@ private:
       decompressImpl(dest, src, slot);
   }
   //---------------------------------------------------------------------------
-  void compressImpl(const INTEGER *src, u8 *dest, const TinyBlocksSlot &slot) {
+  u32 compressImpl(const DataType *src, u8 *dest, const TinyBlocksSlot &slot) {
     // Normalize
-    vector<INTEGER> normalized(kBlockSize);
+    vector<DataType> normalized(kBlockSize);
     for (u32 i = 0; i < kBlockSize; ++i) {
       normalized[i] = src[i] - slot.reference;
     }
 
     // Compress
-    bitpacking::pack(normalized.data(), dest, kBlockSize, slot.pack_size);
+    return bitpacking::pack<DataType, kBlockSize>(normalized.data(), dest,
+                                                  slot.pack_size);
   }
   //---------------------------------------------------------------------------
-  void decompressImpl(INTEGER *dest, const u8 *src,
+  void decompressImpl(DataType *dest, const u8 *src,
                       const TinyBlocksSlot &slot) {
     // Decompress
-    bitpacking::unpack(dest, src, kBlockSize, slot.pack_size);
+    bitpacking::unpack<DataType, kBlockSize>(dest, src, slot.pack_size);
 
     // Denormalize
     for (u32 i = 0; i < kBlockSize; ++i) {
@@ -129,7 +131,7 @@ private:
     }
   }
   //---------------------------------------------------------------------------
-  void decompressMonoInc(INTEGER *dest, const TinyBlocksSlot &slot) {
+  void decompressMonoInc(DataType *dest, const TinyBlocksSlot &slot) {
     u8 step_size = slot.pack_size & step_mask;
 
     dest[0] = slot.reference;
@@ -138,7 +140,7 @@ private:
     }
   }
   //---------------------------------------------------------------------------
-  void broadcast(INTEGER *dest, INTEGER value) {
+  void broadcast(DataType *dest, DataType value) {
     for (u16 i = 0; i < kBlockSize; ++i) {
       dest[i] = value;
     }

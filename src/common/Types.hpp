@@ -20,11 +20,13 @@ using s32 = int32_t;
 using s64 = int64_t;
 //---------------------------------------------------------------------------
 using INTEGER = s32;
+using BIGINT = s64;
 //---------------------------------------------------------------------------
 using std::string;
 using std::vector;
 //---------------------------------------------------------------------------
 enum class ColumnType : u8 {
   kInteger = 0,
+  kBigInt = 0,
 };
 } // namespace compression

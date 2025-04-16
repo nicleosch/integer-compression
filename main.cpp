@@ -8,46 +8,42 @@
 #include "extern/BtrBlocks.hpp"
 #include "storage/Column.hpp"
 //---------------------------------------------------------------------------
-int main(int argc, char **argv) {
-  using namespace compression;
-
-  // Parse input arguments
-  auto cli = bootstrap::parseCommandLine(argc, argv);
-
+using namespace compression;
+//---------------------------------------------------------------------------
+template <typename DataType> int compressionLogic(bootstrap::CLIOptions &cli) {
   // Size of an integer block.
   constexpr u16 kBlockSize = 256;
   // Size of a morsel.
   constexpr u16 kMorselSize = 1024;
 
   // Read integer column
-  auto column = storage::Column::fromFile(cli.data.c_str(), cli.column, '|');
+  auto column =
+      storage::Column<DataType>::fromFile(cli.data.c_str(), cli.column, '|');
 
   // Choose the compressor
-  std::unique_ptr<Compressor> compressor;
+  std::unique_ptr<Compressor<DataType>> compressor;
   if (cli.blocks) {
     column.padToMultipleOf(kDefaultDataBlockSize);
-    compressor =
-        std::make_unique<BlockCompressor<kDefaultDataBlockSize, kBlockSize>>(
-            column);
+    compressor = std::make_unique<
+        BlockCompressor<DataType, kDefaultDataBlockSize, kBlockSize>>(column);
   } else {
     column.padToMultipleOf(kMorselSize);
-    compressor = std::make_unique<ColumnCompressor<kBlockSize>>(column);
+    compressor =
+        std::make_unique<ColumnCompressor<DataType, kBlockSize>>(column);
   }
-  u64 uncompressed_size = column.size() * sizeof(INTEGER);
+  u64 uncompressed_size = column.size() * sizeof(DataType);
 
   // Compression & Decompression
   CompressionStats stats;
-  std::unique_ptr<compression::u8[]> compress_out;
-  std::vector<compression::INTEGER> decompress_out;
+  std::unique_ptr<u8[]> compress_out;
+  std::vector<DataType> decompress_out;
 
   // BtrBlocks is treated special
-  if (cli.algorithm == "btrblocks") {
+  if (cli.scheme == "btrblocks") {
     btrblocks::BtrBlocksConfig::configure(
         [&](btrblocks::BtrBlocksConfig &config) {
-          if (argc > 1) {
-            auto max_depth = 5;
-            config.integers.max_cascade_depth = max_depth;
-          }
+          auto max_depth = 5;
+          config.integers.max_cascade_depth = max_depth;
           config.integers.schemes.enableAll();
         });
 
@@ -75,21 +71,21 @@ int main(int argc, char **argv) {
       btrblocks::Chunk decompressed = compressor.decompress(compress_out);
     }
   } else {
-    if (cli.algorithm == "uncompressed") {
+    if (cli.scheme == "uncompressed") {
       compressor->setScheme(CompressionSchemeType::kUncompressed);
-    } else if (cli.algorithm == "bitpacking") {
+    } else if (cli.scheme == "bitpacking") {
       compressor->setScheme(CompressionSchemeType::kBitPacking);
-    } else if (cli.algorithm == "delta") {
+    } else if (cli.scheme == "delta") {
       compressor->setScheme(CompressionSchemeType::kDelta);
-    } else if (cli.algorithm == "for") {
+    } else if (cli.scheme == "for") {
       compressor->setScheme(CompressionSchemeType::kFOR);
-    } else if (cli.algorithm == "forn") {
+    } else if (cli.scheme == "forn") {
       compressor->setScheme(CompressionSchemeType::kFORn);
-    } else if (cli.algorithm == "rle") {
+    } else if (cli.scheme == "rle") {
       compressor->setScheme(CompressionSchemeType::kRLE);
-    } else if (cli.algorithm == "tinyblocks") {
+    } else if (cli.scheme == "tinyblocks") {
       compressor->setScheme(CompressionSchemeType::kTinyBlocks);
-    } else if (cli.algorithm == "lz4") {
+    } else if (cli.scheme == "lz4") {
       compressor->setScheme(CompressionSchemeType::kLZ4);
     } else {
       std::cout << "Unknown algorithm" << std::endl;
@@ -117,7 +113,7 @@ int main(int argc, char **argv) {
 
   // Log (de)compressed data.
   if (cli.logging) {
-    if (cli.morsel || cli.algorithm == "btrblocks") {
+    if (cli.morsel || cli.scheme == "btrblocks") {
       std::cout << "Logging not allowed when decompressing into morsels or "
                    "when using btrblocks."
                 << std::endl;
@@ -125,13 +121,29 @@ int main(int argc, char **argv) {
     }
 
     std::cout << "Compressed" << std::endl;
-    compression::utils::hex_dump(
-        reinterpret_cast<const std::byte *>(compress_out.get()), kBlockSize,
-        std::cout);
+    utils::hex_dump(reinterpret_cast<const std::byte *>(compress_out.get()),
+                    kBlockSize, std::cout);
 
     std::cout << "Decompressed" << std::endl;
-    compression::utils::hex_dump(
-        reinterpret_cast<const std::byte *>(decompress_out.data()), kBlockSize,
-        std::cout);
+    utils::hex_dump(reinterpret_cast<const std::byte *>(decompress_out.data()),
+                    kBlockSize, std::cout);
+  }
+
+  return 0;
+}
+//---------------------------------------------------------------------------
+int main(int argc, char **argv) {
+
+  // Parse input arguments
+  auto cli = bootstrap::parseCommandLine(argc, argv);
+
+  if (cli.type == "int")
+    return compressionLogic<INTEGER>(cli);
+  else if (cli.type == "bigint")
+    return compressionLogic<BIGINT>(cli);
+  else {
+    std::cerr << "Unsupported column type \"" << cli.type
+              << "\". Only \"int\" and \"bigint\" are supported.";
+    return 1;
   }
 }

@@ -1,23 +1,24 @@
 #pragma once
 //---------------------------------------------------------------------------
 #include "common/Types.hpp"
+#include "common/Utils.hpp"
 //---------------------------------------------------------------------------
 namespace compression {
 //---------------------------------------------------------------------------
-class Statistics {
+template <typename T> class Statistics {
 public:
   Statistics() = delete;
   //---------------------------------------------------------------------------
-  Statistics(INTEGER *src, u32 count) : src(src), count(count){};
+  Statistics(T *src, u32 count) : src(src), count(count){};
   //---------------------------------------------------------------------------
   /// The pointer to the data to generate the statistics from.
-  INTEGER *src;
+  T *src;
+  /// The minimum.
+  T min;
+  /// The maximum
+  T max;
   /// The number of values in the input.
   u32 count;
-  /// The minimum.
-  INTEGER min;
-  /// The maximum
-  INTEGER max;
   /// The number of bits required to store the maximum delta between two
   /// consecutive values.
   u8 delta_bits;
@@ -33,10 +34,37 @@ public:
   /// @param src The data to generate the statistic from.
   /// @param count The total number of integers.
   /// @return The statistics generated from the data.
-  static Statistics generateFrom(INTEGER *src, u32 count);
+  static Statistics generateFrom(T *src, u32 count) {
+    auto stats = Statistics(src, count);
 
-private:
-  static u8 requiredBits(INTEGER value);
+    stats.min = stats.max = src[0];
+    T step = src[1] - src[0];
+    T max_diff = step;
+
+    for (u32 i = 0; i < count; ++i) {
+      T current = src[i];
+      if (current < stats.min)
+        stats.min = current;
+      if (current > stats.max)
+        stats.max = current;
+      if (i > 0 && src[i] - src[i - 1] != step) {
+        if (src[i] - src[i - 1] > max_diff)
+          max_diff = src[i] - src[i - 1];
+        step = 0;
+      }
+    }
+
+    if (step > 0 && step < 64) {
+      stats.diff_bits = 65;
+      stats.step_size = static_cast<u8>(step);
+    } else {
+      stats.diff_bits = utils::requiredBits<T>(stats.max - stats.min);
+    }
+    stats.delta_bits = utils::requiredBits<T>(max_diff);
+    stats.max_bits = utils::requiredBits<T>(stats.max);
+
+    return stats;
+  }
 };
 //---------------------------------------------------------------------------
 } // namespace compression

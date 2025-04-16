@@ -1,30 +1,29 @@
 #pragma once
 //---------------------------------------------------------------------------
-#include <cmath>
-//---------------------------------------------------------------------------
 #include "bitpacking/BitPacking.hpp"
 #include "schemes/CompressionScheme.hpp"
 //---------------------------------------------------------------------------
 namespace compression {
 //---------------------------------------------------------------------------
-struct BitPackingSlot {
-  /// The offset into the data array.
-  u32 offset;
-  /// The number of bits used to store an integer in corresponding frame.
-  u8 pack_size;
-  /// The unpadded size of a slot.
-  static u8 size() { return sizeof(offset) + sizeof(pack_size); }
-};
-//---------------------------------------------------------------------------
 /// This class implements bit-packing. For implementation, bit-packing operates
 /// on smaller data blocks, with the block size specified as a template
 /// parameter.
 /// @tparam kBlockSize: The size of a block.
-template <const u16 kBlockSize> class BitPacking : public CompressionScheme {
+template <typename DataType, const u16 kBlockSize>
+class BitPacking : public CompressionScheme<DataType> {
 public:
   //---------------------------------------------------------------------------
-  u32 compress(const INTEGER *src, const u32 size, u8 *dest,
-               const Statistics *stats) override {
+  struct BitPackingSlot {
+    /// The offset into the data array.
+    u32 offset;
+    /// The number of bits used to store an integer in corresponding frame.
+    u8 pack_size;
+    /// The unpadded size of a slot.
+    static u8 size() { return sizeof(offset) + sizeof(pack_size); }
+  };
+  //---------------------------------------------------------------------------
+  u32 compress(const DataType *src, const u32 size, u8 *dest,
+               const Statistics<DataType> *stats) override {
     const u32 block_count = size / kBlockSize;
 
     // Layout: HEADER | COMPRESSED DATA
@@ -41,9 +40,8 @@ public:
       slot.offset = data_offset;
 
       // Compress block
-      bitpacking::pack(src, data_ptr, kBlockSize, slot.pack_size);
       data_offset +=
-          std::ceil(static_cast<double>(slot.pack_size * kBlockSize) / 8);
+          bitpacking::pack<DataType, kBlockSize>(src, data_ptr, slot.pack_size);
 
       // Update iterators
       src += kBlockSize;
@@ -53,11 +51,11 @@ public:
     return data_offset;
   }
   //---------------------------------------------------------------------------
-  void decompress(INTEGER *dest, const u32 size, const u8 *src) override {
+  void decompress(DataType *dest, const u32 size, const u8 *src) override {
     decompress(dest, size, src, 0);
   }
   //---------------------------------------------------------------------------
-  void decompress(INTEGER *dest, const u32 size, const u8 *src,
+  void decompress(DataType *dest, const u32 size, const u8 *src,
                   const u32 block_offset) {
     const u32 block_count = size / kBlockSize;
 
@@ -72,7 +70,7 @@ public:
       data_ptr = src + slot.offset;
 
       // Decompress payload
-      bitpacking::unpack(dest, data_ptr, kBlockSize, slot.pack_size);
+      bitpacking::unpack<DataType, kBlockSize>(dest, data_ptr, slot.pack_size);
 
       // Update iterators
       dest += kBlockSize;

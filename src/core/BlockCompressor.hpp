@@ -27,19 +27,20 @@ struct DataBlocksMeta {
 /// additional template parameter for efficiency reasons.
 /// @tparam kDataBlockSize The size of a DataBlock.
 /// @tparam kTinyBlockSize The size of the small blocks.
-template <const u32 kDataBlockSize = kDefaultDataBlockSize,
+/// @tparam kMorselSize The size of a morsel for decompression benchmarking.
+template <typename T, const u32 kDataBlockSize = kDefaultDataBlockSize,
           const u16 kTinyBlockSize = 128, const u16 kMorselSize = 1024>
-class BlockCompressor : public Compressor {
+class BlockCompressor : public Compressor<T> {
 public:
   //---------------------------------------------------------------------------
-  explicit BlockCompressor(const Column &column) : Compressor(column) {}
+  explicit BlockCompressor(const Column<T> &column) : Compressor<T>(column) {}
   //---------------------------------------------------------------------------
-  BlockCompressor(const Column &column, const CompressionSchemeType scheme)
-      : Compressor(column, scheme) {}
+  BlockCompressor(const Column<T> &column, const CompressionSchemeType scheme)
+      : Compressor<T>(column, scheme) {}
   //---------------------------------------------------------------------------
   CompressionStats compress(std::unique_ptr<u8[]> &dest) override {
     // allocate space (overallocate by 2x to prevent UB)
-    u64 uncompressed_size = this->column.size() * sizeof(INTEGER);
+    u64 uncompressed_size = this->column.size() * sizeof(T);
     dest = std::make_unique<u8[]>(uncompressed_size * 2);
 
     // write meta data
@@ -51,22 +52,24 @@ public:
     u32 total_size = 0;
     switch (this->scheme) {
     case CompressionSchemeType::kBitPacking:
-      total_size = compress<BitPacking<kTinyBlockSize>>(write_ptr, meta_data);
+      total_size =
+          compress<BitPacking<T, kTinyBlockSize>>(write_ptr, meta_data);
       break;
     case CompressionSchemeType::kDelta:
-      total_size = compress<Delta>(write_ptr, meta_data);
+      total_size = compress<Delta<T>>(write_ptr, meta_data);
       break;
     case CompressionSchemeType::kFOR:
-      total_size = compress<FOR>(write_ptr, meta_data);
+      total_size = compress<FOR<T>>(write_ptr, meta_data);
       break;
     case CompressionSchemeType::kFORn:
-      total_size = compress<FORn<kTinyBlockSize>>(write_ptr, meta_data);
+      total_size = compress<FORn<T, kTinyBlockSize>>(write_ptr, meta_data);
       break;
     case CompressionSchemeType::kRLE:
-      total_size = compress<RLE>(write_ptr, meta_data);
+      total_size = compress<RLE<T>>(write_ptr, meta_data);
       break;
     case CompressionSchemeType::kTinyBlocks:
-      total_size = compress<TinyBlocks<kTinyBlockSize>>(write_ptr, meta_data);
+      total_size =
+          compress<TinyBlocks<T, kTinyBlockSize>>(write_ptr, meta_data);
       break;
     default:
       throw std::runtime_error(
@@ -77,7 +80,7 @@ public:
             uncompressed_size, total_size};
   }
   //---------------------------------------------------------------------------
-  void decompress(vector<INTEGER> &dest, u8 *src) override {
+  void decompress(vector<T> &dest, u8 *src) override {
     // allocate space
     dest.reserve(this->column.size());
 
@@ -88,22 +91,24 @@ public:
 
     switch (this->scheme) {
     case CompressionSchemeType::kBitPacking:
-      decompress<BitPacking<kTinyBlockSize>>(dest.data(), read_ptr, meta_data);
+      decompress<BitPacking<T, kTinyBlockSize>>(dest.data(), read_ptr,
+                                                meta_data);
       return;
     case CompressionSchemeType::kDelta:
-      decompress<Delta>(dest.data(), read_ptr, meta_data);
+      decompress<Delta<T>>(dest.data(), read_ptr, meta_data);
       return;
     case CompressionSchemeType::kFOR:
-      decompress<FOR>(dest.data(), read_ptr, meta_data);
+      decompress<FOR<T>>(dest.data(), read_ptr, meta_data);
       return;
     case CompressionSchemeType::kFORn:
-      decompress<FORn<kTinyBlockSize>>(dest.data(), read_ptr, meta_data);
+      decompress<FORn<T, kTinyBlockSize>>(dest.data(), read_ptr, meta_data);
       return;
     case CompressionSchemeType::kRLE:
-      decompress<RLE>(dest.data(), read_ptr, meta_data);
+      decompress<RLE<T>>(dest.data(), read_ptr, meta_data);
       return;
     case CompressionSchemeType::kTinyBlocks:
-      decompress<TinyBlocks<kTinyBlockSize>>(dest.data(), read_ptr, meta_data);
+      decompress<TinyBlocks<T, kTinyBlockSize>>(dest.data(), read_ptr,
+                                                meta_data);
       return;
     default:
       throw std::runtime_error(
@@ -119,16 +124,16 @@ public:
 
     switch (this->scheme) {
     case CompressionSchemeType::kBitPacking:
-      decompress<BitPacking<kTinyBlockSize>>(read_ptr, meta_data);
+      decompress<BitPacking<T, kTinyBlockSize>>(read_ptr, meta_data);
       return;
     case CompressionSchemeType::kFOR:
-      decompress<FOR>(read_ptr, meta_data);
+      decompress<FOR<T>>(read_ptr, meta_data);
       return;
     case CompressionSchemeType::kFORn:
-      decompress<FORn<kTinyBlockSize>>(read_ptr, meta_data);
+      decompress<FORn<T, kTinyBlockSize>>(read_ptr, meta_data);
       return;
     case CompressionSchemeType::kTinyBlocks:
-      decompress<TinyBlocks<kTinyBlockSize>>(read_ptr, meta_data);
+      decompress<TinyBlocks<T, kTinyBlockSize>>(read_ptr, meta_data);
       return;
     default:
       throw std::runtime_error(
@@ -150,10 +155,10 @@ private:
       Scheme scheme;
       if (scheme.isPartitioningScheme()) {
         // calculate stats for each partition
-        vector<Statistics> stats;
+        vector<Statistics<T>> stats;
         auto block_count = kDataBlockSize / kTinyBlockSize;
         for (size_t i = 0; i < block_count; ++i) {
-          stats.push_back(Statistics::generateFrom(
+          stats.push_back(Statistics<T>::generateFrom(
               read_ptr + i * kTinyBlockSize, kTinyBlockSize));
         }
 
@@ -161,7 +166,7 @@ private:
             scheme.compress(read_ptr, kDataBlockSize, write_ptr, stats.data());
       } else {
         // calculate stats over the whole block
-        auto stats = Statistics::generateFrom(read_ptr, kDataBlockSize);
+        auto stats = Statistics<T>::generateFrom(read_ptr, kDataBlockSize);
 
         size += scheme.compress(read_ptr, kDataBlockSize, write_ptr, &stats);
       }
@@ -171,7 +176,7 @@ private:
   }
   //---------------------------------------------------------------------------
   template <typename Scheme>
-  void decompress(INTEGER *dest, u8 *src, const DataBlocksMeta &meta_data) {
+  void decompress(T *dest, u8 *src, const DataBlocksMeta &meta_data) {
     for (size_t i = 0; i < meta_data.block_count; ++i) {
       auto read_ptr = src + meta_data.block_offsets[i];
       auto write_ptr = dest + i * kDataBlockSize;
@@ -185,7 +190,7 @@ private:
   template <typename Scheme>
   void decompress(u8 *src, const DataBlocksMeta &meta_data) {
     // create L1-resident buffer
-    vector<INTEGER> dest(kMorselSize);
+    vector<T> dest(kMorselSize);
 
     Scheme scheme;
     for (size_t i = 0; i < meta_data.block_count; ++i) {

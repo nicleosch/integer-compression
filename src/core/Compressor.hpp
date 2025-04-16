@@ -15,15 +15,17 @@ struct CompressionStats {
   u64 compressed_size;
 };
 //---------------------------------------------------------------------------
-class Compressor {
+/// @brief The compression interface.
+/// @tparam T: The type of integer to be compressed.
+template <typename T> class Compressor {
 public:
   //---------------------------------------------------------------------------
   /// Constructor.
-  explicit Compressor(const Column &column)
+  explicit Compressor(const Column<T> &column)
       : column(column), scheme(CompressionSchemeType::kUncompressed) {}
   //---------------------------------------------------------------------------
   /// Constructor.
-  Compressor(const Column &column, const CompressionSchemeType scheme)
+  Compressor(const Column<T> &column, const CompressionSchemeType scheme)
       : column(column), scheme(scheme) {}
   //---------------------------------------------------------------------------
   /// Compress the column into given output buffer.
@@ -31,7 +33,7 @@ public:
   virtual CompressionStats compress(std::unique_ptr<u8[]> &dest) = 0;
   //---------------------------------------------------------------------------
   /// Decompress src data to provided destination.
-  virtual void decompress(vector<INTEGER> &dest, u8 *src) = 0;
+  virtual void decompress(vector<T> &dest, u8 *src) = 0;
   //---------------------------------------------------------------------------
   /// Decompress src data.
   /// Note: Data is compressed into a local L1-resident buffer for benchmarking.
@@ -41,7 +43,7 @@ public:
 
 protected:
   /// The column to be compressed.
-  Column column;
+  Column<T> column;
   /// The scheme used to compress the column.
   CompressionSchemeType scheme;
 };

@@ -20,41 +20,43 @@ namespace compression {
 /// or because the implementation requires it. For these schemes, we include an
 /// additional template parameter for efficiency reasons.
 /// @tparam kTinyBlockSize The size of the small blocks.
-template <const u16 kTinyBlockSize = 128, const u16 kMorselSize = 1024>
-class ColumnCompressor : public Compressor {
+/// @tparam kMorselSize The size of a morsel for decompression benchmarking.
+template <typename T, const u16 kTinyBlockSize = 128,
+          const u16 kMorselSize = 1024>
+class ColumnCompressor : public Compressor<T> {
 public:
   //---------------------------------------------------------------------------
-  explicit ColumnCompressor(const Column &column) : Compressor(column) {}
+  explicit ColumnCompressor(const Column<T> &column) : Compressor<T>(column) {}
   //---------------------------------------------------------------------------
-  ColumnCompressor(const Column &column, const CompressionSchemeType scheme)
-      : Compressor(column, scheme) {}
+  ColumnCompressor(const Column<T> &column, const CompressionSchemeType scheme)
+      : Compressor<T>(column, scheme) {}
   //---------------------------------------------------------------------------
   CompressionStats compress(std::unique_ptr<u8[]> &dest) override {
     // allocate space (overallocate by 2x to prevent UB)
-    u64 uncompressed_size = this->column.size() * sizeof(INTEGER);
+    u64 uncompressed_size = this->column.size() * sizeof(T);
     dest = std::make_unique<u8[]>(uncompressed_size * 2);
 
     switch (this->scheme) {
     case CompressionSchemeType::kBitPacking:
-      compressed_size = compress<BitPacking<kTinyBlockSize>>(dest.get());
+      compressed_size = compress<BitPacking<T, kTinyBlockSize>>(dest.get());
       break;
     case CompressionSchemeType::kDelta:
-      compressed_size = compress<Delta>(dest.get());
+      compressed_size = compress<Delta<T>>(dest.get());
       break;
     case CompressionSchemeType::kFOR:
-      compressed_size = compress<FOR>(dest.get());
+      compressed_size = compress<FOR<T>>(dest.get());
       break;
     case CompressionSchemeType::kFORn:
-      compressed_size = compress<FORn<kTinyBlockSize>>(dest.get());
+      compressed_size = compress<FORn<T, kTinyBlockSize>>(dest.get());
       break;
     case CompressionSchemeType::kRLE:
-      compressed_size = compress<RLE>(dest.get());
+      compressed_size = compress<RLE<T>>(dest.get());
       break;
     case CompressionSchemeType::kTinyBlocks:
-      compressed_size = compress<TinyBlocks<kTinyBlockSize>>(dest.get());
+      compressed_size = compress<TinyBlocks<T, kTinyBlockSize>>(dest.get());
       break;
     case CompressionSchemeType::kUncompressed:
-      compressed_size = compress<Uncompressed>(dest.get());
+      compressed_size = compress<Uncompressed<T>>(dest.get());
       break;
     case CompressionSchemeType::kLZ4:
       compressed_size = compressLZ4(dest.get());
@@ -67,31 +69,31 @@ public:
             uncompressed_size, compressed_size};
   }
   //---------------------------------------------------------------------------
-  void decompress(vector<INTEGER> &dest, u8 *src) override {
+  void decompress(vector<T> &dest, u8 *src) override {
     // allocate space
     dest.reserve(this->column.size());
 
     switch (this->scheme) {
     case CompressionSchemeType::kBitPacking:
-      decompress<BitPacking<kTinyBlockSize>>(dest.data(), src);
+      decompress<BitPacking<T, kTinyBlockSize>>(dest.data(), src);
       return;
     case CompressionSchemeType::kDelta:
-      decompress<Delta>(dest.data(), src);
+      decompress<Delta<T>>(dest.data(), src);
       return;
     case CompressionSchemeType::kFOR:
-      decompress<FOR>(dest.data(), src);
+      decompress<FOR<T>>(dest.data(), src);
       return;
     case CompressionSchemeType::kFORn:
-      decompress<FORn<kTinyBlockSize>>(dest.data(), src);
+      decompress<FORn<T, kTinyBlockSize>>(dest.data(), src);
       return;
     case CompressionSchemeType::kRLE:
-      decompress<RLE>(dest.data(), src);
+      decompress<RLE<T>>(dest.data(), src);
       return;
     case CompressionSchemeType::kTinyBlocks:
-      decompress<TinyBlocks<kTinyBlockSize>>(dest.data(), src);
+      decompress<TinyBlocks<T, kTinyBlockSize>>(dest.data(), src);
       return;
     case CompressionSchemeType::kUncompressed:
-      decompress<Uncompressed>(dest.data(), src);
+      decompress<Uncompressed<T>>(dest.data(), src);
       return;
     case CompressionSchemeType::kLZ4:
       decompressLZ4(dest.data(), src);
@@ -105,19 +107,19 @@ public:
   void decompress(u8 *src) {
     switch (this->scheme) {
     case CompressionSchemeType::kBitPacking:
-      decompress<BitPacking<kTinyBlockSize>>(src);
+      decompress<BitPacking<T, kTinyBlockSize>>(src);
       return;
     case CompressionSchemeType::kFOR:
-      decompress<FOR>(src);
+      decompress<FOR<T>>(src);
       return;
     case CompressionSchemeType::kFORn:
-      decompress<FORn<kTinyBlockSize>>(src);
+      decompress<FORn<T, kTinyBlockSize>>(src);
       return;
     case CompressionSchemeType::kTinyBlocks:
-      decompress<TinyBlocks<kTinyBlockSize>>(src);
+      decompress<TinyBlocks<T, kTinyBlockSize>>(src);
       return;
     case CompressionSchemeType::kUncompressed:
-      decompress<Uncompressed>(src);
+      decompress<Uncompressed<T>>(src);
       return;
     default:
       throw std::runtime_error(
@@ -132,10 +134,10 @@ private:
 
     Scheme scheme;
     if (scheme.isPartitioningScheme()) {
-      vector<Statistics> stats;
+      vector<Statistics<T>> stats;
       auto block_count = this->column.size() / kTinyBlockSize;
       for (size_t i = 0; i < block_count; ++i) {
-        stats.push_back(Statistics::generateFrom(
+        stats.push_back(Statistics<T>::generateFrom(
             this->column.data() + i * kTinyBlockSize, kTinyBlockSize));
       }
 
@@ -143,7 +145,7 @@ private:
                              stats.data());
     } else {
       auto stats =
-          Statistics::generateFrom(this->column.data(), this->column.size());
+          Statistics<T>::generateFrom(this->column.data(), this->column.size());
 
       size = scheme.compress(this->column.data(), this->column.size(), dest,
                              &stats);
@@ -159,14 +161,14 @@ private:
         this->column.size()));
   }
   //---------------------------------------------------------------------------
-  template <typename Scheme> void decompress(INTEGER *dest, u8 *src) {
+  template <typename Scheme> void decompress(T *dest, u8 *src) {
     Scheme scheme;
     scheme.decompress(dest, this->column.size(), src);
   }
   //---------------------------------------------------------------------------
   template <typename Scheme> void decompress(u8 *src) {
     // create L1-resident buffer
-    vector<INTEGER> dest(kMorselSize);
+    vector<T> dest(kMorselSize);
 
     auto morsel_count = this->column.size() / kMorselSize;
 
@@ -184,10 +186,10 @@ private:
     }
   }
   //---------------------------------------------------------------------------
-  void decompressLZ4(INTEGER *dest, u8 *src) {
+  void decompressLZ4(T *dest, u8 *src) {
     LZ4_decompress_safe(reinterpret_cast<const char *>(src),
                         reinterpret_cast<char *>(dest), compressed_size,
-                        this->column.size() * sizeof(INTEGER));
+                        this->column.size() * sizeof(T));
   }
 
   /// The size of the compressed data.
