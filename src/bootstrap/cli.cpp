@@ -7,10 +7,11 @@ namespace compression {
 namespace bootstrap {
 //---------------------------------------------------------------------------
 CLIOptions parseCommandLine(int argc, char **argv) {
-  if (argc < 5) {
+  if (argc < 6) {
     std::cerr << "Usage: ./ic "
               << "--data <path> --column <index> --type <type> "
-              << "--scheme <scheme> [--blocks] [--morsel] [--logging]\n";
+              << "--scheme <scheme> --size <block_size> [--blocks] [--morsel] "
+                 "[--logging]\n";
     exit(1);
   }
 
@@ -31,6 +32,8 @@ CLIOptions parseCommandLine(int argc, char **argv) {
       }
     } else if (arg == "--scheme" && i + 1 < argc) {
       opts.scheme = argv[++i];
+    } else if (arg == "--size" && i + 1 < argc) {
+      opts.block_size = static_cast<uint16_t>(std::atoi(argv[++i]));
     } else if (arg == "--blocks") {
       opts.blocks = true;
     } else if (arg == "--morsel") {

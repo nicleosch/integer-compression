@@ -10,9 +10,8 @@
 //---------------------------------------------------------------------------
 using namespace compression;
 //---------------------------------------------------------------------------
-template <typename DataType> int compressionLogic(bootstrap::CLIOptions &cli) {
-  // Size of an integer block.
-  constexpr u16 kBlockSize = 256;
+template <typename DataType, u16 kBlockSize>
+int compressionLogic(bootstrap::CLIOptions &cli) {
   // Size of a morsel.
   constexpr u16 kMorselSize = 1024;
 
@@ -137,13 +136,37 @@ int main(int argc, char **argv) {
   // Parse input arguments
   auto cli = bootstrap::parseCommandLine(argc, argv);
 
-  if (cli.type == "int")
-    return compressionLogic<INTEGER>(cli);
-  else if (cli.type == "bigint")
-    return compressionLogic<BIGINT>(cli);
-  else {
+  if (cli.type == "int") {
+    if (cli.block_size == 64)
+      return compressionLogic<INTEGER, 64>(cli);
+    else if (cli.block_size == 128)
+      return compressionLogic<INTEGER, 128>(cli);
+    else if (cli.block_size == 256)
+      return compressionLogic<INTEGER, 256>(cli);
+    else if (cli.block_size == 512)
+      return compressionLogic<INTEGER, 512>(cli);
+    else
+      std::cerr
+          << "Unsupported size: \"" << cli.block_size
+          << "\". Only \"64\", \"128\", \"256\" and \"512\" are supported."
+          << std::endl;
+  } else if (cli.type == "bigint") {
+    if (cli.block_size == 64)
+      return compressionLogic<BIGINT, 64>(cli);
+    else if (cli.block_size == 128)
+      return compressionLogic<BIGINT, 128>(cli);
+    else if (cli.block_size == 256)
+      return compressionLogic<BIGINT, 256>(cli);
+    else if (cli.block_size == 512)
+      return compressionLogic<BIGINT, 512>(cli);
+    else
+      std::cerr
+          << "Unsupported size: \"" << cli.block_size
+          << "\". Only \"64\", \"128\", \"256\" and \"512\" are supported."
+          << std::endl;
+  } else {
     std::cerr << "Unsupported column type \"" << cli.type
-              << "\". Only \"int\" and \"bigint\" are supported.";
+              << "\". Only \"int\" and \"bigint\" are supported." << std::endl;
     return 1;
   }
 }

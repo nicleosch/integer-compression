@@ -15,6 +15,8 @@ struct CLIOptions {
   string type;
   /// Compression scheme to be used.
   string scheme;
+  /// Size of a small integer block.
+  u16 block_size;
   /// Whether the column should be divided into DataBlocks for (de)compression.
   bool blocks = false;
   /// Whether to decompress into morsels.
