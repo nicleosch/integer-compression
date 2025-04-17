@@ -2,6 +2,7 @@
 //---------------------------------------------------------------------------
 #include <cstring>
 #include <lz4.h>
+#include <snappy.h>
 #include <zstd.h>
 //---------------------------------------------------------------------------
 #include "core/Compressor.hpp"
@@ -133,6 +134,9 @@ private:
     case CompressionSchemeType::kZstd:
       details = compressZstd(dest);
       break;
+    case CompressionSchemeType::kSnappy:
+      details = compressSnappy(dest);
+      break;
     default:
       throw std::runtime_error("Compression not supported for this scheme.");
     }
@@ -250,6 +254,16 @@ private:
                    dest, capacity, this->column.data(), capacity, 1))};
   }
   //---------------------------------------------------------------------------
+  /// @brief Snappy compression.
+  CompressionDetails compressSnappy(u8 *dest) {
+    size_t capacity = this->column.size() * sizeof(T);
+    size_t compressed_length = 0;
+    snappy::RawCompress(reinterpret_cast<const char *>(this->column.data()),
+                        capacity, reinterpret_cast<char *>(dest),
+                        &compressed_length);
+    return {0, static_cast<u32>(compressed_length)};
+  }
+  //---------------------------------------------------------------------------
   /// @brief Generic decompression implementation for all compression schemes.
   template <typename Scheme> void decompress(T *dest, u8 *src) {
     Scheme scheme;
@@ -285,6 +299,9 @@ private:
       return;
     case CompressionSchemeType::kZstd:
       decompressZstd(dest, src);
+      return;
+    case CompressionSchemeType::kSnappy:
+      decompressSnappy(dest, src);
       return;
     default:
       throw std::runtime_error(
@@ -387,6 +404,12 @@ private:
   void decompressZstd(T *dest, u8 *src) {
     ZSTD_decompress(dest, this->column.size() * sizeof(T), src,
                     compressed_size);
+  }
+  //---------------------------------------------------------------------------
+  /// @brief Snappy decompression.
+  void decompressSnappy(T *dest, u8 *src) {
+    snappy::RawUncompress(reinterpret_cast<const char *>(src), compressed_size,
+                          reinterpret_cast<char *>(dest));
   }
 
   /// Details on the compressed data.

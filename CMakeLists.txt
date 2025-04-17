@@ -29,6 +29,7 @@ include("${VENDOR_DIR}/GoogleTest/googletest.cmake")
 include("${VENDOR_DIR}/LZ4/lz4.cmake")
 include("${VENDOR_DIR}/BtrBlocks/btrblocks.cmake")
 include("${VENDOR_DIR}/zstd/zstd.cmake")
+include("${VENDOR_DIR}/snappy/snappy.cmake")
 
 include_directories(
     ${SIMDCOMP_INCLUDE_DIR}
@@ -36,6 +37,7 @@ include_directories(
     ${LZ4_INCLUDE_DIR}
     ${BTRBLOCKS_INCLUDE_DIR}
     ${ZSTD_INCLUDE_DIR}
+    ${SNAPPY_INCLUDE_DIR}
 )
 
 # COMPONENTS
@@ -46,12 +48,12 @@ include("${CMAKE_SOURCE_DIR}/test/local.cmake")
 # EXECUTABLE
 # ---------------------------------------------------------------------------
 add_executable(ic main.cpp)
-target_link_libraries(ic ${PROJECT_NAME} SIMDcomp lz4 btrblocks zstd)
+target_link_libraries(ic ${PROJECT_NAME} SIMDcomp lz4 btrblocks zstd snappy)
 
 # TEST
 # ---------------------------------------------------------------------------
 
 add_executable(ic_test test/test.cpp ${TEST_SRC})
-target_link_libraries(ic_test ${PROJECT_NAME} gtest SIMDcomp lz4 btrblocks zstd)
+target_link_libraries(ic_test ${PROJECT_NAME} gtest SIMDcomp lz4 btrblocks zstd snappy)
 enable_testing()
 add_test(${PROJECT_NAME} ic_test)

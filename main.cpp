@@ -106,6 +106,8 @@ int compressionLogic(bootstrap::CLIOptions &cli) {
       compressor->setScheme(CompressionSchemeType::kLZ4);
     } else if (cli.scheme == "zstd") {
       compressor->setScheme(CompressionSchemeType::kZstd);
+    } else if (cli.scheme == "snappy") {
+      compressor->setScheme(CompressionSchemeType::kSnappy);
     } else {
       std::cout << "Unknown algorithm" << std::endl;
       return 1;
