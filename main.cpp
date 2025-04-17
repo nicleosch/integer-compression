@@ -104,6 +104,8 @@ int compressionLogic(bootstrap::CLIOptions &cli) {
       compressor->setScheme(CompressionSchemeType::kTinyBlocks);
     } else if (cli.scheme == "lz4") {
       compressor->setScheme(CompressionSchemeType::kLZ4);
+    } else if (cli.scheme == "zstd") {
+      compressor->setScheme(CompressionSchemeType::kZstd);
     } else {
       std::cout << "Unknown algorithm" << std::endl;
       return 1;

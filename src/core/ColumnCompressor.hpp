@@ -2,6 +2,7 @@
 //---------------------------------------------------------------------------
 #include <cstring>
 #include <lz4.h>
+#include <zstd.h>
 //---------------------------------------------------------------------------
 #include "core/Compressor.hpp"
 #include "schemes/BitPacking.hpp"
@@ -129,6 +130,9 @@ private:
     case CompressionSchemeType::kLZ4:
       details = compressLZ4(dest);
       break;
+    case CompressionSchemeType::kZstd:
+      details = compressZstd(dest);
+      break;
     default:
       throw std::runtime_error("Compression not supported for this scheme.");
     }
@@ -231,12 +235,19 @@ private:
     return details;
   }
   //---------------------------------------------------------------------------
-  /// @brief Compression implementation for LZ4.
+  /// @brief LZ4 compression.
   CompressionDetails compressLZ4(u8 *dest) {
     int capacity = this->column.size() * sizeof(T);
     return {0, static_cast<u32>(LZ4_compress_default(
                    reinterpret_cast<const char *>(this->column.data()),
                    reinterpret_cast<char *>(dest), capacity, capacity))};
+  }
+  //---------------------------------------------------------------------------
+  /// @brief Zstd compression.
+  CompressionDetails compressZstd(u8 *dest) {
+    int capacity = this->column.size() * sizeof(T);
+    return {0, static_cast<u32>(ZSTD_compress(
+                   dest, capacity, this->column.data(), capacity, 1))};
   }
   //---------------------------------------------------------------------------
   /// @brief Generic decompression implementation for all compression schemes.
@@ -271,6 +282,9 @@ private:
       return;
     case CompressionSchemeType::kLZ4:
       decompressLZ4(dest, src);
+      return;
+    case CompressionSchemeType::kZstd:
+      decompressZstd(dest, src);
       return;
     default:
       throw std::runtime_error(
@@ -362,11 +376,17 @@ private:
     }
   }
   //---------------------------------------------------------------------------
-  /// @brief LZ4 decompression implementation.
+  /// @brief LZ4 decompression.
   void decompressLZ4(T *dest, u8 *src) {
     LZ4_decompress_safe(reinterpret_cast<const char *>(src),
                         reinterpret_cast<char *>(dest), compressed_size,
                         this->column.size() * sizeof(T));
+  }
+  //---------------------------------------------------------------------------
+  /// @brief Zstd decompression.
+  void decompressZstd(T *dest, u8 *src) {
+    ZSTD_decompress(dest, this->column.size() * sizeof(T), src,
+                    compressed_size);
   }
 
   /// Details on the compressed data.

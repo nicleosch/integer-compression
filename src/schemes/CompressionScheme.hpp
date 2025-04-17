@@ -13,7 +13,8 @@ enum class CompressionSchemeType {
   kRLE = 4,
   kTinyBlocks = 5,
   kUncompressed = 6,
-  kLZ4 = 7
+  kLZ4 = 7,
+  kZstd = 8,
 };
 //---------------------------------------------------------------------------
 struct CompressionDetails {
