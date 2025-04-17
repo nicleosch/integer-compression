@@ -9,10 +9,26 @@ namespace compression {
 //---------------------------------------------------------------------------
 using storage::Column;
 //---------------------------------------------------------------------------
+/// @brief Some statistics on the compression.
 struct CompressionStats {
-  double compression_rate;
+  /// The size of the uncompressed data in bytes.
   u64 uncompressed_size;
+  /// The size of the compressed data in bytes.
   u64 compressed_size;
+  /// The compression ratio in bytes.
+  double compression_rate;
+  /// Details on the compressed data.
+  CompressionDetails details;
+};
+//---------------------------------------------------------------------------
+/// @brief Optional settings for a second (de)compression phase.
+struct Phase2CompressionSettings {
+  /// The scheme for the second compression phase.
+  CompressionSchemeType scheme;
+  /// Whether only the header should be compressed again.
+  bool header_only;
+  /// Whether only the payload should be compressed again.
+  bool payload_only;
 };
 //---------------------------------------------------------------------------
 /// @brief The compression interface.
@@ -22,11 +38,17 @@ public:
   //---------------------------------------------------------------------------
   /// Constructor.
   explicit Compressor(const Column<T> &column)
-      : column(column), scheme(CompressionSchemeType::kUncompressed) {}
+      : column(column), scheme(CompressionSchemeType::kUncompressed),
+        settings(nullptr) {}
   //---------------------------------------------------------------------------
   /// Constructor.
   Compressor(const Column<T> &column, const CompressionSchemeType scheme)
-      : column(column), scheme(scheme) {}
+      : column(column), scheme(scheme), settings(nullptr) {}
+  //---------------------------------------------------------------------------
+  /// Constructor.
+  Compressor(const Column<T> &column, const Phase2CompressionSettings *settings)
+      : column(column), scheme(CompressionSchemeType::kUncompressed),
+        settings(settings) {}
   //---------------------------------------------------------------------------
   /// Compress the column into given output buffer.
   /// @return The size of the compressed data.
@@ -46,6 +68,8 @@ protected:
   Column<T> column;
   /// The scheme used to compress the column.
   CompressionSchemeType scheme;
+  /// Settings for a second compression phase, if there is one.
+  const Phase2CompressionSettings *settings;
 };
 //---------------------------------------------------------------------------
 } // namespace compression

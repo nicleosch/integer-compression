@@ -38,7 +38,16 @@ public:
   BlockCompressor(const Column<T> &column, const CompressionSchemeType scheme)
       : Compressor<T>(column, scheme) {}
   //---------------------------------------------------------------------------
+  BlockCompressor(const Column<T> &column,
+                  const Phase2CompressionSettings *settings)
+      : Compressor<T>(column, settings) {}
+  //---------------------------------------------------------------------------
   CompressionStats compress(std::unique_ptr<u8[]> &dest) override {
+    if (this->settings) {
+      throw std::runtime_error(
+          "Phase2 compression currently not supported for DataBlocks.");
+    }
+
     // allocate space (overallocate by 2x to prevent UB)
     u64 uncompressed_size = this->column.size() * sizeof(T);
     dest = std::make_unique<u8[]>(uncompressed_size * 2);
@@ -49,38 +58,44 @@ public:
     auto write_ptr = dest.get() + sizeof(meta_data.block_count) +
                      sizeof(u32) * meta_data.block_count;
 
-    u32 total_size = 0;
+    // Phase 1
+    CompressionDetails details{};
     switch (this->scheme) {
     case CompressionSchemeType::kBitPacking:
-      total_size =
-          compress<BitPacking<T, kTinyBlockSize>>(write_ptr, meta_data);
+      details = compress<BitPacking<T, kTinyBlockSize>>(write_ptr, meta_data);
       break;
     case CompressionSchemeType::kDelta:
-      total_size = compress<Delta<T>>(write_ptr, meta_data);
+      details = compress<Delta<T>>(write_ptr, meta_data);
       break;
     case CompressionSchemeType::kFOR:
-      total_size = compress<FOR<T>>(write_ptr, meta_data);
+      details = compress<FOR<T>>(write_ptr, meta_data);
       break;
     case CompressionSchemeType::kFORn:
-      total_size = compress<FORn<T, kTinyBlockSize>>(write_ptr, meta_data);
+      details = compress<FORn<T, kTinyBlockSize>>(write_ptr, meta_data);
       break;
     case CompressionSchemeType::kRLE:
-      total_size = compress<RLE<T>>(write_ptr, meta_data);
+      details = compress<RLE<T>>(write_ptr, meta_data);
       break;
     case CompressionSchemeType::kTinyBlocks:
-      total_size =
-          compress<TinyBlocks<T, kTinyBlockSize>>(write_ptr, meta_data);
+      details = compress<TinyBlocks<T, kTinyBlockSize>>(write_ptr, meta_data);
       break;
     default:
       throw std::runtime_error(
           "Compression on DataBlocks not supported for this scheme.");
     }
 
-    return {static_cast<double>(uncompressed_size) / total_size,
-            uncompressed_size, total_size};
+    u64 compressed_size = details.payload_size + details.header_size;
+
+    return {uncompressed_size, compressed_size,
+            static_cast<double>(uncompressed_size) / compressed_size, details};
   }
   //---------------------------------------------------------------------------
   void decompress(vector<T> &dest, u8 *src) override {
+    if (this->settings) {
+      throw std::runtime_error(
+          "Phase2 compression currently not supported for DataBlocks.");
+    }
+
     // allocate space
     dest.reserve(this->column.size());
 
@@ -143,13 +158,17 @@ public:
 
 private:
   //---------------------------------------------------------------------------
-  template <typename Scheme> u32 compress(u8 *dest, DataBlocksMeta &meta_data) {
+  template <typename Scheme>
+  CompressionDetails compress(u8 *dest, DataBlocksMeta &meta_data) {
+    CompressionDetails details{};
     u32 size = 0;
 
     for (size_t i = 0; i < meta_data.block_count; ++i) {
       auto read_ptr = this->column.data() + i * kDataBlockSize;
       auto write_ptr = dest + size;
       meta_data.block_offsets[i] = size;
+
+      CompressionDetails block_details{};
 
       // compress
       Scheme scheme;
@@ -162,17 +181,22 @@ private:
               read_ptr + i * kTinyBlockSize, kTinyBlockSize));
         }
 
-        size +=
+        block_details =
             scheme.compress(read_ptr, kDataBlockSize, write_ptr, stats.data());
       } else {
         // calculate stats over the whole block
         auto stats = Statistics<T>::generateFrom(read_ptr, kDataBlockSize);
 
-        size += scheme.compress(read_ptr, kDataBlockSize, write_ptr, &stats);
+        block_details =
+            scheme.compress(read_ptr, kDataBlockSize, write_ptr, &stats);
       }
+
+      details.header_size += block_details.header_size;
+      details.payload_size += block_details.payload_size;
+      size += block_details.header_size + block_details.payload_size;
     }
 
-    return size;
+    return details;
   }
   //---------------------------------------------------------------------------
   template <typename Scheme>

@@ -12,8 +12,8 @@ struct RLELayout {
 template <typename DataType> class RLE : public CompressionScheme<DataType> {
 public:
   //---------------------------------------------------------------------------
-  u32 compress(const DataType *src, const u32 size, u8 *dest,
-               const Statistics<DataType> *stats) override {
+  CompressionDetails compress(const DataType *src, const u32 size, u8 *dest,
+                              const Statistics<DataType> *stats) override {
     auto &layout = *reinterpret_cast<RLELayout *>(dest);
 
     // Array of run-lengths
@@ -46,8 +46,9 @@ public:
       varr[i] = values[i];
     }
 
-    return sizeof(RLELayout) + layout.value_offset +
-           values.size() * sizeof(DataType);
+    u32 header_size = sizeof(RLELayout);
+    u32 payload_size = layout.value_offset + values.size() * sizeof(DataType);
+    return {header_size, payload_size};
   }
   //---------------------------------------------------------------------------
   void decompress(DataType *dest, const u32 size, const u8 *src) override {

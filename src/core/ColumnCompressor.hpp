@@ -1,5 +1,6 @@
 #pragma once
 //---------------------------------------------------------------------------
+#include <cstring>
 #include <lz4.h>
 //---------------------------------------------------------------------------
 #include "core/Compressor.hpp"
@@ -31,77 +32,46 @@ public:
   ColumnCompressor(const Column<T> &column, const CompressionSchemeType scheme)
       : Compressor<T>(column, scheme) {}
   //---------------------------------------------------------------------------
+  ColumnCompressor(const Column<T> &column,
+                   const Phase2CompressionSettings *settings)
+      : Compressor<T>(column, settings) {}
+  //---------------------------------------------------------------------------
   CompressionStats compress(std::unique_ptr<u8[]> &dest) override {
     // allocate space (overallocate by 2x to prevent UB)
     u64 uncompressed_size = this->column.size() * sizeof(T);
     dest = std::make_unique<u8[]>(uncompressed_size * 2);
 
-    switch (this->scheme) {
-    case CompressionSchemeType::kBitPacking:
-      compressed_size = compress<BitPacking<T, kTinyBlockSize>>(dest.get());
-      break;
-    case CompressionSchemeType::kDelta:
-      compressed_size = compress<Delta<T>>(dest.get());
-      break;
-    case CompressionSchemeType::kFOR:
-      compressed_size = compress<FOR<T>>(dest.get());
-      break;
-    case CompressionSchemeType::kFORn:
-      compressed_size = compress<FORn<T, kTinyBlockSize>>(dest.get());
-      break;
-    case CompressionSchemeType::kRLE:
-      compressed_size = compress<RLE<T>>(dest.get());
-      break;
-    case CompressionSchemeType::kTinyBlocks:
-      compressed_size = compress<TinyBlocks<T, kTinyBlockSize>>(dest.get());
-      break;
-    case CompressionSchemeType::kUncompressed:
-      compressed_size = compress<Uncompressed<T>>(dest.get());
-      break;
-    case CompressionSchemeType::kLZ4:
-      compressed_size = compressLZ4(dest.get());
-      break;
-    default:
-      throw std::runtime_error("Compression not supported for this scheme.");
+    // Phase 1: Regular compression phase.
+    this->details = phase1_compress(dest.get());
+
+    // Phase 2: A second compression phase on the compressed data (optional).
+    if (this->settings) {
+      phase2_compress(dest.get());
     }
 
-    return {static_cast<double>(uncompressed_size) / compressed_size,
-            uncompressed_size, compressed_size};
+    this->compressed_size =
+        this->details.payload_size + this->details.header_size;
+    return {uncompressed_size, this->compressed_size,
+            static_cast<double>(uncompressed_size) / this->compressed_size,
+            this->details};
   }
   //---------------------------------------------------------------------------
   void decompress(vector<T> &dest, u8 *src) override {
     // allocate space
     dest.reserve(this->column.size());
 
-    switch (this->scheme) {
-    case CompressionSchemeType::kBitPacking:
-      decompress<BitPacking<T, kTinyBlockSize>>(dest.data(), src);
-      return;
-    case CompressionSchemeType::kDelta:
-      decompress<Delta<T>>(dest.data(), src);
-      return;
-    case CompressionSchemeType::kFOR:
-      decompress<FOR<T>>(dest.data(), src);
-      return;
-    case CompressionSchemeType::kFORn:
-      decompress<FORn<T, kTinyBlockSize>>(dest.data(), src);
-      return;
-    case CompressionSchemeType::kRLE:
-      decompress<RLE<T>>(dest.data(), src);
-      return;
-    case CompressionSchemeType::kTinyBlocks:
-      decompress<TinyBlocks<T, kTinyBlockSize>>(dest.data(), src);
-      return;
-    case CompressionSchemeType::kUncompressed:
-      decompress<Uncompressed<T>>(dest.data(), src);
-      return;
-    case CompressionSchemeType::kLZ4:
-      decompressLZ4(dest.data(), src);
-      return;
-    default:
-      throw std::runtime_error(
-          "Compression on DataBlocks not supported for this scheme.");
+    // Phase 2: Decompression
+    std::unique_ptr<char[]> temp;
+    // If Phase2-Settings specified and Phase2-Compression was successfull.
+    if (this->settings && !this->p2_fail) {
+      phase2_decompress(temp, src);
+
+      // Read from temporary buffer.
+      src = reinterpret_cast<u8 *>(temp.get());
     }
+
+    // Phase1: Decompression
+    phase1_decompress(dest.data(), src);
   }
   //---------------------------------------------------------------------------
   void decompress(u8 *src) {
@@ -129,8 +99,115 @@ public:
 
 private:
   //---------------------------------------------------------------------------
-  template <typename Scheme> u32 compress(u8 *dest) {
-    u32 size = 0;
+  /// @brief Compress the raw data using this compressor's compression scheme.
+  /// Note: This is referred to as Phase 1.
+  CompressionDetails phase1_compress(u8 *dest) {
+    CompressionDetails details{};
+
+    switch (this->scheme) {
+    case CompressionSchemeType::kBitPacking:
+      details = compress<BitPacking<T, kTinyBlockSize>>(dest);
+      break;
+    case CompressionSchemeType::kDelta:
+      details = compress<Delta<T>>(dest);
+      break;
+    case CompressionSchemeType::kFOR:
+      details = compress<FOR<T>>(dest);
+      break;
+    case CompressionSchemeType::kFORn:
+      details = compress<FORn<T, kTinyBlockSize>>(dest);
+      break;
+    case CompressionSchemeType::kRLE:
+      details = compress<RLE<T>>(dest);
+      break;
+    case CompressionSchemeType::kTinyBlocks:
+      details = compress<TinyBlocks<T, kTinyBlockSize>>(dest);
+      break;
+    case CompressionSchemeType::kUncompressed:
+      details = compress<Uncompressed<T>>(dest);
+      break;
+    case CompressionSchemeType::kLZ4:
+      details = compressLZ4(dest);
+      break;
+    default:
+      throw std::runtime_error("Compression not supported for this scheme.");
+    }
+
+    return details;
+  }
+  //---------------------------------------------------------------------------
+  /// @brief Compress the compressed data again using this compressor's
+  /// secondary compression scheme. Note: This is referred to as Phase 2.
+  void phase2_compress(u8 *dest) {
+    this->p2_fail = false;
+    std::unique_ptr<char[]> temp;
+
+    switch (this->settings->scheme) {
+    case CompressionSchemeType::kLZ4: {
+      // 1. only the header should be compressed
+      if (this->settings->header_only && !this->settings->payload_only) {
+        temp = std::make_unique<char[]>(details.header_size);
+
+        u32 compressed_header = static_cast<u32>(LZ4_compress_default(
+            reinterpret_cast<const char *>(dest), temp.get(),
+            details.header_size, details.header_size));
+
+        if (compressed_header > 0) { // if it was compressed at all
+          std::memcpy(dest, temp.get(), compressed_header);
+          std::memmove(dest + compressed_header, dest + details.header_size,
+                       details.payload_size);
+
+          details.header_size = compressed_header;
+        } else { // compression failed
+          this->p2_fail = true;
+        }
+
+        // 2. only the payload should be compressed
+      } else if (this->settings->payload_only && !this->settings->header_only) {
+        temp = std::make_unique<char[]>(details.payload_size);
+
+        // compress
+        u8 *payload = dest + details.header_size;
+        u32 compressed_payload = static_cast<u32>(LZ4_compress_default(
+            reinterpret_cast<const char *>(payload), temp.get(),
+            details.payload_size, details.payload_size));
+
+        if (compressed_payload > 0) { // if it was compressed at all
+          std::memcpy(payload, temp.get(), compressed_payload);
+          details.payload_size = compressed_payload;
+        } else { // compression failed
+          this->p2_fail = true;
+        }
+
+        // 3. the whole compressed data should be compressed again
+      } else {
+        auto allocated_size = details.payload_size + details.header_size;
+        temp = std::make_unique<char[]>(allocated_size);
+
+        u32 compressed = static_cast<u32>(
+            LZ4_compress_default(reinterpret_cast<const char *>(dest),
+                                 temp.get(), allocated_size, allocated_size));
+
+        if (compressed > 0) { // if it was compressed at all
+          std::memcpy(dest, temp.get(), compressed);
+          details.header_size = 0;
+          details.payload_size = compressed;
+        } else { // compression failed
+          this->p2_fail = true;
+        }
+      }
+
+      break;
+    }
+    default:
+      throw std::runtime_error(
+          "Phase2 Compression not supported for this scheme.");
+    }
+  }
+  //---------------------------------------------------------------------------
+  /// @brief Generic compression implementation for all compression schemes.
+  template <typename Scheme> CompressionDetails compress(u8 *dest) {
+    CompressionDetails details{};
 
     Scheme scheme;
     if (scheme.isPartitioningScheme()) {
@@ -141,31 +218,130 @@ private:
             this->column.data() + i * kTinyBlockSize, kTinyBlockSize));
       }
 
-      size = scheme.compress(this->column.data(), this->column.size(), dest,
-                             stats.data());
+      details = scheme.compress(this->column.data(), this->column.size(), dest,
+                                stats.data());
     } else {
       auto stats =
           Statistics<T>::generateFrom(this->column.data(), this->column.size());
 
-      size = scheme.compress(this->column.data(), this->column.size(), dest,
-                             &stats);
+      details = scheme.compress(this->column.data(), this->column.size(), dest,
+                                &stats);
     }
 
-    return size;
+    return details;
   }
   //---------------------------------------------------------------------------
-  u32 compressLZ4(u8 *dest) {
-    return static_cast<u32>(LZ4_compress_default(
-        reinterpret_cast<const char *>(this->column.data()),
-        reinterpret_cast<char *>(dest), this->column.size(),
-        this->column.size()));
+  /// @brief Compression implementation for LZ4.
+  CompressionDetails compressLZ4(u8 *dest) {
+    int capacity = this->column.size() * sizeof(T);
+    return {0, static_cast<u32>(LZ4_compress_default(
+                   reinterpret_cast<const char *>(this->column.data()),
+                   reinterpret_cast<char *>(dest), capacity, capacity))};
   }
   //---------------------------------------------------------------------------
+  /// @brief Generic decompression implementation for all compression schemes.
   template <typename Scheme> void decompress(T *dest, u8 *src) {
     Scheme scheme;
     scheme.decompress(dest, this->column.size(), src);
   }
   //---------------------------------------------------------------------------
+  /// @brief Decompression of this compressor's compression scheme.
+  void phase1_decompress(T *dest, u8 *src) {
+    switch (this->scheme) {
+    case CompressionSchemeType::kBitPacking:
+      decompress<BitPacking<T, kTinyBlockSize>>(dest, src);
+      return;
+    case CompressionSchemeType::kDelta:
+      decompress<Delta<T>>(dest, src);
+      return;
+    case CompressionSchemeType::kFOR:
+      decompress<FOR<T>>(dest, src);
+      return;
+    case CompressionSchemeType::kFORn:
+      decompress<FORn<T, kTinyBlockSize>>(dest, src);
+      return;
+    case CompressionSchemeType::kRLE:
+      decompress<RLE<T>>(dest, src);
+      return;
+    case CompressionSchemeType::kTinyBlocks:
+      decompress<TinyBlocks<T, kTinyBlockSize>>(dest, src);
+      return;
+    case CompressionSchemeType::kUncompressed:
+      decompress<Uncompressed<T>>(dest, src);
+      return;
+    case CompressionSchemeType::kLZ4:
+      decompressLZ4(dest, src);
+      return;
+    default:
+      throw std::runtime_error(
+          "Compression on DataBlocks not supported for this scheme.");
+    }
+  }
+  //---------------------------------------------------------------------------
+  /// @brief Decompression of the compression layer on top of the compressed
+  /// data.
+  void phase2_decompress(std::unique_ptr<char[]> &temp, u8 *src) {
+    // allocate temporary space (overallocate to prevent UB)
+    auto allocated_size = this->column.size() * sizeof(T) * 2;
+    temp = std::make_unique<char[]>(allocated_size);
+
+    switch (this->settings->scheme) {
+    case CompressionSchemeType::kLZ4: {
+
+      if (this->settings->header_only && !this->settings->payload_only) {
+        // decompress into temp buffer
+        int decompressed_size =
+            LZ4_decompress_safe(reinterpret_cast<const char *>(src), // src
+                                temp.get(),                          // dest
+                                this->details.header_size,           // size
+                                allocated_size                       // capacity
+            );
+        if (decompressed_size <= 0) {
+          throw std::runtime_error("LZ4-Decompression of the header failed.");
+        }
+
+        // copy the rest of the data
+        std::memcpy(temp.get() + decompressed_size,
+                    src + this->details.header_size,
+                    this->details.payload_size);
+      } else if (this->settings->payload_only && !this->settings->header_only) {
+        // copy the header
+        std::memcpy(temp.get(), src, this->details.header_size);
+
+        u8 *payload = src + details.header_size;
+
+        // decompress into temp buffer
+        int decompressed_size = LZ4_decompress_safe(
+            reinterpret_cast<const char *>(payload),   // src
+            temp.get() + this->details.header_size,    // dest
+            this->details.payload_size,                // size
+            allocated_size - this->details.header_size // capacity
+        );
+        if (decompressed_size <= 0) {
+          throw std::runtime_error("LZ4-Decompression of the payload failed.");
+        }
+      } else {
+        // decompress into temp buffer
+        int decompressed_size =
+            LZ4_decompress_safe(reinterpret_cast<const char *>(src), // src
+                                temp.get(),                          // dest
+                                this->compressed_size,               // size
+                                allocated_size                       // capacity
+            );
+        if (decompressed_size <= 0) {
+          throw std::runtime_error("LZ4-Decompression failed.");
+        }
+      }
+      break;
+    }
+    default:
+      throw std::runtime_error(
+          "Phase2-Compression not supported for this scheme.");
+    }
+  }
+  //---------------------------------------------------------------------------
+  /// @brief Generic morsel-driven decompression implementation for all
+  /// compression schemes.
   template <typename Scheme> void decompress(u8 *src) {
     // create L1-resident buffer
     vector<T> dest(kMorselSize);
@@ -186,14 +362,19 @@ private:
     }
   }
   //---------------------------------------------------------------------------
+  /// @brief LZ4 decompression implementation.
   void decompressLZ4(T *dest, u8 *src) {
     LZ4_decompress_safe(reinterpret_cast<const char *>(src),
                         reinterpret_cast<char *>(dest), compressed_size,
                         this->column.size() * sizeof(T));
   }
 
+  /// Details on the compressed data.
+  CompressionDetails details;
   /// The size of the compressed data.
   u32 compressed_size;
+  /// Whether the Phase2-Compression failed.
+  bool p2_fail;
 };
 //---------------------------------------------------------------------------
 } // namespace compression

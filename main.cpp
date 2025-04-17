@@ -19,6 +19,9 @@ int compressionLogic(bootstrap::CLIOptions &cli) {
   auto column =
       storage::Column<DataType>::fromFile(cli.data.c_str(), cli.column, '|');
 
+  // Settings for compressing the already compressed data.
+  Phase2CompressionSettings settings;
+
   // Choose the compressor
   std::unique_ptr<Compressor<DataType>> compressor;
   if (cli.blocks) {
@@ -27,8 +30,22 @@ int compressionLogic(bootstrap::CLIOptions &cli) {
         BlockCompressor<DataType, kDefaultDataBlockSize, kBlockSize>>(column);
   } else {
     column.padToMultipleOf(kMorselSize);
-    compressor =
-        std::make_unique<ColumnCompressor<DataType, kBlockSize>>(column);
+    if (cli.p2_scheme.size() == 0) { // no additional compression
+      compressor =
+          std::make_unique<ColumnCompressor<DataType, kBlockSize>>(column);
+    } else { // additional compression on compressed data
+      CompressionSchemeType scheme;
+      if (cli.p2_scheme == "lz4") {
+        scheme = CompressionSchemeType::kLZ4;
+      } else {
+        std::cerr << "Scheme \"" << cli.p2_scheme
+                  << "\" not supported for Phase2-Compression." << std::endl;
+        exit(1);
+      }
+      settings = {scheme, cli.p2_header, cli.p2_payload};
+      compressor = std::make_unique<ColumnCompressor<DataType, kBlockSize>>(
+          column, &settings);
+    }
   }
   u64 uncompressed_size = column.size() * sizeof(DataType);
 
@@ -41,7 +58,7 @@ int compressionLogic(bootstrap::CLIOptions &cli) {
   if (cli.scheme == "btrblocks") {
     btrblocks::BtrBlocksConfig::configure(
         [&](btrblocks::BtrBlocksConfig &config) {
-          auto max_depth = 5;
+          auto max_depth = 3;
           config.integers.max_cascade_depth = max_depth;
           config.integers.schemes.enableAll();
         });
@@ -61,6 +78,7 @@ int compressionLogic(bootstrap::CLIOptions &cli) {
     auto btr_stats = compressor.compress(input, compress_out);
     stats.compressed_size = btr_stats.total_data_size;
     stats.uncompressed_size = uncompressed_size;
+    stats.details = {0, static_cast<u32>(btr_stats.total_data_size)};
     stats.compression_rate =
         static_cast<double>(stats.uncompressed_size) / stats.compressed_size;
 
@@ -104,10 +122,14 @@ int compressionLogic(bootstrap::CLIOptions &cli) {
     }
   }
 
-  std::cout << "Uncompressed Size: " << stats.uncompressed_size << " Byte"
+  std::cout << "Uncompressed Size: " << stats.uncompressed_size << " Bytes"
             << std::endl;
-  std::cout << "Compressed Size: " << stats.compressed_size << " Byte"
+  std::cout << "Compressed Size: " << stats.compressed_size << " Bytes"
             << std::endl;
+  std::cout << "Compressed Header Size: " << stats.details.header_size
+            << " Bytes" << std::endl;
+  std::cout << "Compressed Payload Size: " << stats.details.payload_size
+            << " Bytes" << std::endl;
   std::cout << "Compression Rate: " << stats.compression_rate << std::endl;
 
   // Log (de)compressed data.

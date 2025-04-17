@@ -16,13 +16,15 @@ public:
     u8 data[];
   };
   //---------------------------------------------------------------------------
-  u32 compress(const DataType *src, const u32 size, u8 *dest,
-               const Statistics<DataType> *stats) override {
+  CompressionDetails compress(const DataType *src, const u32 size, u8 *dest,
+                              const Statistics<DataType> *stats) override {
     auto &layout = *reinterpret_cast<FORLayout *>(dest);
     layout.reference = stats->min;
     layout.pack_size = compressDispatch(src, size, layout.data, stats);
 
-    return offsetof(FORLayout, data) + layout.pack_size / 8 * size;
+    u32 header_size = offsetof(FORLayout, data);
+    u32 payload_size = layout.pack_size / 8 * size;
+    return {header_size, payload_size};
   }
   //---------------------------------------------------------------------------
   void decompress(DataType *dest, const u32 size, const u8 *src) override {

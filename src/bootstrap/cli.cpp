@@ -7,14 +7,9 @@ namespace compression {
 namespace bootstrap {
 //---------------------------------------------------------------------------
 CLIOptions parseCommandLine(int argc, char **argv) {
-  if (argc < 6) {
-    std::cerr << "Usage: ./ic "
-              << "--data <path> --column <index> --type <type> "
-              << "--scheme <scheme> --size <block_size> [--blocks] [--morsel] "
-                 "[--logging]\n";
-    exit(1);
-  }
-
+  string usage = "Usage: ./ic --data <path> --column <index> --type <type> "
+                 "--scheme <scheme> --size <block_size> --p2scheme <scheme> "
+                 "[--p2header] [--p2header] [--blocks] [--morsel] [--logging]";
   CLIOptions opts;
 
   for (int i = 1; i < argc; ++i) {
@@ -34,6 +29,12 @@ CLIOptions parseCommandLine(int argc, char **argv) {
       opts.scheme = argv[++i];
     } else if (arg == "--size" && i + 1 < argc) {
       opts.block_size = static_cast<uint16_t>(std::atoi(argv[++i]));
+    } else if (arg == "--p2scheme" && i + 1 < argc) {
+      opts.p2_scheme = argv[++i];
+    } else if (arg == "--p2header") {
+      opts.p2_header = true;
+    } else if (arg == "--p2payload") {
+      opts.p2_payload = true;
     } else if (arg == "--blocks") {
       opts.blocks = true;
     } else if (arg == "--morsel") {
@@ -41,11 +42,14 @@ CLIOptions parseCommandLine(int argc, char **argv) {
     } else if (arg == "--logging") {
       opts.logging = true;
     } else {
-      std::cerr << "Usage: ./ic "
-                << "--data <path> --column <index> --type <type> "
-                << "--scheme <scheme> [--blocks] [--morsel] [--logging]\n";
+      std::cerr << usage << std::endl;
       exit(1);
     }
+  }
+
+  if (opts.data.empty() || opts.type.empty() || opts.scheme.empty()) {
+    std::cerr << usage << std::endl;
+    exit(1);
   }
 
   return opts;

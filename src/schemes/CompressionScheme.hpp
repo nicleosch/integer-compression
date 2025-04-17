@@ -16,6 +16,11 @@ enum class CompressionSchemeType {
   kLZ4 = 7
 };
 //---------------------------------------------------------------------------
+struct CompressionDetails {
+  u32 header_size;
+  u32 payload_size;
+};
+//---------------------------------------------------------------------------
 /// This class represents an interface for lightweight compression schemes.
 template <typename DataType> class CompressionScheme {
 public:
@@ -25,9 +30,10 @@ public:
   /// @param size The amount of integers to be compressed.
   /// @param dest The destination to compress the data to.
   /// @param stats Statistics on the data required to compress it.
-  /// @return The size of the compressed data.
-  virtual u32 compress(const DataType *src, const u32 size, u8 *dest,
-                       const Statistics<DataType> *stats) = 0;
+  /// @return Some statistics on the compressed data.
+  virtual CompressionDetails compress(const DataType *src, const u32 size,
+                                      u8 *dest,
+                                      const Statistics<DataType> *stats) = 0;
   //---------------------------------------------------------------------------
   /// Decompress data from src to dest.
   /// @param dest The decompressed integers.

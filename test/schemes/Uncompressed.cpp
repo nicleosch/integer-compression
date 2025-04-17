@@ -55,3 +55,84 @@ TEST(UncompressedTest, ColumnDecompressionInvariant64bit) {
     ASSERT_EQ(column.data()[i], decompression_out[i]);
   }
 }
+//---------------------------------------------------------------------------
+// Verifies that the data remains unchanged after compression using Uncompressed
+// and a second round of compression using LZ4 on the header.
+TEST(UncompressedTest, Phase2HeaderCompressionInvariant) {
+  constexpr uint16_t kBlockSize = 256;
+
+  auto path = "../data/tpch/sf1/partsupp.tbl";
+  auto column = storage::Column<INTEGER>::fromFile(path, 0, '|');
+
+  Phase2CompressionSettings settings{CompressionSchemeType::kLZ4, true, false};
+
+  ColumnCompressor<INTEGER, kBlockSize> compressor(column, &settings);
+  compressor.setScheme(CompressionSchemeType::kUncompressed);
+
+  // compress
+  std::unique_ptr<compression::u8[]> compression_out;
+  compressor.compress(compression_out);
+
+  // decompress
+  std::vector<compression::INTEGER> decompression_out;
+  compressor.decompress(decompression_out, compression_out.get());
+
+  // verify
+  for (size_t i = 0; i < column.size(); ++i) {
+    ASSERT_EQ(column.data()[i], decompression_out[i]);
+  }
+}
+//---------------------------------------------------------------------------
+// Verifies that the data remains unchanged after compression using Uncompressed
+// and a second round of compression using LZ4 on the payload.
+TEST(UncompressedTest, Phase2PayloadCompressionInvariant) {
+  constexpr uint16_t kBlockSize = 256;
+
+  auto path = "../data/tpch/sf1/partsupp.tbl";
+  auto column = storage::Column<INTEGER>::fromFile(path, 0, '|');
+
+  Phase2CompressionSettings settings{CompressionSchemeType::kLZ4, false, true};
+
+  ColumnCompressor<INTEGER, kBlockSize> compressor(column, &settings);
+  compressor.setScheme(CompressionSchemeType::kUncompressed);
+
+  // compress
+  std::unique_ptr<compression::u8[]> compression_out;
+  compressor.compress(compression_out);
+
+  // decompress
+  std::vector<compression::INTEGER> decompression_out;
+  compressor.decompress(decompression_out, compression_out.get());
+
+  // verify
+  for (size_t i = 0; i < column.size(); ++i) {
+    ASSERT_EQ(column.data()[i], decompression_out[i]);
+  }
+}
+//---------------------------------------------------------------------------
+// Verifies that the data remains unchanged after compression using Uncompressed
+// and a second round of compression using LZ4 on the whole compressed data.
+TEST(UncompressedTest, Phase2CompressionInvariant) {
+  constexpr uint16_t kBlockSize = 256;
+
+  auto path = "../data/tpch/sf1/partsupp.tbl";
+  auto column = storage::Column<INTEGER>::fromFile(path, 0, '|');
+
+  Phase2CompressionSettings settings{CompressionSchemeType::kLZ4, false, false};
+
+  ColumnCompressor<INTEGER, kBlockSize> compressor(column, &settings);
+  compressor.setScheme(CompressionSchemeType::kUncompressed);
+
+  // compress
+  std::unique_ptr<compression::u8[]> compression_out;
+  compressor.compress(compression_out);
+
+  // decompress
+  std::vector<compression::INTEGER> decompression_out;
+  compressor.decompress(decompression_out, compression_out.get());
+
+  // verify
+  for (size_t i = 0; i < column.size(); ++i) {
+    ASSERT_EQ(column.data()[i], decompression_out[i]);
+  }
+}

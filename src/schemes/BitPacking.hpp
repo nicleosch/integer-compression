@@ -22,8 +22,8 @@ public:
     static u8 size() { return sizeof(offset) + sizeof(pack_size); }
   };
   //---------------------------------------------------------------------------
-  u32 compress(const DataType *src, const u32 size, u8 *dest,
-               const Statistics<DataType> *stats) override {
+  CompressionDetails compress(const DataType *src, const u32 size, u8 *dest,
+                              const Statistics<DataType> *stats) override {
     const u32 block_count = size / kBlockSize;
 
     // Layout: HEADER | COMPRESSED DATA
@@ -48,7 +48,9 @@ public:
       header_ptr += BitPackingSlot::size();
     }
 
-    return data_offset;
+    u32 header_size = header_ptr - dest;
+    u32 payload_size = data_offset - header_size;
+    return {header_size, payload_size};
   }
   //---------------------------------------------------------------------------
   void decompress(DataType *dest, const u32 size, const u8 *src) override {
