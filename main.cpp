@@ -37,6 +37,10 @@ int compressionLogic(bootstrap::CLIOptions &cli) {
       CompressionSchemeType scheme;
       if (cli.p2_scheme == "lz4") {
         scheme = CompressionSchemeType::kLZ4;
+      } else if (cli.p2_scheme == "zstd") {
+        scheme = CompressionSchemeType::kZstd;
+      } else if (cli.p2_scheme == "snappy") {
+        scheme = CompressionSchemeType::kSnappy;
       } else {
         std::cerr << "Scheme \"" << cli.p2_scheme
                   << "\" not supported for Phase2-Compression." << std::endl;

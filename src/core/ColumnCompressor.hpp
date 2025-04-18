@@ -150,66 +150,136 @@ private:
     this->p2_fail = false;
     std::unique_ptr<char[]> temp;
 
-    switch (this->settings->scheme) {
-    case CompressionSchemeType::kLZ4: {
-      // 1. only the header should be compressed
-      if (this->settings->header_only && !this->settings->payload_only) {
-        temp = std::make_unique<char[]>(details.header_size);
+    // 1. only the header should be compressed
+    if (this->settings->header_only && !this->settings->payload_only) {
+      temp = std::make_unique<char[]>(details.header_size);
 
-        u32 compressed_header = static_cast<u32>(LZ4_compress_default(
-            reinterpret_cast<const char *>(dest), temp.get(),
-            details.header_size, details.header_size));
-
-        if (compressed_header > 0) { // if it was compressed at all
-          std::memcpy(dest, temp.get(), compressed_header);
-          std::memmove(dest + compressed_header, dest + details.header_size,
-                       details.payload_size);
-
-          details.header_size = compressed_header;
-        } else { // compression failed
-          this->p2_fail = true;
-        }
-
-        // 2. only the payload should be compressed
-      } else if (this->settings->payload_only && !this->settings->header_only) {
-        temp = std::make_unique<char[]>(details.payload_size);
-
-        // compress
-        u8 *payload = dest + details.header_size;
-        u32 compressed_payload = static_cast<u32>(LZ4_compress_default(
-            reinterpret_cast<const char *>(payload), temp.get(),
-            details.payload_size, details.payload_size));
-
-        if (compressed_payload > 0) { // if it was compressed at all
-          std::memcpy(payload, temp.get(), compressed_payload);
-          details.payload_size = compressed_payload;
-        } else { // compression failed
-          this->p2_fail = true;
-        }
-
-        // 3. the whole compressed data should be compressed again
-      } else {
-        auto allocated_size = details.payload_size + details.header_size;
-        temp = std::make_unique<char[]>(allocated_size);
-
-        u32 compressed = static_cast<u32>(
-            LZ4_compress_default(reinterpret_cast<const char *>(dest),
-                                 temp.get(), allocated_size, allocated_size));
-
-        if (compressed > 0) { // if it was compressed at all
-          std::memcpy(dest, temp.get(), compressed);
-          details.header_size = 0;
-          details.payload_size = compressed;
-        } else { // compression failed
-          this->p2_fail = true;
-        }
+      // compress
+      u64 compressed_header = 0;
+      switch (this->settings->scheme) {
+      case CompressionSchemeType::kLZ4:
+        compressed_header = static_cast<u32>(
+            LZ4_compress_default(reinterpret_cast<const char *>(dest), // src
+                                 temp.get(),                           // dest
+                                 details.header_size,                  // size
+                                 details.header_size) // capacity
+        );
+        break;
+      case CompressionSchemeType::kZstd:
+        compressed_header =
+            static_cast<u32>(ZSTD_compress(temp.get(),          // dest
+                                           details.header_size, // capacity
+                                           dest,                // src
+                                           details.header_size, // size
+                                           1)                   // level
+            );
+        break;
+      case CompressionSchemeType::kSnappy:
+        snappy::RawCompress(reinterpret_cast<const char *>(dest), // src
+                            details.header_size,                  // size
+                            temp.get(),                           // dest
+                            &compressed_header);
+        break;
+      default:
+        throw std::runtime_error(
+            "Phase2 Compression not supported for this scheme.");
       }
 
-      break;
-    }
-    default:
-      throw std::runtime_error(
-          "Phase2 Compression not supported for this scheme.");
+      if (compressed_header > 0) { // if it was compressed at all
+        std::memcpy(dest, temp.get(), compressed_header);
+        std::memmove(dest + compressed_header, dest + details.header_size,
+                     details.payload_size);
+
+        details.header_size = static_cast<u32>(compressed_header);
+      } else { // compression failed
+        this->p2_fail = true;
+      }
+
+      // 2. only the payload should be compressed
+    } else if (this->settings->payload_only && !this->settings->header_only) {
+      temp = std::make_unique<char[]>(details.payload_size);
+
+      // compress
+      u8 *payload = dest + details.header_size;
+      u64 compressed_payload = 0;
+      switch (this->settings->scheme) {
+      case CompressionSchemeType::kLZ4:
+        compressed_payload = static_cast<u32>(
+            LZ4_compress_default(reinterpret_cast<const char *>(payload), // src
+                                 temp.get(),           // dest
+                                 details.payload_size, // size
+                                 details.payload_size) // capacity
+        );
+        break;
+      case CompressionSchemeType::kZstd:
+        compressed_payload =
+            static_cast<u32>(ZSTD_compress(temp.get(),           // dest
+                                           details.payload_size, // capacity
+                                           payload,              // src
+                                           details.payload_size, // size
+                                           1)                    // level
+            );
+        break;
+      case CompressionSchemeType::kSnappy:
+        snappy::RawCompress(reinterpret_cast<const char *>(payload), // src
+                            details.payload_size,                    // size
+                            temp.get(),                              // dest
+                            &compressed_payload);
+        break;
+      default:
+        throw std::runtime_error(
+            "Phase2 Compression not supported for this scheme.");
+      }
+
+      if (compressed_payload > 0) { // if it was compressed at all
+        std::memcpy(payload, temp.get(), compressed_payload);
+        details.payload_size = static_cast<u32>(compressed_payload);
+      } else { // compression failed
+        this->p2_fail = true;
+      }
+
+      // 3. the whole compressed data should be compressed again
+    } else {
+      auto allocated_size = details.payload_size + details.header_size;
+      temp = std::make_unique<char[]>(allocated_size);
+
+      // compress
+      u64 compressed = 0;
+      switch (this->settings->scheme) {
+      case CompressionSchemeType::kLZ4:
+        compressed = static_cast<u32>(
+            LZ4_compress_default(reinterpret_cast<const char *>(dest), // src
+                                 temp.get(),                           // dest
+                                 allocated_size,                       // size
+                                 allocated_size) // capacity
+        );
+        break;
+      case CompressionSchemeType::kZstd:
+        compressed = static_cast<u32>(ZSTD_compress(temp.get(),     // dest
+                                                    allocated_size, // capacity
+                                                    dest,           // src
+                                                    allocated_size, // size
+                                                    1)              // level
+        );
+        break;
+      case CompressionSchemeType::kSnappy:
+        snappy::RawCompress(reinterpret_cast<const char *>(dest), // src
+                            allocated_size,                       // size
+                            temp.get(),                           // dest
+                            &compressed);
+        break;
+      default:
+        throw std::runtime_error(
+            "Phase2 Compression not supported for this scheme.");
+      }
+
+      if (compressed > 0) { // if it was compressed at all
+        std::memcpy(dest, temp.get(), compressed);
+        details.header_size = 0;
+        details.payload_size = static_cast<u32>(compressed);
+      } else { // compression failed
+        this->p2_fail = true;
+      }
     }
   }
   //---------------------------------------------------------------------------
@@ -316,58 +386,127 @@ private:
     auto allocated_size = this->column.size() * sizeof(T) * 2;
     temp = std::make_unique<char[]>(allocated_size);
 
-    switch (this->settings->scheme) {
-    case CompressionSchemeType::kLZ4: {
-
-      if (this->settings->header_only && !this->settings->payload_only) {
-        // decompress into temp buffer
-        int decompressed_size =
+    // 1. only the header should be decompressed
+    if (this->settings->header_only && !this->settings->payload_only) {
+      // decompress into temp buffer
+      u64 decompressed_size = 0;
+      switch (this->settings->scheme) {
+      case CompressionSchemeType::kLZ4:
+        decompressed_size =
             LZ4_decompress_safe(reinterpret_cast<const char *>(src), // src
                                 temp.get(),                          // dest
                                 this->details.header_size,           // size
                                 allocated_size                       // capacity
             );
-        if (decompressed_size <= 0) {
-          throw std::runtime_error("LZ4-Decompression of the header failed.");
-        }
+        break;
+      case CompressionSchemeType::kZstd:
+        decompressed_size = ZSTD_decompress(temp.get(),     // dest
+                                            allocated_size, // capacity
+                                            src,            // src
+                                            this->details.header_size // size
+        );
+        break;
+      case CompressionSchemeType::kSnappy:
+        snappy::RawUncompress(reinterpret_cast<const char *>(src), // src
+                              this->details.header_size,           // size
+                              temp.get()                           // dest
+        );
+        snappy::GetUncompressedLength(reinterpret_cast<const char *>(src),
+                                      this->details.header_size,
+                                      &decompressed_size);
+        break;
+      default:
+        throw std::runtime_error(
+            "Phase2-Compression not supported for this scheme.");
+      }
 
-        // copy the rest of the data
-        std::memcpy(temp.get() + decompressed_size,
-                    src + this->details.header_size,
-                    this->details.payload_size);
-      } else if (this->settings->payload_only && !this->settings->header_only) {
-        // copy the header
-        std::memcpy(temp.get(), src, this->details.header_size);
+      if (decompressed_size <= 0) {
+        throw std::runtime_error("Phase2-Decompression of the header failed.");
+      }
 
-        u8 *payload = src + details.header_size;
+      // copy the rest of the data
+      std::memcpy(temp.get() + decompressed_size,
+                  src + this->details.header_size, this->details.payload_size);
 
-        // decompress into temp buffer
-        int decompressed_size = LZ4_decompress_safe(
+      // 2. only the payload should be decompressed
+    } else if (this->settings->payload_only && !this->settings->header_only) {
+      // copy the header
+      std::memcpy(temp.get(), src, this->details.header_size);
+
+      // decompress into temp buffer
+      u8 *payload = src + details.header_size;
+      u64 decompressed_size = 0;
+      switch (this->settings->scheme) {
+      case CompressionSchemeType::kLZ4:
+        decompressed_size = LZ4_decompress_safe(
             reinterpret_cast<const char *>(payload),   // src
             temp.get() + this->details.header_size,    // dest
             this->details.payload_size,                // size
             allocated_size - this->details.header_size // capacity
         );
-        if (decompressed_size <= 0) {
-          throw std::runtime_error("LZ4-Decompression of the payload failed.");
-        }
-      } else {
-        // decompress into temp buffer
-        int decompressed_size =
+        break;
+      case CompressionSchemeType::kZstd:
+        decompressed_size = ZSTD_decompress(
+            temp.get() + this->details.header_size,     // dest
+            allocated_size - this->details.header_size, // capacity
+            payload,                                    // src
+            this->details.payload_size                  // size
+        );
+        break;
+      case CompressionSchemeType::kSnappy:
+        snappy::RawUncompress(reinterpret_cast<const char *>(payload), // src
+                              this->details.payload_size,              // size
+                              temp.get() + this->details.header_size   // dest
+        );
+        snappy::GetUncompressedLength(reinterpret_cast<const char *>(payload),
+                                      this->details.payload_size,
+                                      &decompressed_size);
+        break;
+      default:
+        throw std::runtime_error(
+            "Phase2-Compression not supported for this scheme.");
+      }
+
+      if (decompressed_size <= 0) {
+        throw std::runtime_error("Phase2-Decompression of the payload failed.");
+      }
+      // 3. the whole compressed data should be decompressed again
+    } else {
+      // decompress into temp buffer
+      u64 decompressed_size = 0;
+      switch (this->settings->scheme) {
+      case CompressionSchemeType::kLZ4:
+        decompressed_size =
             LZ4_decompress_safe(reinterpret_cast<const char *>(src), // src
                                 temp.get(),                          // dest
                                 this->compressed_size,               // size
                                 allocated_size                       // capacity
             );
-        if (decompressed_size <= 0) {
-          throw std::runtime_error("LZ4-Decompression failed.");
-        }
+        break;
+      case CompressionSchemeType::kZstd:
+        decompressed_size = ZSTD_decompress(temp.get(),           // dest
+                                            allocated_size,       // capacity
+                                            src,                  // src
+                                            this->compressed_size // size
+        );
+        break;
+      case CompressionSchemeType::kSnappy:
+        snappy::RawUncompress(reinterpret_cast<const char *>(src), // src
+                              this->compressed_size,               // size
+                              temp.get()                           // dest
+        );
+        snappy::GetUncompressedLength(reinterpret_cast<const char *>(src),
+                                      this->compressed_size,
+                                      &decompressed_size);
+        break;
+      default:
+        throw std::runtime_error(
+            "Phase2-Compression not supported for this scheme.");
       }
-      break;
-    }
-    default:
-      throw std::runtime_error(
-          "Phase2-Compression not supported for this scheme.");
+
+      if (decompressed_size <= 0) {
+        throw std::runtime_error("Phase2-Decompression failed.");
+      }
     }
   }
   //---------------------------------------------------------------------------

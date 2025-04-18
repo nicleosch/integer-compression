@@ -138,14 +138,14 @@ TEST(DeltaTest, Phase2HeaderCompressionInvariant) {
 }
 //---------------------------------------------------------------------------
 // Verifies that the data remains unchanged after compression using Delta
-// and a second round of compression using LZ4 on the payload.
+// and a second round of compression using Zstd on the payload.
 TEST(DeltaTest, Phase2PayloadCompressionInvariant) {
   constexpr uint16_t kBlockSize = 256;
 
   auto path = "../data/tpch/sf1/partsupp.tbl";
   auto column = storage::Column<INTEGER>::fromFile(path, 0, '|');
 
-  Phase2CompressionSettings settings{CompressionSchemeType::kLZ4, false, true};
+  Phase2CompressionSettings settings{CompressionSchemeType::kZstd, false, true};
 
   ColumnCompressor<INTEGER, kBlockSize> compressor(column, &settings);
   compressor.setScheme(CompressionSchemeType::kDelta);
@@ -165,14 +165,15 @@ TEST(DeltaTest, Phase2PayloadCompressionInvariant) {
 }
 //---------------------------------------------------------------------------
 // Verifies that the data remains unchanged after compression using Delta
-// and a second round of compression using LZ4 on the whole compressed data.
+// and a second round of compression using Snappy on the whole compressed data.
 TEST(DeltaTest, Phase2CompressionInvariant) {
   constexpr uint16_t kBlockSize = 256;
 
   auto path = "../data/tpch/sf1/partsupp.tbl";
   auto column = storage::Column<INTEGER>::fromFile(path, 0, '|');
 
-  Phase2CompressionSettings settings{CompressionSchemeType::kLZ4, false, false};
+  Phase2CompressionSettings settings{CompressionSchemeType::kSnappy, false,
+                                     false};
 
   ColumnCompressor<INTEGER, kBlockSize> compressor(column, &settings);
   compressor.setScheme(CompressionSchemeType::kDelta);
