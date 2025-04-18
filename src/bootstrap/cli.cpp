@@ -9,7 +9,7 @@ namespace bootstrap {
 CLIOptions parseCommandLine(int argc, char **argv) {
   string usage = "Usage: ./ic --data <path> --column <index> --type <type> "
                  "--scheme <scheme> --size <block_size> --p2scheme <scheme> "
-                 "[--p2header] [--p2header] [--blocks] [--morsel] [--logging]";
+                 "[--p2header] [--p2payload] [--blocks] [--morsel] [--logging]";
   CLIOptions opts;
 
   for (int i = 1; i < argc; ++i) {
