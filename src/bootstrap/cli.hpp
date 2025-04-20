@@ -16,6 +16,8 @@ struct CLIOptions {
   u16 column;
   /// The type of the column (int or bigint).
   string type;
+  /// The delimiter of columns in the file.
+  char delimiter = '|';
   //===--------------------------------------------------------------------===//
   // Compression Configuration - Phase 1
   //===--------------------------------------------------------------------===//

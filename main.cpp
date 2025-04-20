@@ -16,8 +16,8 @@ int compressionLogic(bootstrap::CLIOptions &cli) {
   constexpr u16 kMorselSize = 1024;
 
   // Read integer column
-  auto column =
-      storage::Column<DataType>::fromFile(cli.data.c_str(), cli.column, '|');
+  auto column = storage::Column<DataType>::fromFile(cli.data.c_str(),
+                                                    cli.column, cli.delimiter);
 
   // Settings for compressing the already compressed data.
   Phase2CompressionSettings settings;

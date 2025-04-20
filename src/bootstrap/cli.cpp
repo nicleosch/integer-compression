@@ -8,6 +8,7 @@ namespace bootstrap {
 //---------------------------------------------------------------------------
 CLIOptions parseCommandLine(int argc, char **argv) {
   string usage = "Usage: ./ic --data <path> --column <index> --type <type> "
+                 "--delimiter <delimiter>"
                  "--scheme <scheme> --size <block_size> --p2scheme <scheme> "
                  "[--p2header] [--p2payload] [--blocks] [--morsel] [--logging]";
   CLIOptions opts;
@@ -25,6 +26,8 @@ CLIOptions parseCommandLine(int argc, char **argv) {
         std::cerr << "Unsupported column type \"" << opts.type
                   << "\". Only \"int\" and \"bigint\" are supported.";
       }
+    } else if (arg == "--delimiter" && i + 1 < argc) {
+      opts.delimiter = *argv[++i];
     } else if (arg == "--scheme" && i + 1 < argc) {
       opts.scheme = argv[++i];
     } else if (arg == "--size" && i + 1 < argc) {
