@@ -20,7 +20,7 @@ public:
                               const Statistics<DataType> *stats) override {
     auto &layout = *reinterpret_cast<DeltaLayout *>(dest);
     layout.pack_size = compressDispatch(src, size, layout.data, stats);
-    layout.base = stats->min;
+    layout.base = src[0];
 
     u64 header_size = offsetof(DeltaLayout, data);
     u64 payload_size = layout.pack_size / 8 * size;
@@ -38,19 +38,17 @@ private:
   //---------------------------------------------------------------------------
   u8 compressDispatch(const DataType *src, const u32 size, u8 *dest,
                       const Statistics<DataType> *stats) {
-    // Note: The following code assumes that the first element in the array is
-    // the minimum and that the data increases monotonically.
     if (stats->delta_bits <= 8) {
-      compressImpl<u8>(src, size, dest, stats->min);
+      compressImpl<u8>(src, size, dest);
       return 8;
     } else if (stats->delta_bits <= 16) {
-      compressImpl<u16>(src, size, dest, stats->min);
+      compressImpl<u16>(src, size, dest);
       return 16;
     } else if (stats->delta_bits <= 32) {
-      compressImpl<u32>(src, size, dest, stats->min);
+      compressImpl<u32>(src, size, dest);
       return 32;
     } else {
-      compressImpl<u64>(src, size, dest, stats->min);
+      compressImpl<u64>(src, size, dest);
       return 64;
     }
   }
@@ -76,8 +74,7 @@ private:
   }
   //---------------------------------------------------------------------------
   template <typename TargetType>
-  void compressImpl(const DataType *src, const u32 size, u8 *dest,
-                    const DataType base) {
+  void compressImpl(const DataType *src, const u32 size, u8 *dest) {
     auto data = reinterpret_cast<TargetType *>(dest);
 
     data[0] = 0;

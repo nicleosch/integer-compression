@@ -1,5 +1,7 @@
 #pragma once
 //---------------------------------------------------------------------------
+#include <cmath>
+//---------------------------------------------------------------------------
 #include "common/Types.hpp"
 #include "common/Utils.hpp"
 //---------------------------------------------------------------------------
@@ -48,7 +50,7 @@ public:
       if (current > stats.max)
         stats.max = current;
       if (i > 0 && src[i] - src[i - 1] != step) {
-        if (src[i] - src[i - 1] > max_diff)
+        if (std::abs(src[i] - src[i - 1]) > std::abs(max_diff) && max_diff >= 0)
           max_diff = src[i] - src[i - 1];
         step = 0;
       }

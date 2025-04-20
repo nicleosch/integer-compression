@@ -144,12 +144,16 @@ template <typename T> inline u8 requiredBits(T value);
 template <> inline u8 requiredBits(INTEGER value) {
   if (value == 0)
     return 0;
+  if (value < 0)
+    return sizeof(INTEGER) * 8;
   return static_cast<u8>(sizeof(INTEGER) * 8) -
          __builtin_clz(static_cast<u32>(value));
 }
 template <> inline u8 requiredBits(BIGINT value) {
   if (value == 0)
     return 0;
+  if (value < 0)
+    return sizeof(BIGINT) * 8;
   return static_cast<u8>(sizeof(BIGINT) * 8) -
          __builtin_clzll(static_cast<u64>(value));
 }
