@@ -58,6 +58,7 @@ int compressionLogic(bootstrap::CLIOptions &cli) {
   std::unique_ptr<u8[]> compress_out;
   std::vector<DataType> decompress_out;
 
+  utils::Timer timer;
   // BtrBlocks is treated special
   if (cli.scheme == "btrblocks") {
     btrblocks::BtrBlocksConfig::configure(
@@ -87,10 +88,10 @@ int compressionLogic(bootstrap::CLIOptions &cli) {
         static_cast<double>(stats.uncompressed_size) / stats.compressed_size;
 
     // decompress
-    {
-      utils::Timer timer;
-      btrblocks::Chunk decompressed = compressor.decompress(compress_out);
-    }
+    timer.start();
+    btrblocks::Chunk decompressed = compressor.decompress(compress_out);
+    timer.end();
+
   } else {
     if (cli.scheme == "uncompressed") {
       compressor->setScheme(CompressionSchemeType::kUncompressed);
@@ -122,11 +123,13 @@ int compressionLogic(bootstrap::CLIOptions &cli) {
 
     // decompress
     if (cli.morsel) {
-      utils::Timer timer;
+      timer.start();
       compressor->decompress(compress_out.get());
+      timer.end();
     } else {
-      utils::Timer timer;
+      timer.start();
       compressor->decompress(decompress_out, compress_out.get());
+      timer.end();
     }
   }
 
@@ -139,6 +142,15 @@ int compressionLogic(bootstrap::CLIOptions &cli) {
   std::cout << "Compressed Payload Size: " << stats.details.payload_size
             << " Bytes" << std::endl;
   std::cout << "Compression Rate: " << stats.compression_rate << std::endl;
+  std::cout << "Decompression Time: " << timer.getMicroSeconds() << std::endl;
+  std::cout << "Decompression Bandwidth (Compressed): "
+            << (static_cast<double>(stats.compressed_size) / 1000000000) /
+                   timer.getSeconds()
+            << " GB/s" << std::endl;
+  std::cout << "Decompression Bandwidth (Uncompressed): "
+            << (static_cast<double>(stats.uncompressed_size) / 1000000000) /
+                   timer.getSeconds()
+            << " GB/s" << std::endl;
 
   // Log (de)compressed data.
   if (cli.logging) {

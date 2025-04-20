@@ -112,17 +112,30 @@ inline void hex_dump(const std::byte *data, size_t length, std::ostream &out,
 /// @brief A utility to time operations.
 class Timer {
 public:
-  explicit Timer() : start(std::chrono::high_resolution_clock::now()) {}
-  ~Timer() {
-    auto end = std::chrono::high_resolution_clock::now();
-    auto duration =
-        std::chrono::duration_cast<std::chrono::microseconds>(end - start)
-            .count();
-    std::cout << "Time: " << duration << std::endl;
+  /// Constructor.
+  Timer() = default;
+  /// Start a time measurement.
+  void start() { tstart = std::chrono::high_resolution_clock::now(); }
+  /// End a time measurement.
+  void end() { tend = std::chrono::high_resolution_clock::now(); }
+  /// Get the duration in microseconds.
+  double getMicroSeconds() {
+    return std::chrono::duration_cast<std::chrono::microseconds>(tend - tstart)
+        .count();
+  }
+  /// Get the duration in milliseconds.
+  double getMilliSeconds() {
+    return std::chrono::duration_cast<std::chrono::milliseconds>(tend - tstart)
+        .count();
+  }
+  /// Get the duration in seconds.
+  double getSeconds() {
+    return std::chrono::duration<double>(tend - tstart).count();
   }
 
 private:
-  std::chrono::high_resolution_clock::time_point start;
+  std::chrono::high_resolution_clock::time_point tstart;
+  std::chrono::high_resolution_clock::time_point tend;
 };
 //---------------------------------------------------------------------------
 /// @brief Template specialization to determine the number of required bits to
