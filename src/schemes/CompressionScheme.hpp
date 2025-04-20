@@ -19,8 +19,8 @@ enum class CompressionSchemeType {
 };
 //---------------------------------------------------------------------------
 struct CompressionDetails {
-  u32 header_size;
-  u32 payload_size;
+  u64 header_size;
+  u64 payload_size;
 };
 //---------------------------------------------------------------------------
 /// This class represents an interface for lightweight compression schemes.

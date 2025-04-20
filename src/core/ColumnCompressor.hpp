@@ -158,7 +158,7 @@ private:
       u64 compressed_header = 0;
       switch (this->settings->scheme) {
       case CompressionSchemeType::kLZ4:
-        compressed_header = static_cast<u32>(
+        compressed_header = static_cast<u64>(
             LZ4_compress_default(reinterpret_cast<const char *>(dest), // src
                                  temp.get(),                           // dest
                                  details.header_size,                  // size
@@ -166,13 +166,12 @@ private:
         );
         break;
       case CompressionSchemeType::kZstd:
-        compressed_header =
-            static_cast<u32>(ZSTD_compress(temp.get(),          // dest
-                                           details.header_size, // capacity
-                                           dest,                // src
-                                           details.header_size, // size
-                                           1)                   // level
-            );
+        compressed_header = ZSTD_compress(temp.get(),          // dest
+                                          details.header_size, // capacity
+                                          dest,                // src
+                                          details.header_size, // size
+                                          1                    // level
+        );
         break;
       case CompressionSchemeType::kSnappy:
         snappy::RawCompress(reinterpret_cast<const char *>(dest), // src
@@ -190,7 +189,7 @@ private:
         std::memmove(dest + compressed_header, dest + details.header_size,
                      details.payload_size);
 
-        details.header_size = static_cast<u32>(compressed_header);
+        details.header_size = compressed_header;
       } else { // compression failed
         this->p2_fail = true;
       }
@@ -204,7 +203,7 @@ private:
       u64 compressed_payload = 0;
       switch (this->settings->scheme) {
       case CompressionSchemeType::kLZ4:
-        compressed_payload = static_cast<u32>(
+        compressed_payload = static_cast<u64>(
             LZ4_compress_default(reinterpret_cast<const char *>(payload), // src
                                  temp.get(),           // dest
                                  details.payload_size, // size
@@ -212,13 +211,12 @@ private:
         );
         break;
       case CompressionSchemeType::kZstd:
-        compressed_payload =
-            static_cast<u32>(ZSTD_compress(temp.get(),           // dest
+        compressed_payload = ZSTD_compress(temp.get(),           // dest
                                            details.payload_size, // capacity
                                            payload,              // src
                                            details.payload_size, // size
-                                           1)                    // level
-            );
+                                           1                     // level
+        );
         break;
       case CompressionSchemeType::kSnappy:
         snappy::RawCompress(reinterpret_cast<const char *>(payload), // src
@@ -233,7 +231,7 @@ private:
 
       if (compressed_payload > 0) { // if it was compressed at all
         std::memcpy(payload, temp.get(), compressed_payload);
-        details.payload_size = static_cast<u32>(compressed_payload);
+        details.payload_size = compressed_payload;
       } else { // compression failed
         this->p2_fail = true;
       }
@@ -247,7 +245,7 @@ private:
       u64 compressed = 0;
       switch (this->settings->scheme) {
       case CompressionSchemeType::kLZ4:
-        compressed = static_cast<u32>(
+        compressed = static_cast<u64>(
             LZ4_compress_default(reinterpret_cast<const char *>(dest), // src
                                  temp.get(),                           // dest
                                  allocated_size,                       // size
@@ -255,11 +253,11 @@ private:
         );
         break;
       case CompressionSchemeType::kZstd:
-        compressed = static_cast<u32>(ZSTD_compress(temp.get(),     // dest
-                                                    allocated_size, // capacity
-                                                    dest,           // src
-                                                    allocated_size, // size
-                                                    1)              // level
+        compressed = ZSTD_compress(temp.get(),     // dest
+                                   allocated_size, // capacity
+                                   dest,           // src
+                                   allocated_size, // size
+                                   1               // level
         );
         break;
       case CompressionSchemeType::kSnappy:
@@ -276,7 +274,7 @@ private:
       if (compressed > 0) { // if it was compressed at all
         std::memcpy(dest, temp.get(), compressed);
         details.header_size = 0;
-        details.payload_size = static_cast<u32>(compressed);
+        details.payload_size = compressed;
       } else { // compression failed
         this->p2_fail = true;
       }
@@ -312,7 +310,7 @@ private:
   /// @brief LZ4 compression.
   CompressionDetails compressLZ4(u8 *dest) {
     int capacity = this->column.size() * sizeof(T);
-    return {0, static_cast<u32>(LZ4_compress_default(
+    return {0, static_cast<u64>(LZ4_compress_default(
                    reinterpret_cast<const char *>(this->column.data()),
                    reinterpret_cast<char *>(dest), capacity, capacity))};
   }
@@ -320,8 +318,7 @@ private:
   /// @brief Zstd compression.
   CompressionDetails compressZstd(u8 *dest) {
     int capacity = this->column.size() * sizeof(T);
-    return {0, static_cast<u32>(ZSTD_compress(
-                   dest, capacity, this->column.data(), capacity, 1))};
+    return {0, ZSTD_compress(dest, capacity, this->column.data(), capacity, 1)};
   }
   //---------------------------------------------------------------------------
   /// @brief Snappy compression.
@@ -331,7 +328,7 @@ private:
     snappy::RawCompress(reinterpret_cast<const char *>(this->column.data()),
                         capacity, reinterpret_cast<char *>(dest),
                         &compressed_length);
-    return {0, static_cast<u32>(compressed_length)};
+    return {0, compressed_length};
   }
   //---------------------------------------------------------------------------
   /// @brief Generic decompression implementation for all compression schemes.
@@ -554,7 +551,7 @@ private:
   /// Details on the compressed data.
   CompressionDetails details;
   /// The size of the compressed data.
-  u32 compressed_size;
+  u64 compressed_size;
   /// Whether the Phase2-Compression failed.
   bool p2_fail;
 };

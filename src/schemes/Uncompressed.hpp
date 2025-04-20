@@ -12,7 +12,7 @@ public:
   //---------------------------------------------------------------------------
   CompressionDetails compress(const DataType *src, const u32 size, u8 *dest,
                               const Statistics<DataType> *stats) override {
-    u32 total_size = size * sizeof(DataType);
+    u64 total_size = size * sizeof(DataType);
     std::memcpy(dest, src, total_size);
     return {0, total_size};
   }

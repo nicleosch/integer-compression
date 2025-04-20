@@ -48,8 +48,8 @@ public:
       header_ptr += BitPackingSlot::size();
     }
 
-    u32 header_size = header_ptr - dest;
-    u32 payload_size = data_offset - header_size;
+    u64 header_size = header_ptr - dest;
+    u64 payload_size = data_offset - header_size;
     return {header_size, payload_size};
   }
   //---------------------------------------------------------------------------

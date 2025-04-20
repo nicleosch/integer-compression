@@ -46,8 +46,8 @@ public:
       varr[i] = values[i];
     }
 
-    u32 header_size = sizeof(RLELayout);
-    u32 payload_size = layout.value_offset + values.size() * sizeof(DataType);
+    u64 header_size = sizeof(RLELayout);
+    u64 payload_size = layout.value_offset + values.size() * sizeof(DataType);
     return {header_size, payload_size};
   }
   //---------------------------------------------------------------------------

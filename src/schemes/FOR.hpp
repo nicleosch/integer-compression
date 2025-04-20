@@ -22,8 +22,8 @@ public:
     layout.reference = stats->min;
     layout.pack_size = compressDispatch(src, size, layout.data, stats);
 
-    u32 header_size = offsetof(FORLayout, data);
-    u32 payload_size = layout.pack_size / 8 * size;
+    u64 header_size = offsetof(FORLayout, data);
+    u64 payload_size = layout.pack_size / 8 * size;
     return {header_size, payload_size};
   }
   //---------------------------------------------------------------------------
