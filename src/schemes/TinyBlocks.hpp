@@ -39,7 +39,7 @@ public:
       // Update header
       auto &slot = *reinterpret_cast<TinyBlocksSlot *>(header_ptr);
       slot.reference = stats[block_i].min;
-      slot.pack_size = stats[block_i].diff_bits;
+      slot.pack_size = stats[block_i].opcode;
       slot.offset = data_offset;
 
       // Compress block
