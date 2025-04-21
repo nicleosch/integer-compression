@@ -152,7 +152,9 @@ private:
 
     // 1. only the header should be compressed
     if (this->settings->header_only && !this->settings->payload_only) {
-      temp = std::make_unique<char[]>(details.header_size);
+      u64 size = details.header_size;
+      u64 capacity = std::max(snappy::MaxCompressedLength(size), size);
+      temp = std::make_unique<char[]>(capacity);
 
       // compress
       u64 compressed_header = 0;
@@ -161,23 +163,23 @@ private:
         compressed_header = static_cast<u64>(
             LZ4_compress_default(reinterpret_cast<const char *>(dest), // src
                                  temp.get(),                           // dest
-                                 details.header_size,                  // size
-                                 details.header_size) // capacity
+                                 size,                                 // size
+                                 capacity) // capacity
         );
         break;
       case CompressionSchemeType::kZstd:
-        compressed_header = ZSTD_compress(temp.get(),          // dest
-                                          details.header_size, // capacity
-                                          dest,                // src
-                                          details.header_size, // size
-                                          1                    // level
+        compressed_header = ZSTD_compress(temp.get(), // dest
+                                          capacity,   // capacity
+                                          dest,       // src
+                                          size,       // size
+                                          1           // level
         );
         if (ZSTD_isError(compressed_header))
           compressed_header = 0;
         break;
       case CompressionSchemeType::kSnappy:
         snappy::RawCompress(reinterpret_cast<const char *>(dest), // src
-                            details.header_size,                  // size
+                            size,                                 // size
                             temp.get(),                           // dest
                             &compressed_header);
         break;
@@ -186,7 +188,8 @@ private:
             "Phase2 Compression not supported for this scheme.");
       }
 
-      if (compressed_header > 0) { // if it was compressed at all
+      if (compressed_header > 0 &&
+          compressed_header < size) { // if it was compressed at all
         std::memcpy(dest, temp.get(), compressed_header);
         std::memmove(dest + compressed_header, dest + details.header_size,
                      details.payload_size);
@@ -198,7 +201,9 @@ private:
 
       // 2. only the payload should be compressed
     } else if (this->settings->payload_only && !this->settings->header_only) {
-      temp = std::make_unique<char[]>(details.payload_size);
+      u64 size = details.payload_size;
+      u64 capacity = std::max(snappy::MaxCompressedLength(size), size);
+      temp = std::make_unique<char[]>(capacity);
 
       // compress
       u8 *payload = dest + details.header_size;
@@ -207,24 +212,24 @@ private:
       case CompressionSchemeType::kLZ4:
         compressed_payload = static_cast<u64>(
             LZ4_compress_default(reinterpret_cast<const char *>(payload), // src
-                                 temp.get(),           // dest
-                                 details.payload_size, // size
-                                 details.payload_size) // capacity
+                                 temp.get(), // dest
+                                 size,       // size
+                                 capacity)   // capacity
         );
         break;
       case CompressionSchemeType::kZstd:
-        compressed_payload = ZSTD_compress(temp.get(),           // dest
-                                           details.payload_size, // capacity
-                                           payload,              // src
-                                           details.payload_size, // size
-                                           1                     // level
+        compressed_payload = ZSTD_compress(temp.get(), // dest
+                                           capacity,   // capacity
+                                           payload,    // src
+                                           size,       // size
+                                           1           // level
         );
         if (ZSTD_isError(compressed_payload))
           compressed_payload = 0;
         break;
       case CompressionSchemeType::kSnappy:
         snappy::RawCompress(reinterpret_cast<const char *>(payload), // src
-                            details.payload_size,                    // size
+                            size,                                    // size
                             temp.get(),                              // dest
                             &compressed_payload);
         break;
@@ -233,7 +238,8 @@ private:
             "Phase2 Compression not supported for this scheme.");
       }
 
-      if (compressed_payload > 0) { // if it was compressed at all
+      if (compressed_payload > 0 &&
+          compressed_payload < size) { // if it was compressed at all
         std::memcpy(payload, temp.get(), compressed_payload);
         details.payload_size = compressed_payload;
       } else { // compression failed
@@ -242,8 +248,9 @@ private:
 
       // 3. the whole compressed data should be compressed again
     } else {
-      auto allocated_size = details.payload_size + details.header_size;
-      temp = std::make_unique<char[]>(allocated_size);
+      u64 size = details.payload_size + details.header_size;
+      u64 capacity = std::max(snappy::MaxCompressedLength(size), size);
+      temp = std::make_unique<char[]>(capacity);
 
       // compress
       u64 compressed = 0;
@@ -252,23 +259,23 @@ private:
         compressed = static_cast<u64>(
             LZ4_compress_default(reinterpret_cast<const char *>(dest), // src
                                  temp.get(),                           // dest
-                                 allocated_size,                       // size
-                                 allocated_size) // capacity
+                                 size,                                 // size
+                                 capacity) // capacity
         );
         break;
       case CompressionSchemeType::kZstd:
-        compressed = ZSTD_compress(temp.get(),     // dest
-                                   allocated_size, // capacity
-                                   dest,           // src
-                                   allocated_size, // size
-                                   1               // level
+        compressed = ZSTD_compress(temp.get(), // dest
+                                   capacity,   // capacity
+                                   dest,       // src
+                                   size,       // size
+                                   1           // level
         );
         if (ZSTD_isError(compressed))
           compressed = 0;
         break;
       case CompressionSchemeType::kSnappy:
         snappy::RawCompress(reinterpret_cast<const char *>(dest), // src
-                            allocated_size,                       // size
+                            size,                                 // size
                             temp.get(),                           // dest
                             &compressed);
         break;
@@ -277,7 +284,7 @@ private:
             "Phase2 Compression not supported for this scheme.");
       }
 
-      if (compressed > 0) { // if it was compressed at all
+      if (compressed > 0 && compressed < size) { // if it was compressed at all
         std::memcpy(dest, temp.get(), compressed);
         details.header_size = 0;
         details.payload_size = compressed;
