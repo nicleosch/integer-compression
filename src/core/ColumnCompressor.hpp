@@ -172,6 +172,8 @@ private:
                                           details.header_size, // size
                                           1                    // level
         );
+        if (ZSTD_isError(compressed_header))
+          compressed_header = 0;
         break;
       case CompressionSchemeType::kSnappy:
         snappy::RawCompress(reinterpret_cast<const char *>(dest), // src
@@ -217,6 +219,8 @@ private:
                                            details.payload_size, // size
                                            1                     // level
         );
+        if (ZSTD_isError(compressed_payload))
+          compressed_payload = 0;
         break;
       case CompressionSchemeType::kSnappy:
         snappy::RawCompress(reinterpret_cast<const char *>(payload), // src
@@ -259,6 +263,8 @@ private:
                                    allocated_size, // size
                                    1               // level
         );
+        if (ZSTD_isError(compressed))
+          compressed = 0;
         break;
       case CompressionSchemeType::kSnappy:
         snappy::RawCompress(reinterpret_cast<const char *>(dest), // src
@@ -318,7 +324,11 @@ private:
   /// @brief Zstd compression.
   CompressionDetails compressZstd(u8 *dest) {
     int capacity = this->column.size() * sizeof(T);
-    return {0, ZSTD_compress(dest, capacity, this->column.data(), capacity, 1)};
+    u64 size = ZSTD_compress(dest, capacity, this->column.data(), capacity, 1);
+    if (ZSTD_isError(size)) {
+      throw std::runtime_error("Zstd-Compression failed.");
+    }
+    return {0, size};
   }
   //---------------------------------------------------------------------------
   /// @brief Snappy compression.
@@ -402,6 +412,9 @@ private:
                                             src,            // src
                                             this->details.header_size // size
         );
+        if (ZSTD_isError(decompressed_size)) {
+          throw std::runtime_error("Zstd-Decompression of the header failed.");
+        }
         break;
       case CompressionSchemeType::kSnappy:
         snappy::RawUncompress(reinterpret_cast<const char *>(src), // src
@@ -449,6 +462,9 @@ private:
             payload,                                    // src
             this->details.payload_size                  // size
         );
+        if (ZSTD_isError(decompressed_size)) {
+          throw std::runtime_error("Zstd-Decompression of the payload failed.");
+        }
         break;
       case CompressionSchemeType::kSnappy:
         snappy::RawUncompress(reinterpret_cast<const char *>(payload), // src
@@ -486,6 +502,9 @@ private:
                                             src,                  // src
                                             this->compressed_size // size
         );
+        if (ZSTD_isError(decompressed_size)) {
+          throw std::runtime_error("Zstd-Decompression failed.");
+        }
         break;
       case CompressionSchemeType::kSnappy:
         snappy::RawUncompress(reinterpret_cast<const char *>(src), // src
@@ -538,8 +557,11 @@ private:
   //---------------------------------------------------------------------------
   /// @brief Zstd decompression.
   void decompressZstd(T *dest, u8 *src) {
-    ZSTD_decompress(dest, this->column.size() * sizeof(T), src,
-                    compressed_size);
+    u64 size = ZSTD_decompress(dest, this->column.size() * sizeof(T), src,
+                               compressed_size);
+    if (ZSTD_isError(size)) {
+      throw std::runtime_error("Zstd-Decompression failed.");
+    }
   }
   //---------------------------------------------------------------------------
   /// @brief Snappy decompression.
