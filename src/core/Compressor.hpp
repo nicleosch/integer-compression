@@ -50,6 +50,9 @@ public:
       : column(column), scheme(CompressionSchemeType::kUncompressed),
         settings(settings) {}
   //---------------------------------------------------------------------------
+  /// Destructor.
+  virtual ~Compressor() = default;
+  //---------------------------------------------------------------------------
   /// Compress the column into given output buffer.
   /// @return The size of the compressed data.
   virtual CompressionStats compress(std::unique_ptr<u8[]> &dest) = 0;

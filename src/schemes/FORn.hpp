@@ -10,17 +10,13 @@ template <typename DataType, const u16 kBlockSize>
 class FORn : public CompressionScheme<DataType> {
 public:
   //---------------------------------------------------------------------------
-  struct FORnSlot {
+  struct __attribute__((packed)) FORnSlot {
     /// The reference of the corresponding frame.
     DataType reference;
     /// The offset into the data array.
     u32 offset;
     /// The number of bits used to store an integer in corresponding frame.
     u8 pack_size;
-    /// The unpadded size of a slot.
-    static u8 size() {
-      return sizeof(reference) + sizeof(offset) + sizeof(pack_size);
-    }
   };
   //---------------------------------------------------------------------------
   CompressionDetails compress(const DataType *src, const u32 size, u8 *dest,
@@ -31,7 +27,7 @@ public:
     u8 *header_ptr = dest;
     u8 *data_ptr = dest;
 
-    u32 data_offset = block_count * FORnSlot::size();
+    u32 data_offset = block_count * sizeof(FORnSlot);
     for (u32 block_i = 0; block_i < block_count; ++block_i) {
       data_ptr = dest + data_offset;
 
@@ -45,7 +41,7 @@ public:
       data_offset +=
           std::ceil(static_cast<double>(slot.pack_size * kBlockSize) / 8);
       src += kBlockSize;
-      header_ptr += FORnSlot::size();
+      header_ptr += sizeof(FORnSlot);
     }
 
     u64 header_size = header_ptr - dest;
@@ -62,7 +58,7 @@ public:
     const u32 block_count = size / kBlockSize;
 
     // Layout: HEADER [kBlockSize] | COMPRESSED DATA
-    const u8 *header_ptr = src + block_offset * FORnSlot::size();
+    const u8 *header_ptr = src + block_offset * sizeof(FORnSlot);
     const u8 *data_ptr = src;
 
     for (u32 block_i = 0; block_i < block_count; ++block_i) {
@@ -76,7 +72,7 @@ public:
 
       // Update iterators
       dest += kBlockSize;
-      header_ptr += FORnSlot::size();
+      header_ptr += sizeof(FORnSlot);
     }
   }
   //---------------------------------------------------------------------------

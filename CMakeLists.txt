@@ -15,6 +15,12 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 # COMPILE OPTIONS
 # ---------------------------------------------------------------------------
 add_compile_options(-mavx2 -mavx512f)
+if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+    add_compile_options(-fsanitize=address)
+    add_compile_options(-fsanitize=undefined)
+    add_link_options(-fsanitize=address)
+    add_link_options(-fsanitize=undefined)
+endif()
 
 # PATHS
 # ---------------------------------------------------------------------------

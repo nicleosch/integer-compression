@@ -1,5 +1,8 @@
 #pragma once
 //---------------------------------------------------------------------------
+#include <cstring>
+//---------------------------------------------------------------------------
+#include "common/Utils.hpp"
 #include "schemes/CompressionScheme.hpp"
 //---------------------------------------------------------------------------
 namespace compression {
@@ -40,11 +43,9 @@ public:
 
     layout.value_offset = values.size() * sizeof(run_length);
 
-    auto *varr =
-        reinterpret_cast<DataType *>(layout.data + layout.value_offset);
-    for (u32 i = 0; i < values.size(); ++i) {
-      varr[i] = values[i];
-    }
+    // Write <values> behind <run-lengths>
+    std::memcpy(layout.data + layout.value_offset, values.data(),
+                values.size() * sizeof(DataType));
 
     u64 header_size = sizeof(RLELayout);
     u64 payload_size = layout.value_offset + values.size() * sizeof(DataType);
@@ -55,13 +56,12 @@ public:
     const auto &layout = *reinterpret_cast<const RLELayout *>(src);
 
     const auto *run_lengths = reinterpret_cast<const u32 *>(layout.data);
-    const auto *values =
-        reinterpret_cast<const DataType *>(layout.data + layout.value_offset);
 
     u32 pos = 0;
     for (u32 i = 0; i < layout.value_offset / sizeof(u32); ++i) {
       const u32 run_length = run_lengths[i];
-      const DataType value = values[i];
+      const auto value = utils::unaligned_load<DataType>(
+          layout.data + layout.value_offset + i * sizeof(DataType));
 
       for (u32 j = 0; j < run_length; ++j) {
         dest[pos++] = value;

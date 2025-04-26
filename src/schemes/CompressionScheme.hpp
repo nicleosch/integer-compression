@@ -27,6 +27,9 @@ struct CompressionDetails {
 template <typename DataType> class CompressionScheme {
 public:
   //---------------------------------------------------------------------------
+  /// Destructor.
+  virtual ~CompressionScheme() = default;
+  //---------------------------------------------------------------------------
   /// Compress data from src to dest.
   /// @param src The integers to be compressed.
   /// @param size The amount of integers to be compressed.

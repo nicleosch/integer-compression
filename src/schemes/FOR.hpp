@@ -1,5 +1,6 @@
 #pragma once
 //---------------------------------------------------------------------------
+#include "common/Utils.hpp"
 #include "schemes/CompressionScheme.hpp"
 //---------------------------------------------------------------------------
 namespace compression {
@@ -7,7 +8,7 @@ namespace compression {
 template <typename DataType> class FOR : public CompressionScheme<DataType> {
 public:
   //---------------------------------------------------------------------------
-  struct FORLayout {
+  struct __attribute__((packed)) FORLayout {
     /// The reference of the corresponding frame.
     DataType reference;
     /// The number of bits used to store an integer in the frame.
@@ -77,18 +78,20 @@ private:
   template <typename TargetType>
   void compressImpl(const DataType *src, const u32 size, u8 *dest,
                     const Statistics<DataType> *stats) {
-    auto data = reinterpret_cast<TargetType *>(dest);
     for (u32 i = 0; i < size; ++i) {
-      data[i] = static_cast<TargetType>(src[i] - stats->min);
+      utils::unaligned_store<TargetType>(
+          dest + i * sizeof(TargetType),
+          static_cast<TargetType>(src[i] - stats->min));
     }
   }
   //---------------------------------------------------------------------------
   template <typename TargetType>
   void decompressImpl(DataType *dest, const u32 size, const u8 *src,
                       const u32 reference) {
-    const auto &data = reinterpret_cast<const TargetType *>(src);
     for (u32 i = 0; i < size; ++i) {
-      dest[i] = data[i] + reference;
+      dest[i] =
+          utils::unaligned_load<TargetType>(src + i * sizeof(TargetType)) +
+          reference;
     }
   }
 };

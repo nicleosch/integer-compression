@@ -1,6 +1,7 @@
 #pragma once
 //---------------------------------------------------------------------------
 #include <chrono>
+#include <cstring>
 #include <fcntl.h>
 #include <iostream>
 #include <ostream>
@@ -156,6 +157,18 @@ template <> inline u8 requiredBits(BIGINT value) {
     return sizeof(BIGINT) * 8;
   return static_cast<u8>(sizeof(BIGINT) * 8) -
          __builtin_clzll(static_cast<u64>(value));
+}
+//---------------------------------------------------------------------------
+/// @brief A utility to safely load from an unaligned address.
+template <typename T> inline T unaligned_load(const void *ptr) {
+  T value;
+  std::memcpy(&value, ptr, sizeof(T));
+  return value;
+}
+//---------------------------------------------------------------------------
+/// @brief A utility to safely write to an unaligned address.
+template <typename T> inline void unaligned_store(void *ptr, const T value) {
+  std::memcpy(ptr, &value, sizeof(T));
 }
 //---------------------------------------------------------------------------
 } // namespace utils

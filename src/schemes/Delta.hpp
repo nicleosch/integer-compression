@@ -1,5 +1,6 @@
 #pragma once
 //---------------------------------------------------------------------------
+#include "common/Utils.hpp"
 #include "schemes/CompressionScheme.hpp"
 //---------------------------------------------------------------------------
 namespace compression {
@@ -7,7 +8,7 @@ namespace compression {
 template <typename DataType> class Delta : public CompressionScheme<DataType> {
 public:
   //---------------------------------------------------------------------------
-  struct DeltaLayout {
+  struct __attribute__((packed)) DeltaLayout {
     /// The first value of the sequence.
     DataType base;
     /// The number of bits required to store the deltas.
@@ -75,11 +76,11 @@ private:
   //---------------------------------------------------------------------------
   template <typename TargetType>
   void compressImpl(const DataType *src, const u32 size, u8 *dest) {
-    auto data = reinterpret_cast<TargetType *>(dest);
-
-    data[0] = 0;
+    utils::unaligned_store<TargetType>(dest, 0);
     for (u32 i = 1; i < size; ++i) {
-      data[i] = static_cast<TargetType>(src[i] - src[i - 1]);
+      utils::unaligned_store<TargetType>(
+          dest + i * sizeof(TargetType),
+          static_cast<TargetType>(src[i] - src[i - 1]));
     }
   }
   //---------------------------------------------------------------------------
@@ -88,9 +89,10 @@ private:
                       const DataType base) {
     dest[0] = base;
 
-    const auto &data = reinterpret_cast<const TargetType *>(src);
     for (u32 i = 1; i < size; ++i) {
-      dest[i] = data[i] + dest[i - 1];
+      dest[i] =
+          utils::unaligned_load<TargetType>(src + i * sizeof(TargetType)) +
+          dest[i - 1];
     }
   }
 };
