@@ -14,6 +14,8 @@ TEST(DeltaTest, ColumnDecompressionInvariant32bit) {
   auto path = "../data/tpch/sf1/partsupp.tbl";
   auto column = storage::Column<INTEGER>::fromFile(path, 0, '|');
 
+  column.padToMultipleOf(kBlockSize);
+
   ColumnCompressor<INTEGER, kBlockSize> compressor(
       column, CompressionSchemeType::kDelta);
 
@@ -65,6 +67,8 @@ TEST(DeltaTest, ColumnDecompressionInvariant64bit) {
 
   auto path = "../data/tpch/sf1/partsupp.tbl";
   auto column = storage::Column<BIGINT>::fromFile(path, 0, '|');
+
+  column.padToMultipleOf(kBlockSize);
 
   ColumnCompressor<BIGINT, kBlockSize> compressor(
       column, CompressionSchemeType::kDelta);
@@ -118,6 +122,8 @@ TEST(DeltaTest, Phase2HeaderCompressionInvariant) {
   auto path = "../data/tpch/sf1/partsupp.tbl";
   auto column = storage::Column<INTEGER>::fromFile(path, 0, '|');
 
+  column.padToMultipleOf(kBlockSize);
+
   Phase2CompressionSettings settings{CompressionSchemeType::kLZ4, true, false};
 
   ColumnCompressor<INTEGER, kBlockSize> compressor(column, &settings);
@@ -144,6 +150,8 @@ TEST(DeltaTest, Phase2PayloadCompressionInvariant) {
 
   auto path = "../data/tpch/sf1/partsupp.tbl";
   auto column = storage::Column<INTEGER>::fromFile(path, 0, '|');
+
+  column.padToMultipleOf(kBlockSize);
 
   Phase2CompressionSettings settings{CompressionSchemeType::kZstd, false, true};
 
@@ -172,6 +180,8 @@ TEST(DeltaTest, Phase2CompressionInvariant) {
   auto path = "../data/tpch/sf1/partsupp.tbl";
   auto column = storage::Column<INTEGER>::fromFile(path, 0, '|');
 
+  column.padToMultipleOf(kBlockSize);
+
   Phase2CompressionSettings settings{CompressionSchemeType::kSnappy, false,
                                      false};
 
@@ -199,6 +209,8 @@ TEST(DeltaTest, ColumnDecompressionInvariantNegativeDeltas) {
 
   auto path = "../data/tpch/sf1/orders.tbl";
   auto column = storage::Column<INTEGER>::fromFile(path, 1, '|');
+
+  column.padToMultipleOf(kBlockSize);
 
   ColumnCompressor<INTEGER, kBlockSize> compressor(
       column, CompressionSchemeType::kDelta);

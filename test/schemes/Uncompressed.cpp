@@ -14,6 +14,8 @@ TEST(UncompressedTest, ColumnDecompressionInvariant32bit) {
   auto path = "../data/tpch/sf1/partsupp.tbl";
   auto column = storage::Column<INTEGER>::fromFile(path, 0, '|');
 
+  column.padToMultipleOf(kBlockSize);
+
   ColumnCompressor<INTEGER, kBlockSize> compressor(
       column, CompressionSchemeType::kUncompressed);
 
@@ -39,6 +41,8 @@ TEST(UncompressedTest, ColumnDecompressionInvariant64bit) {
   auto path = "../data/tpch/sf1/partsupp.tbl";
   auto column = storage::Column<BIGINT>::fromFile(path, 0, '|');
 
+  column.padToMultipleOf(kBlockSize);
+
   ColumnCompressor<BIGINT, kBlockSize> compressor(
       column, CompressionSchemeType::kUncompressed);
 
@@ -63,6 +67,8 @@ TEST(UncompressedTest, Phase2HeaderCompressionInvariant) {
 
   auto path = "../data/tpch/sf1/partsupp.tbl";
   auto column = storage::Column<INTEGER>::fromFile(path, 0, '|');
+
+  column.padToMultipleOf(kBlockSize);
 
   Phase2CompressionSettings settings{CompressionSchemeType::kLZ4, true, false};
 
@@ -91,6 +97,8 @@ TEST(UncompressedTest, Phase2PayloadCompressionInvariant) {
   auto path = "../data/tpch/sf1/partsupp.tbl";
   auto column = storage::Column<INTEGER>::fromFile(path, 0, '|');
 
+  column.padToMultipleOf(kBlockSize);
+
   Phase2CompressionSettings settings{CompressionSchemeType::kZstd, false, true};
 
   ColumnCompressor<INTEGER, kBlockSize> compressor(column, &settings);
@@ -117,6 +125,8 @@ TEST(UncompressedTest, Phase2CompressionInvariant) {
 
   auto path = "../data/tpch/sf1/partsupp.tbl";
   auto column = storage::Column<INTEGER>::fromFile(path, 0, '|');
+
+  column.padToMultipleOf(kBlockSize);
 
   Phase2CompressionSettings settings{CompressionSchemeType::kSnappy, false,
                                      false};
