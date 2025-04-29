@@ -132,9 +132,8 @@ private:
   void decompressMonoInc(DataType *dest, const TinyBlocksSlot &slot) {
     u8 step_size = slot.pack_size & step_mask;
 
-    dest[0] = slot.reference;
-    for (u16 i = 1; i < kBlockSize; ++i) {
-      dest[i] = dest[i - 1] + step_size;
+    for (u16 i = 0; i < kBlockSize; ++i) {
+      dest[i] = slot.reference + i * step_size;
     }
   }
   //---------------------------------------------------------------------------
