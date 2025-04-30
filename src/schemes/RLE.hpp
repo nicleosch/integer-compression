@@ -36,10 +36,8 @@ public:
         cur = src[i];
       }
     }
-    if (run_length > 1) {
-      run_lengths[values.size()] = run_length;
-      values.push_back(cur);
-    }
+    run_lengths[values.size()] = run_length;
+    values.push_back(cur);
 
     layout.value_offset = values.size() * sizeof(run_length);
 
