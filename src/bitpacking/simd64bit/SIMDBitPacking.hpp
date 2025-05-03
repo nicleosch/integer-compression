@@ -115,6 +115,17 @@ const __m128i *simdunpack_shortlength(const __m128i *in, u64 *out,
   return in;
 }
 //---------------------------------------------------------------------------
+__m128i *simdpack_length(const u64 *in, u16 length, __m128i *out, const u8 bit);
+//---------------------------------------------------------------------------
+const __m128i *simdunpack_length(const __m128i *in, u16 length, u64 *out,
+                                 const u8 bit);
+//---------------------------------------------------------------------------
+__m128i *simdpack_shortlength(const u64 *in, u16 length, __m128i *out,
+                              const u8 bit);
+//---------------------------------------------------------------------------
+const __m128i *simdunpack_shortlength(const __m128i *in, u16 length, u64 *out,
+                                      const u8 bit);
+//---------------------------------------------------------------------------
 } // namespace simd64
 //---------------------------------------------------------------------------
 } // namespace bitpacking
