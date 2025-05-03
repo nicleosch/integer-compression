@@ -19,6 +19,8 @@ public:
   T min;
   /// The maximum
   T max;
+  /// The step size, if it's the same for all deltas, else 0.
+  T step_size;
   /// The number of values in the input.
   u32 count;
   /// The number of bits required to store the maximum delta between two
@@ -27,12 +29,8 @@ public:
   /// The number of bits required to store the difference between maximum
   /// and minimum.
   u8 diff_bits;
-  /// The opcode used for TinyBlocks-Compression.
-  u8 opcode;
   /// The number of bits required to store the maximum.
   u8 max_bits;
-  /// The step size, if it's the same for all deltas, else 0.
-  u8 step_size;
   //---------------------------------------------------------------------------
   /// @brief Generates statistics from given data.
   /// @param src The data to generate the statistic from.
@@ -61,15 +59,7 @@ public:
     stats.diff_bits = utils::requiredBits<T>(stats.max - stats.min);
     stats.delta_bits = utils::requiredBits<T>(max_diff);
     stats.max_bits = utils::requiredBits<T>(stats.max);
-
-    if (step > 0 && step < 64) {
-      stats.opcode = 65;
-      stats.step_size = static_cast<u8>(step);
-    } else if (stats.max - stats.min == 0) {
-      stats.opcode = 0;
-    } else {
-      stats.opcode = stats.diff_bits;
-    }
+    stats.step_size = step;
 
     return stats;
   }
