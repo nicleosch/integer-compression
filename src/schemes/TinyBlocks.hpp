@@ -45,7 +45,7 @@ public:
       slot.offset = data_offset;
 
       // Compress block
-      Opcode opcode = chooseOpcode(src, data_ptr, stats[block_i]);
+      Opcode opcode = chooseOpcode(src, stats[block_i]);
       data_offset +=
           compressDispatch(src, data_ptr, stats[block_i], slot, opcode);
 
@@ -93,8 +93,7 @@ private:
   //---------------------------------------------------------------------------
   // COMPRESSION
   //---------------------------------------------------------------------------
-  Opcode chooseOpcode(const DataType *src, u8 *dest,
-                      const Statistics<DataType> &stats) {
+  Opcode chooseOpcode(const DataType *src, const Statistics<DataType> &stats) {
     if (stats.max == stats.min) {
       // When min and max are the same, we can use OneValue encoding.
       return Opcode::ONE_VALUE;
@@ -107,8 +106,10 @@ private:
     // Choose the scheme that compresses better
     u32 bp_compressed_size =
         std::ceil(static_cast<double>(stats.diff_bits * kBlockSize) / 8);
+
+    auto dest = std::make_unique<u8[]>(kBlockSize * sizeof(DataType) * 2);
     u32 rle_compressed_size =
-        compressRLE(src, dest, stats.min, stats.diff_bits);
+        compressRLE(src, dest.get(), stats.min, stats.diff_bits);
 
     return bp_compressed_size <= rle_compressed_size ? Opcode::BIT_PACKING
                                                      : Opcode::RLE;
@@ -185,7 +186,7 @@ private:
 
     // Write pack size
     *dest = pack_size;
-    ++dest;
+    dest += sizeof(pack_size);
 
     // Compress & write values
     u32 value_size = bitpacking::pack<DataType>(values.data(), values.size(),
@@ -249,16 +250,17 @@ private:
     /// | 1 | ... | ... |
     /// value_offset | lengths[] | pack_size | values[]
 
-    // Decompress: meta data
+    // Decompress meta data
     auto value_offset = utils::unaligned_load<u16>(src);
     u16 run_count = (value_offset - sizeof(value_offset)) / sizeof(u16);
     auto pack_size = *reinterpret_cast<const u8 *>(src + value_offset);
     ++value_offset;
 
-    // Decompress: lengths & values
+    // Decompress lengths & values
     vector<DataType> values(run_count);
     bitpacking::unpack<DataType>(values.data(), run_count, src + value_offset,
                                  pack_size);
+
     vector<u16> lengths(run_count);
     std::memcpy(lengths.data(), src + sizeof(value_offset),
                 run_count * sizeof(u16));
