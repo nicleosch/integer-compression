@@ -178,19 +178,20 @@ private:
     values.push_back(cur - reference);
     value_offset = sizeof(value_offset) + lengths.size() * sizeof(u16);
 
+    auto write_ptr = dest;
     // Write lengths
-    *dest = value_offset;
-    std::memcpy(dest + sizeof(value_offset), lengths.data(),
+    std::memcpy(write_ptr, &value_offset, sizeof(value_offset));
+    std::memcpy(write_ptr + sizeof(value_offset), lengths.data(),
                 lengths.size() * sizeof(u16));
-    dest += value_offset;
+    write_ptr += value_offset;
 
     // Write pack size
-    *dest = pack_size;
-    dest += sizeof(pack_size);
+    *write_ptr = pack_size;
+    write_ptr += sizeof(pack_size);
 
     // Compress & write values
     u32 value_size = bitpacking::pack<DataType>(values.data(), values.size(),
-                                                dest, pack_size);
+                                                write_ptr, pack_size);
 
     return value_offset + sizeof(pack_size) + value_size;
   }
