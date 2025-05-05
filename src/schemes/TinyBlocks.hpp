@@ -130,7 +130,7 @@ private:
       slot.opcode = static_cast<u8>(opcode);
       return compressRLE(src, dest, stats.min, stats.diff_bits);
     case Opcode::MONOTONICALLY_INCREASING:
-      slot.opcode = static_cast<u8>(opcode) | (stats.step_size >> 1);
+      slot.opcode = static_cast<u8>(opcode) | (stats.step_size << 1);
       return 0;
     default:
       throw std::runtime_error(
@@ -299,7 +299,7 @@ private:
   //---------------------------------------------------------------------------
   void decompressMonoInc(DataType *dest, const Slot &slot) {
     // Reveal all but the 0-bit and shift to origin -> reveals 4 bit step size.
-    u8 step_size = (slot.opcode & (0x40 - 2)) << 1;
+    u8 step_size = (slot.opcode & (0x40 - 2)) >> 1;
 
     for (u16 i = 0; i < kBlockSize; ++i) {
       dest[i] = slot.reference + i * step_size;
