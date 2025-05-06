@@ -257,7 +257,7 @@ private:
     /// value_offset | lengths[] | pack_size | values[]
     //---------------------------------------------------------------------------
     // Decompress meta data
-    auto value_offset = utils::unaligned_load<u16>(src);
+    auto value_offset = utils::unalignedLoad<u16>(src);
     u16 run_count = (value_offset - sizeof(value_offset)) / sizeof(u16);
     auto pack_size = *reinterpret_cast<const u8 *>(src + value_offset);
     ++value_offset;

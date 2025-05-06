@@ -58,7 +58,7 @@ public:
     u32 pos = 0;
     for (u32 i = 0; i < layout.value_offset / sizeof(u32); ++i) {
       const u32 run_length = run_lengths[i];
-      const auto value = utils::unaligned_load<DataType>(
+      const auto value = utils::unalignedLoad<DataType>(
           layout.data + layout.value_offset + i * sizeof(DataType));
 
       for (u32 j = 0; j < run_length; ++j) {

@@ -76,9 +76,9 @@ private:
   //---------------------------------------------------------------------------
   template <typename TargetType>
   void compressImpl(const DataType *src, const u32 size, u8 *dest) {
-    utils::unaligned_store<TargetType>(dest, 0);
+    utils::unalignedStore<TargetType>(dest, 0);
     for (u32 i = 1; i < size; ++i) {
-      utils::unaligned_store<TargetType>(
+      utils::unalignedStore<TargetType>(
           dest + i * sizeof(TargetType),
           static_cast<TargetType>(src[i] - src[i - 1]));
     }
@@ -90,9 +90,8 @@ private:
     dest[0] = base;
 
     for (u32 i = 1; i < size; ++i) {
-      dest[i] =
-          utils::unaligned_load<TargetType>(src + i * sizeof(TargetType)) +
-          dest[i - 1];
+      dest[i] = utils::unalignedLoad<TargetType>(src + i * sizeof(TargetType)) +
+                dest[i - 1];
     }
   }
 };

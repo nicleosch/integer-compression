@@ -79,7 +79,7 @@ private:
   void compressImpl(const DataType *src, const u32 size, u8 *dest,
                     const Statistics<DataType> *stats) {
     for (u32 i = 0; i < size; ++i) {
-      utils::unaligned_store<TargetType>(
+      utils::unalignedStore<TargetType>(
           dest + i * sizeof(TargetType),
           static_cast<TargetType>(src[i] - stats->min));
     }
@@ -89,9 +89,8 @@ private:
   void decompressImpl(DataType *dest, const u32 size, const u8 *src,
                       const u32 reference) {
     for (u32 i = 0; i < size; ++i) {
-      dest[i] =
-          utils::unaligned_load<TargetType>(src + i * sizeof(TargetType)) +
-          reference;
+      dest[i] = utils::unalignedLoad<TargetType>(src + i * sizeof(TargetType)) +
+                reference;
     }
   }
 };

@@ -160,14 +160,14 @@ template <> inline u8 requiredBits(BIGINT value) {
 }
 //---------------------------------------------------------------------------
 /// @brief A utility to safely load from an unaligned address.
-template <typename T> inline T unaligned_load(const void *ptr) {
+template <typename T> inline T unalignedLoad(const void *ptr) {
   T value;
   std::memcpy(&value, ptr, sizeof(T));
   return value;
 }
 //---------------------------------------------------------------------------
 /// @brief A utility to safely write to an unaligned address.
-template <typename T> inline void unaligned_store(void *ptr, const T value) {
+template <typename T> inline void unalignedStore(void *ptr, const T value) {
   std::memcpy(ptr, &value, sizeof(T));
 }
 //---------------------------------------------------------------------------
