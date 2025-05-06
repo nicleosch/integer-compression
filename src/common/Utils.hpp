@@ -171,6 +171,14 @@ template <typename T> inline void unaligned_store(void *ptr, const T value) {
   std::memcpy(ptr, &value, sizeof(T));
 }
 //---------------------------------------------------------------------------
+/// @brief Align ptr to specified alignment.
+template <typename T> inline T *align(T *ptr, u64 alignment, u64 &padding) {
+  uintptr_t raw = reinterpret_cast<uintptr_t>(ptr);
+  uintptr_t aligned = (raw + alignment - 1) & ~(alignment - 1);
+  padding = aligned - raw;
+  return reinterpret_cast<T *>(aligned);
+}
+//---------------------------------------------------------------------------
 } // namespace utils
 //---------------------------------------------------------------------------
 } // namespace compression

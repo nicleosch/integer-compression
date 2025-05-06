@@ -5,10 +5,15 @@
 //---------------------------------------------------------------------------
 #include "bitpacking/simd64bit/BitPacking.hpp"
 #include "common/Types.hpp"
+#include "extern/FastPFOR.hpp"
 //---------------------------------------------------------------------------
 namespace compression {
 //---------------------------------------------------------------------------
 namespace bitpacking {
+//---------------------------------------------------------------------------
+using ScalarBitPacking =
+    FastPForLib::CompositeCodec<FastPForLib::FastBinaryPacking<32>,
+                                FastPForLib::VariableByte>;
 //---------------------------------------------------------------------------
 /// @brief Bitpack the given data into arbitrary bit-widths.
 /// @param src The integers to be packed.
@@ -166,14 +171,36 @@ void unpack(DataType *dest, const u16 size, const u8 *src, const u8 pack_size);
 template <>
 inline u32 pack<INTEGER>(const INTEGER *src, const u16 size, u8 *dest,
                          const u8 pack_size) {
-  auto out = simdpack_length(reinterpret_cast<const u32 *>(src), size,
-                             reinterpret_cast<__m128i *>(dest), pack_size);
-  return reinterpret_cast<u8 *>(out) - dest;
+  const u16 kRegisterSize = 128;
+
+  const u16 roundedSize = size * pack_size / kRegisterSize;
+  const u8 simd_nb_values = kRegisterSize / pack_size;
+  const u8 rest_nb_values = ((size * pack_size) % kRegisterSize) / pack_size;
+
+  // SIMD-BinaryPacking
+  auto *write_ptr = reinterpret_cast<__m128i *>(dest);
+  auto *read_ptr = reinterpret_cast<const u32 *>(src);
+  for (u16 i = 0; i < roundedSize; ++i) {
+    write_ptr = simdpack_length(read_ptr, simd_nb_values, write_ptr, pack_size);
+    read_ptr += simd_nb_values;
+  }
+
+  // Scalar-BinaryPacking
+  assert(reinterpret_cast<uintptr_t>(write_ptr) % 4 == 0);
+
+  u64 allocated_size = size * sizeof(INTEGER);
+  ScalarBitPacking scalar_bp;
+  scalar_bp.encodeArray(read_ptr, rest_nb_values,
+                        reinterpret_cast<u32 *>(write_ptr), allocated_size);
+
+  return allocated_size + (reinterpret_cast<u8 *>(write_ptr) - dest);
 }
 //---------------------------------------------------------------------------
 template <>
 inline u32 pack<BIGINT>(const BIGINT *src, const u16 size, u8 *dest,
                         const u8 pack_size) {
+  // TODO: Support Scalar-BinaryPacking for 64 bit integers
+
   auto out =
       simd64::simdpack_length(reinterpret_cast<const u64 *>(src), size,
                               reinterpret_cast<__m128i *>(dest), pack_size);
@@ -183,13 +210,35 @@ inline u32 pack<BIGINT>(const BIGINT *src, const u16 size, u8 *dest,
 template <>
 inline void unpack<INTEGER>(INTEGER *dest, const u16 size, const u8 *src,
                             const u8 pack_size) {
-  simdunpack_length(reinterpret_cast<const __m128i *>(src), size,
-                    reinterpret_cast<u32 *>(dest), pack_size);
+  const u16 kRegisterSize = 128;
+
+  const u16 roundedSize = size * pack_size / kRegisterSize;
+  const u8 simd_nb_values = kRegisterSize / pack_size;
+  const u8 rest_nb_values = ((size * pack_size) % kRegisterSize) / pack_size;
+
+  // SIMD-BinaryPacking
+  auto *write_ptr = reinterpret_cast<u32 *>(dest);
+  auto *read_ptr = reinterpret_cast<const __m128i *>(src);
+  for (u16 i = 0; i < roundedSize; ++i) {
+    read_ptr =
+        simdunpack_length(read_ptr, simd_nb_values, write_ptr, pack_size);
+    write_ptr += simd_nb_values;
+  }
+
+  // Scalar-BinaryPacking
+  assert(reinterpret_cast<uintptr_t>(read_ptr) % 4 == 0);
+
+  u64 allocated_size = size * sizeof(INTEGER);
+  ScalarBitPacking scalar_bp;
+  scalar_bp.decodeArray(reinterpret_cast<const u32 *>(read_ptr), rest_nb_values,
+                        write_ptr, allocated_size);
 }
 //---------------------------------------------------------------------------
 template <>
 inline void unpack<BIGINT>(BIGINT *dest, const u16 size, const u8 *src,
                            const u8 pack_size) {
+  // TODO: Support Scalar-BinaryPacking for 64 bit integers
+
   simd64::simdunpack_length(reinterpret_cast<const __m128i *>(src), size,
                             reinterpret_cast<u64 *>(dest), pack_size);
 }

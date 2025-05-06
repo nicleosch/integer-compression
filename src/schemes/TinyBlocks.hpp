@@ -156,11 +156,11 @@ private:
     /// Layout:
     /// | 1 | ... | ... |
     /// value_offset | lengths[] | pack_size | values[]
-
+    //---------------------------------------------------------------------------
     u16 value_offset;
     vector<u16> lengths;
     vector<DataType> values;
-
+    //---------------------------------------------------------------------------
     // Encode data
     DataType cur = src[0];
     u16 run_length = 1;
@@ -177,22 +177,26 @@ private:
     lengths.push_back(run_length);
     values.push_back(cur - reference);
     value_offset = sizeof(value_offset) + lengths.size() * sizeof(u16);
-
-    auto write_ptr = dest;
+    //---------------------------------------------------------------------------
     // Write lengths
+    auto write_ptr = dest;
     std::memcpy(write_ptr, &value_offset, sizeof(value_offset));
     std::memcpy(write_ptr + sizeof(value_offset), lengths.data(),
                 lengths.size() * sizeof(u16));
     write_ptr += value_offset;
-
+    //---------------------------------------------------------------------------
     // Write pack size
     *write_ptr = pack_size;
     write_ptr += sizeof(pack_size);
-
+    //---------------------------------------------------------------------------
     // Compress & write values
+    // Pad write_ptr, as values need to be 4-Byte aligned for BitPacking
+    u64 padding = 0;
+    write_ptr = reinterpret_cast<u8 *>(utils::align<u8>(write_ptr, 4, padding));
     u32 value_size = bitpacking::pack<DataType>(values.data(), values.size(),
                                                 write_ptr, pack_size);
-
+    value_size += padding;
+    //---------------------------------------------------------------------------
     return value_offset + sizeof(pack_size) + value_size;
   }
 
@@ -247,25 +251,31 @@ private:
   }
   //---------------------------------------------------------------------------
   void decompressRLE(DataType *dest, const u8 *src, const Slot &slot) {
+    //---------------------------------------------------------------------------
     /// Layout:
     /// | 1 | ... | ... |
     /// value_offset | lengths[] | pack_size | values[]
-
+    //---------------------------------------------------------------------------
     // Decompress meta data
     auto value_offset = utils::unaligned_load<u16>(src);
     u16 run_count = (value_offset - sizeof(value_offset)) / sizeof(u16);
     auto pack_size = *reinterpret_cast<const u8 *>(src + value_offset);
     ++value_offset;
-
+    //---------------------------------------------------------------------------
     // Decompress lengths & values
-    vector<DataType> values(run_count);
-    bitpacking::unpack<DataType>(values.data(), run_count, src + value_offset,
-                                 pack_size);
-
+    auto read_ptr = src + value_offset;
+    // Pad read_ptr, as values are 4-Byte aligned for BitPacking
+    u64 padding = 0;
+    read_ptr = reinterpret_cast<const u8 *>(
+        utils::align<const u8>(read_ptr, 4, padding));
+    // Unpack
+    vector<DataType> values(run_count * 2);
+    bitpacking::unpack<DataType>(values.data(), run_count, read_ptr, pack_size);
+    // Initialize lengths
     vector<u16> lengths(run_count);
     std::memcpy(lengths.data(), src + sizeof(value_offset),
                 run_count * sizeof(u16));
-
+    //---------------------------------------------------------------------------
     // Decode RLE using AVX2
     auto write_ptr = dest;
     for (u16 i = 0; i < run_count; ++i) {
@@ -290,11 +300,11 @@ private:
         static_assert(false,
                       "Unsupported DataType for TinyBlocks RLE decompression.");
       }
-
       while (write_ptr < end_ptr) {
         *write_ptr++ = value;
       }
     }
+    //---------------------------------------------------------------------------
   }
   //---------------------------------------------------------------------------
   void decompressMonoInc(DataType *dest, const Slot &slot) {
