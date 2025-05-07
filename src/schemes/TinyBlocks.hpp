@@ -154,8 +154,16 @@ private:
   u32 compressRLE(const DataType *src, u8 *dest, const DataType reference,
                   const u8 pack_size) {
     /// Layout:
-    /// | 1 | ... | ... |
-    /// value_offset | lengths[] | pack_size | values[]
+    /// Data         | Size (Bytes)
+    /// ---------------------------
+    /// value_offset | 2
+    /// lengths[]    | 2 * size
+    ///
+    /// pack_size    | 1
+    /// u32_count    | 1           -- only required for adaptive bitpacking
+    /// .... padding to 4 Byte ... -- only required for adaptive bitpacking
+    /// values[]     | x
+    ///
     //---------------------------------------------------------------------------
     u16 value_offset;
     vector<u16> lengths;
@@ -189,15 +197,24 @@ private:
     *write_ptr = pack_size;
     write_ptr += sizeof(pack_size);
     //---------------------------------------------------------------------------
+    // Write u32_count
+    // u8 &u32_count = *write_ptr;
+    // u32_count = 0;
+    // write_ptr += sizeof(u32_count);
+    //---------------------------------------------------------------------------
     // Compress & write values
     // Pad write_ptr, as values need to be 4-Byte aligned for BitPacking
-    u64 padding = 0;
-    write_ptr = reinterpret_cast<u8 *>(utils::align<u8>(write_ptr, 4, padding));
-    u32 value_size = bitpacking::pack<DataType>(values.data(), values.size(),
-                                                write_ptr, pack_size);
-    value_size += padding;
+    // u64 padding = 0;
+    // write_ptr = reinterpret_cast<u8 *>(utils::align<u8>(write_ptr, 4,
+    // padding));
+    u32 values_size = bitpacking::pack<DataType>(values.data(), values.size(),
+                                                 write_ptr, pack_size);
+    // Include meta data
+    // values_size += padding;
+    // values_size += sizeof(u32_count);
+    values_size += sizeof(pack_size);
     //---------------------------------------------------------------------------
-    return value_offset + sizeof(pack_size) + value_size;
+    return value_offset + values_size;
   }
 
   //---------------------------------------------------------------------------
@@ -253,21 +270,33 @@ private:
   void decompressRLE(DataType *dest, const u8 *src, const Slot &slot) {
     //---------------------------------------------------------------------------
     /// Layout:
-    /// | 1 | ... | ... |
-    /// value_offset | lengths[] | pack_size | values[]
+    /// Data         | Size (Bytes)
+    /// ---------------------------
+    /// value_offset | 2
+    /// lengths[]    | 2 * size
+    ///
+    /// pack_size    | 1
+    /// u32_count    | 1            -- only required for adaptive bitpacking
+    /// .... padding to 4 Byte ...  -- only required for adaptive bitpacking
+    /// values[]     | x
+    ///
     //---------------------------------------------------------------------------
-    // Decompress meta data
+    // Decode value offset
     auto value_offset = utils::unalignedLoad<u16>(src);
-    u16 run_count = (value_offset - sizeof(value_offset)) / sizeof(u16);
+    //---------------------------------------------------------------------------
+    // Decode pack_size and u32_count
     auto pack_size = *reinterpret_cast<const u8 *>(src + value_offset);
-    ++value_offset;
+    // auto u32_count =
+    //     *reinterpret_cast<const u8 *>(src + value_offset +
+    //     sizeof(pack_size));
     //---------------------------------------------------------------------------
     // Decompress lengths & values
-    auto read_ptr = src + value_offset;
+    u16 run_count = (value_offset - sizeof(value_offset)) / sizeof(u16);
     // Pad read_ptr, as values are 4-Byte aligned for BitPacking
-    u64 padding = 0;
-    read_ptr = reinterpret_cast<const u8 *>(
-        utils::align<const u8>(read_ptr, 4, padding));
+    auto read_ptr = src + value_offset + sizeof(pack_size);
+    // u64 padding = 0;
+    // read_ptr = reinterpret_cast<const u8 *>(
+    //     utils::align<const u8>(read_ptr, 4, padding));
     // Unpack
     vector<DataType> values(run_count * 2);
     bitpacking::unpack<DataType>(values.data(), run_count, read_ptr, pack_size);
