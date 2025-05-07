@@ -157,7 +157,7 @@ private:
     /// Data         | Size (Bytes)
     /// ---------------------------
     /// value_offset | 2
-    /// lengths[]    | 2 * size
+    /// lengths[]    | 1 * size
     ///
     /// pack_size    | 1
     /// u32_count    | 1           -- only required for adaptive bitpacking
@@ -165,15 +165,23 @@ private:
     /// values[]     | x
     ///
     //---------------------------------------------------------------------------
+    using LengthType = u8;
+    //---------------------------------------------------------------------------
     u16 value_offset;
-    vector<u16> lengths;
     vector<DataType> values;
+    vector<LengthType> lengths;
+    LengthType max_length = 255;
     //---------------------------------------------------------------------------
     // Encode data
     DataType cur = src[0];
     u16 run_length = 1;
     for (u32 i = 1; i < kBlockSize; ++i) {
       if (src[i] == cur) {
+        if (run_length == max_length) {
+          lengths.push_back(run_length);
+          values.push_back(cur - reference);
+          run_length = 0;
+        }
         ++run_length;
       } else {
         lengths.push_back(run_length);
@@ -184,13 +192,13 @@ private:
     }
     lengths.push_back(run_length);
     values.push_back(cur - reference);
-    value_offset = sizeof(value_offset) + lengths.size() * sizeof(u16);
+    value_offset = sizeof(value_offset) + lengths.size() * sizeof(LengthType);
     //---------------------------------------------------------------------------
     // Write lengths
     auto write_ptr = dest;
     std::memcpy(write_ptr, &value_offset, sizeof(value_offset));
     std::memcpy(write_ptr + sizeof(value_offset), lengths.data(),
-                lengths.size() * sizeof(u16));
+                lengths.size() * sizeof(LengthType));
     write_ptr += value_offset;
     //---------------------------------------------------------------------------
     // Write pack size
@@ -273,13 +281,15 @@ private:
     /// Data         | Size (Bytes)
     /// ---------------------------
     /// value_offset | 2
-    /// lengths[]    | 2 * size
+    /// lengths[]    | 1 * size
     ///
     /// pack_size    | 1
     /// u32_count    | 1            -- only required for adaptive bitpacking
     /// .... padding to 4 Byte ...  -- only required for adaptive bitpacking
     /// values[]     | x
     ///
+    //---------------------------------------------------------------------------
+    using LengthType = u8;
     //---------------------------------------------------------------------------
     // Decode value offset
     auto value_offset = utils::unalignedLoad<u16>(src);
@@ -291,7 +301,7 @@ private:
     //     sizeof(pack_size));
     //---------------------------------------------------------------------------
     // Decompress lengths & values
-    u16 run_count = (value_offset - sizeof(value_offset)) / sizeof(u16);
+    u16 run_count = (value_offset - sizeof(value_offset)) / sizeof(LengthType);
     // Pad read_ptr, as values are 4-Byte aligned for BitPacking
     auto read_ptr = src + value_offset + sizeof(pack_size);
     // u64 padding = 0;
@@ -301,9 +311,9 @@ private:
     vector<DataType> values(run_count * 2);
     bitpacking::unpack<DataType>(values.data(), run_count, read_ptr, pack_size);
     // Initialize lengths
-    vector<u16> lengths(run_count);
+    vector<LengthType> lengths(run_count);
     std::memcpy(lengths.data(), src + sizeof(value_offset),
-                run_count * sizeof(u16));
+                run_count * sizeof(LengthType));
     //---------------------------------------------------------------------------
     // Decode RLE using AVX2
     auto write_ptr = dest;
