@@ -23,6 +23,8 @@ public:
   T step_size;
   /// The number of values in the input.
   u32 count;
+  /// Whether there are only positive deltas
+  bool delta;
   /// The number of bits required to store the maximum delta between two
   /// consecutive values.
   u8 delta_bits;
@@ -39,6 +41,7 @@ public:
   static Statistics generateFrom(T *src, u32 count) {
     auto stats = Statistics(src, count);
 
+    stats.delta = true;
     stats.min = stats.max = src[0];
     T step = src[1] - src[0];
     T max_diff = step;
@@ -54,6 +57,8 @@ public:
           max_diff = src[i] - src[i - 1];
         step = 0;
       }
+      if (i > 0 && src[i] - src[i - 1] < 0)
+        stats.delta = false;
     }
 
     stats.diff_bits = utils::requiredBits<T>(stats.max - stats.min);

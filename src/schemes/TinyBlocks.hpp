@@ -4,6 +4,7 @@
 //---------------------------------------------------------------------------
 #include "bitpacking/BitPacking.hpp"
 #include "schemes/CompressionScheme.hpp"
+#include "simd/delta.hpp"
 //---------------------------------------------------------------------------
 namespace compression {
 //---------------------------------------------------------------------------
@@ -24,7 +25,8 @@ public:
     ONE_VALUE = 0,
     BIT_PACKING = 1,
     RLE = 65,
-    MONOTONICALLY_INCREASING = 66
+    DELTA = 66,
+    MONOTONICALLY_INCREASING = 67
   };
   //---------------------------------------------------------------------------
   CompressionDetails compress(const DataType *src, const u32 size, u8 *dest,
@@ -97,22 +99,28 @@ private:
     if (stats.max == stats.min) {
       // When min and max are the same, we can use OneValue encoding.
       return Opcode::ONE_VALUE;
-    } else if (stats.step_size > 0 && stats.step_size < 32) {
-      // When the step size is smaller than 32, we can use MonoInc encoding.
-      // We have 4 bit to represent the step size, thus smaller than 32.
+    } else if (stats.step_size > 0 && stats.step_size < 16) {
+      // When the step size is smaller than 16, we can use MonoInc encoding.
+      // We have 4 bit to represent the step size, thus smaller than 16.
       return Opcode::MONOTONICALLY_INCREASING;
     }
 
-    // Choose the scheme that compresses better
-    u32 bp_compressed_size =
-        std::ceil(static_cast<double>(stats.diff_bits * kBlockSize) / 8);
-
+    // Choose the compression scheme that yields the smallest size
     auto dest = std::make_unique<u8[]>(kBlockSize * sizeof(DataType) * 2);
-    u32 rle_compressed_size =
+
+    const u32 bp_size =
+        std::ceil(static_cast<double>(stats.diff_bits * kBlockSize) / 8);
+    const u32 rle_size =
         compressRLE(src, dest.get(), stats.min, stats.diff_bits);
 
-    return bp_compressed_size <= rle_compressed_size ? Opcode::BIT_PACKING
-                                                     : Opcode::RLE;
+    if (stats.delta) {
+      const u32 delta_size = compressDelta(src, dest.get(), stats.min);
+      if (delta_size < std::min(rle_size, bp_size)) {
+        return Opcode::DELTA;
+      }
+    }
+
+    return (bp_size <= rle_size) ? Opcode::BIT_PACKING : Opcode::RLE;
   }
   //---------------------------------------------------------------------------
   u16 compressDispatch(const DataType *src, u8 *dest,
@@ -129,8 +137,11 @@ private:
     case Opcode::RLE:
       slot.opcode = static_cast<u8>(opcode);
       return compressRLE(src, dest, stats.min, stats.diff_bits);
+    case Opcode::DELTA:
+      slot.opcode = static_cast<u8>(opcode);
+      return compressDelta(src, dest, slot.reference);
     case Opcode::MONOTONICALLY_INCREASING:
-      slot.opcode = static_cast<u8>(opcode) | (stats.step_size << 1);
+      slot.opcode = static_cast<u8>(opcode) | (stats.step_size << 2);
       return 0;
     default:
       throw std::runtime_error(
@@ -242,13 +253,44 @@ private:
     //---------------------------------------------------------------------------
     return value_offset + values_size;
   }
+  //---------------------------------------------------------------------------
+  u32 compressDelta(const DataType *src, u8 *dest, const DataType reference) {
+    // FOR
+    auto buffer = std::make_unique<DataType[]>(kBlockSize);
+    for (u32 i = 0; i < kBlockSize; ++i) {
+      buffer[i] = src[i] - reference;
+    }
+    //---------------------------------------------------------------------------
+    // Delta
+    simd::delta::compress<DataType, kBlockSize>(buffer.get());
+    //---------------------------------------------------------------------------
+    // Bitpacking
+    //---------------------------------------------------------------------------
+    // Prepare
+    DataType min = 0;
+    DataType max = 0;
+    for (u16 i = 0; i < kBlockSize; ++i) {
+      if (buffer[i] < min)
+        min = buffer[i];
+      if (buffer[i] > max)
+        max = buffer[i];
+    }
+    u8 pack_size = utils::requiredBits(max - min);
+    *dest++ = pack_size;
+    //---------------------------------------------------------------------------
+    // Compress
+    u32 compressed_size =
+        bitpacking::pack<DataType, kBlockSize>(buffer.get(), dest, pack_size);
+    //---------------------------------------------------------------------------
+    return sizeof(pack_size) + compressed_size;
+  }
 
   //---------------------------------------------------------------------------
   // DECOMPRESSION
   //---------------------------------------------------------------------------
   Opcode decodeOpcode(const u8 opcode) {
     // Handle special cases
-    if (opcode >= 66)
+    if (opcode >= 67)
       return Opcode::MONOTONICALLY_INCREASING;
     if (opcode > 0 && opcode < 65)
       return Opcode::BIT_PACKING;
@@ -267,6 +309,9 @@ private:
       break;
     case Opcode::RLE:
       decompressRLE(dest, src, slot);
+      break;
+    case Opcode::DELTA:
+      decompressDelta(dest, src, slot);
       break;
     case Opcode::MONOTONICALLY_INCREASING:
       decompressMonoInc(dest, slot);
@@ -366,9 +411,24 @@ private:
     //---------------------------------------------------------------------------
   }
   //---------------------------------------------------------------------------
+  void decompressDelta(DataType *dest, const u8 *src, const Slot &slot) {
+    // Bitpacking
+    u8 pack_size = *src++;
+    bitpacking::unpack<DataType, kBlockSize>(dest, src, pack_size);
+    //---------------------------------------------------------------------------
+    // Delta
+    simd::delta::decompress<DataType, kBlockSize>(dest);
+    //---------------------------------------------------------------------------
+    // FOR
+    for (u32 i = 0; i < kBlockSize; ++i) {
+      dest[i] += slot.reference;
+    }
+  }
+  //---------------------------------------------------------------------------
   void decompressMonoInc(DataType *dest, const Slot &slot) {
-    // Reveal all but the 0-bit and shift to origin -> reveals 4 bit step size.
-    u8 step_size = (slot.opcode & (0x40 - 2)) >> 1;
+    // Reveal all but the 0- and 1-bit and shift to origin -> reveals 4 bit
+    // step size.
+    u8 step_size = (slot.opcode & (0x40 - 4)) >> 2;
 
     for (u16 i = 0; i < kBlockSize; ++i) {
       dest[i] = slot.reference + i * step_size;
