@@ -12,6 +12,7 @@ template <typename DataType, const u16 kBlockSize>
 class TinyBlocks : public CompressionScheme<DataType> {
 public:
   //---------------------------------------------------------------------------
+  /// The slot stored in the header per block.
   struct __attribute__((packed)) Slot {
     /// The reference of the corresponding frame.
     DataType reference;
@@ -21,7 +22,8 @@ public:
     u8 opcode;
   };
   //---------------------------------------------------------------------------
-  enum class Opcode : u8 {
+  /// The scheme used for compression within a block.
+  enum class Scheme : u8 {
     ONE_VALUE = 0,
     BIT_PACKING = 1,
     RLE = 65,
@@ -29,37 +31,73 @@ public:
     MONOTONICALLY_INCREASING = 67
   };
   //---------------------------------------------------------------------------
+  /// The opcode stored in the header slot.
+  struct Opcode {
+    //---------------------------------------------------------------------------
+    // The compression scheme.
+    Scheme scheme;
+    // Additional meta data required for the scheme.
+    u8 payload;
+    //---------------------------------------------------------------------------
+    // The serialization format of the opcode.
+    void serialize(u8 *adr) {
+      switch (scheme) {
+      case Scheme::ONE_VALUE:
+        *adr = static_cast<u8>(scheme);
+        break;
+      case Scheme::BIT_PACKING:
+        *adr = payload;
+        break;
+      case Scheme::RLE:
+        *adr = static_cast<u8>(scheme);
+        break;
+      case Scheme::DELTA:
+        *adr = static_cast<u8>(scheme);
+        break;
+      case Scheme::MONOTONICALLY_INCREASING:
+        *adr = static_cast<u8>(scheme) | (payload << 2);
+        break;
+      default:
+        throw std::runtime_error("Provided scheme is not supported.");
+      }
+    }
+    //---------------------------------------------------------------------------
+    static Opcode deserialize(const u8 *from) {
+      if (*from >= 67)
+        return {Scheme::MONOTONICALLY_INCREASING,
+                static_cast<u8>((*from & (0x40 - 4)) >> 2)};
+      if (*from > 0 && *from < 65)
+        return {Scheme::BIT_PACKING, *from};
+
+      return {static_cast<Scheme>(*from), 0};
+    }
+  };
+
+  //---------------------------------------------------------------------------
+  // COMPRESSION
+  //---------------------------------------------------------------------------
   CompressionDetails compress(const DataType *src, const u32 size, u8 *dest,
                               const Statistics<DataType> *stats) override {
-    const u32 block_count = size / kBlockSize;
-
-    // Layout: HEADER [kBlockSize] | COMPRESSED DATA
-    u8 *header_ptr = dest;
-    u8 *data_ptr = dest;
-
-    u32 data_offset = block_count * sizeof(Slot);
-    for (u32 block_i = 0; block_i < block_count; ++block_i) {
-      data_ptr = dest + data_offset;
-
-      // Update header
-      auto &slot = *reinterpret_cast<Slot *>(header_ptr);
-      slot.reference = stats[block_i].min;
-      slot.offset = data_offset;
-
-      // Compress block
-      Opcode opcode = chooseOpcode(src, stats[block_i]);
-      data_offset +=
-          compressDispatch(src, data_ptr, stats[block_i], slot, opcode);
-
-      // Update iterators
-      src += kBlockSize;
-      header_ptr += sizeof(Slot);
-    }
-
-    u64 header_size = header_ptr - dest;
-    u64 payload_size = data_offset - header_size;
-    return {header_size, payload_size};
+    return compressImpl(
+        src, size, dest, stats,
+        [this](const DataType *src, const Statistics<DataType> &stat) {
+          return chooseOpcode(src, stat);
+        });
   }
+  //---------------------------------------------------------------------------
+  // Compress given a specific opcode.
+  CompressionDetails compress(const DataType *src, const u32 size, u8 *dest,
+                              const Statistics<DataType> *stats,
+                              const Opcode opcode) {
+    return compressImpl(
+        src, size, dest, stats,
+        [opcode](const DataType *, const Statistics<DataType> &) {
+          return opcode;
+        });
+  }
+
+  //---------------------------------------------------------------------------
+  // DECOMPRESSION
   //---------------------------------------------------------------------------
   void decompress(DataType *dest, const u32 size, const u8 *src) override {
     decompress(dest, size, src, 0);
@@ -80,14 +118,15 @@ public:
       data_ptr = src + slot.offset;
 
       // Decompress payload
-      Opcode opcode = decodeOpcode(slot.opcode);
-      decompressDispatch(dest, data_ptr, slot, opcode);
+      decompressDispatch(dest, data_ptr, slot,
+                         Opcode::deserialize(&slot.opcode));
 
       // Update iterators
       dest += kBlockSize;
       header_ptr += sizeof(Slot);
     }
   }
+
   //---------------------------------------------------------------------------
   bool isPartitioningScheme() override { return true; }
 
@@ -95,14 +134,51 @@ private:
   //---------------------------------------------------------------------------
   // COMPRESSION
   //---------------------------------------------------------------------------
+  CompressionDetails compressImpl(const DataType *src, const u32 size, u8 *dest,
+                                  const Statistics<DataType> *stats,
+                                  auto &&chooseOpcodeFn) {
+    const u32 block_count = size / kBlockSize;
+
+    // Layout: HEADER [kBlockSize] | COMPRESSED DATA
+    u8 *header_ptr = dest;
+    u8 *data_ptr = dest;
+
+    u32 data_offset = block_count * sizeof(Slot);
+    for (u32 block_i = 0; block_i < block_count; ++block_i) {
+      data_ptr = dest + data_offset;
+
+      // Update header
+      auto &slot = *reinterpret_cast<Slot *>(header_ptr);
+      slot.reference = stats[block_i].min;
+      slot.offset = data_offset;
+
+      // Choose compression scheme
+      Opcode opcode = chooseOpcodeFn(src, stats[block_i]);
+      opcode.serialize(&slot.opcode);
+
+      // Compress
+      data_offset +=
+          compressDispatch(src, data_ptr, stats[block_i], slot, opcode.scheme);
+
+      // Update iterators
+      src += kBlockSize;
+      header_ptr += sizeof(Slot);
+    }
+
+    u64 header_size = header_ptr - dest;
+    u64 payload_size = data_offset - header_size;
+    return {header_size, payload_size};
+  }
+  //---------------------------------------------------------------------------
   Opcode chooseOpcode(const DataType *src, const Statistics<DataType> &stats) {
     if (stats.max == stats.min) {
       // When min and max are the same, we can use OneValue encoding.
-      return Opcode::ONE_VALUE;
+      return {Scheme::ONE_VALUE, 0};
     } else if (stats.step_size > 0 && stats.step_size < 16) {
       // When the step size is smaller than 16, we can use MonoInc encoding.
       // We have 4 bit to represent the step size, thus smaller than 16.
-      return Opcode::MONOTONICALLY_INCREASING;
+      return {Scheme::MONOTONICALLY_INCREASING,
+              static_cast<u8>(stats.step_size)};
     }
 
     // Choose the compression scheme that yields the smallest size
@@ -116,40 +192,35 @@ private:
     if (stats.delta) {
       const u32 delta_size = compressDelta(src, dest.get(), stats.min);
       if (delta_size < std::min(rle_size, bp_size)) {
-        return Opcode::DELTA;
+        return {Scheme::DELTA, 0};
       }
     }
 
-    return (bp_size <= rle_size) ? Opcode::BIT_PACKING : Opcode::RLE;
+    return (bp_size <= rle_size) ? Opcode{Scheme::BIT_PACKING, stats.diff_bits}
+                                 : Opcode{Scheme::RLE, 0};
   }
   //---------------------------------------------------------------------------
   u16 compressDispatch(const DataType *src, u8 *dest,
                        const Statistics<DataType> &stats, Slot &slot,
-                       Opcode opcode) {
-    switch (opcode) {
-    case Opcode::ONE_VALUE:
-      slot.opcode = static_cast<u8>(opcode);
+                       Scheme scheme) {
+    switch (scheme) {
+    case Scheme::ONE_VALUE:
       return 0;
-    case Opcode::BIT_PACKING:
-      // Use the opcode byte to store the pack size for bitpacking.
-      slot.opcode = stats.diff_bits;
-      return compressImpl(src, dest, slot);
-    case Opcode::RLE:
-      slot.opcode = static_cast<u8>(opcode);
+    case Scheme::BIT_PACKING:
+      return compressBasic(src, dest, slot);
+    case Scheme::RLE:
       return compressRLE(src, dest, stats.min, stats.diff_bits);
-    case Opcode::DELTA:
-      slot.opcode = static_cast<u8>(opcode);
+    case Scheme::DELTA:
       return compressDelta(src, dest, slot.reference);
-    case Opcode::MONOTONICALLY_INCREASING:
-      slot.opcode = static_cast<u8>(opcode) | (stats.step_size << 2);
+    case Scheme::MONOTONICALLY_INCREASING:
       return 0;
     default:
       throw std::runtime_error(
-          "Compression failed: Provided opcode does not exist.");
+          "Compression failed: Provided scheme does not exist.");
     }
   }
   //---------------------------------------------------------------------------
-  u32 compressImpl(const DataType *src, u8 *dest, const Slot &slot) {
+  u32 compressBasic(const DataType *src, u8 *dest, const Slot &slot) {
     // Normalize
     vector<DataType> normalized(kBlockSize);
     for (u32 i = 0; i < kBlockSize; ++i) {
@@ -288,33 +359,23 @@ private:
   //---------------------------------------------------------------------------
   // DECOMPRESSION
   //---------------------------------------------------------------------------
-  Opcode decodeOpcode(const u8 opcode) {
-    // Handle special cases
-    if (opcode >= 67)
-      return Opcode::MONOTONICALLY_INCREASING;
-    if (opcode > 0 && opcode < 65)
-      return Opcode::BIT_PACKING;
-
-    return static_cast<Opcode>(opcode);
-  }
-  //---------------------------------------------------------------------------
   void decompressDispatch(DataType *dest, const u8 *src, const Slot &slot,
                           Opcode opcode) {
-    switch (opcode) {
-    case Opcode::ONE_VALUE:
+    switch (opcode.scheme) {
+    case Scheme::ONE_VALUE:
       decompressBroadcast(dest, slot.reference);
       break;
-    case Opcode::BIT_PACKING:
-      decompressImpl(dest, src, slot);
+    case Scheme::BIT_PACKING:
+      decompressBasic(dest, src, slot.reference, opcode.payload);
       break;
-    case Opcode::RLE:
-      decompressRLE(dest, src, slot);
+    case Scheme::RLE:
+      decompressRLE(dest, src, slot.reference);
       break;
-    case Opcode::DELTA:
-      decompressDelta(dest, src, slot);
+    case Scheme::DELTA:
+      decompressDelta(dest, src, slot.reference);
       break;
-    case Opcode::MONOTONICALLY_INCREASING:
-      decompressMonoInc(dest, slot);
+    case Scheme::MONOTONICALLY_INCREASING:
+      decompressMonoInc(dest, slot.reference, opcode.payload);
       break;
     default:
       throw std::runtime_error(
@@ -322,23 +383,24 @@ private:
     }
   }
   //---------------------------------------------------------------------------
-  void decompressBroadcast(DataType *dest, DataType value) {
+  void decompressBroadcast(DataType *dest, const DataType value) {
     for (u16 i = 0; i < kBlockSize; ++i) {
       dest[i] = value;
     }
   }
   //---------------------------------------------------------------------------
-  void decompressImpl(DataType *dest, const u8 *src, const Slot &slot) {
+  void decompressBasic(DataType *dest, const u8 *src, const DataType reference,
+                       const u8 pack_size) {
     // Decompress
-    bitpacking::unpack<DataType, kBlockSize>(dest, src, slot.opcode);
+    bitpacking::unpack<DataType, kBlockSize>(dest, src, pack_size);
 
     // Denormalize
     for (u32 i = 0; i < kBlockSize; ++i) {
-      dest[i] += slot.reference;
+      dest[i] += reference;
     }
   }
   //---------------------------------------------------------------------------
-  void decompressRLE(DataType *dest, const u8 *src, const Slot &slot) {
+  void decompressRLE(DataType *dest, const u8 *src, const DataType reference) {
     //---------------------------------------------------------------------------
     /// Layout:
     /// Data         | Size (Bytes)
@@ -383,7 +445,7 @@ private:
     for (u16 i = 0; i < run_count; ++i) {
       LengthType length = (lengths[i / 2] >> (4 - (shift % 8))) & 0x0F;
       auto end_ptr = write_ptr + length;
-      DataType value = values[i] + slot.reference;
+      DataType value = values[i] + reference;
 
       if constexpr (std::is_same_v<DataType, INTEGER>) {
         __m256i broadcast = _mm256_set1_epi32(value);
@@ -411,7 +473,8 @@ private:
     //---------------------------------------------------------------------------
   }
   //---------------------------------------------------------------------------
-  void decompressDelta(DataType *dest, const u8 *src, const Slot &slot) {
+  void decompressDelta(DataType *dest, const u8 *src,
+                       const DataType reference) {
     // Bitpacking
     u8 pack_size = *src++;
     bitpacking::unpack<DataType, kBlockSize>(dest, src, pack_size);
@@ -421,17 +484,14 @@ private:
     //---------------------------------------------------------------------------
     // FOR
     for (u32 i = 0; i < kBlockSize; ++i) {
-      dest[i] += slot.reference;
+      dest[i] += reference;
     }
   }
   //---------------------------------------------------------------------------
-  void decompressMonoInc(DataType *dest, const Slot &slot) {
-    // Reveal all but the 0- and 1-bit and shift to origin -> reveals 4 bit
-    // step size.
-    u8 step_size = (slot.opcode & (0x40 - 4)) >> 2;
-
+  void decompressMonoInc(DataType *dest, const DataType reference,
+                         const u8 step_size) {
     for (u16 i = 0; i < kBlockSize; ++i) {
-      dest[i] = slot.reference + i * step_size;
+      dest[i] = reference + i * step_size;
     }
   }
   //---------------------------------------------------------------------------
