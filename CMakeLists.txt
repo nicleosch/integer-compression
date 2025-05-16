@@ -48,6 +48,7 @@ include_directories(
 
 # COMPONENTS
 # ---------------------------------------------------------------------------
+include("${CMAKE_SOURCE_DIR}/bench/local.cmake")
 include("${CMAKE_SOURCE_DIR}/src/local.cmake")
 include("${CMAKE_SOURCE_DIR}/test/local.cmake")
 
@@ -55,6 +56,11 @@ include("${CMAKE_SOURCE_DIR}/test/local.cmake")
 # ---------------------------------------------------------------------------
 add_executable(ic main.cpp)
 target_link_libraries(ic ${PROJECT_NAME} SIMDcomp lz4 btrblocks zstd snappy)
+
+# BENCHMARKS
+# ---------------------------------------------------------------------------
+add_executable(ic_bench bench/Benchmarks.cpp ${BENCH_SRC})
+target_link_libraries(ic_bench ${PROJECT_NAME} SIMDcomp lz4 btrblocks zstd snappy)
 
 # TEST
 # ---------------------------------------------------------------------------
