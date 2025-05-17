@@ -61,37 +61,52 @@ int compressionLogic(bootstrap::CLIOptions &cli) {
   utils::Timer timer;
   // BtrBlocks is treated special
   if (cli.scheme == "btrblocks") {
+    // init
     btrblocks::BtrBlocksConfig::configure(
         [&](btrblocks::BtrBlocksConfig &config) {
           auto max_depth = cli.depth;
           config.integers.max_cascade_depth = max_depth;
           config.integers.schemes.enableAll();
         });
-
     btrblocks::Vector<INTEGER> vec{column.size()};
     for (auto i = 0; i < vec.count; ++i) {
       vec[i] = column.data()[i];
     }
-
+    std::unordered_map<u8, u64> scheme_occurences{};
+    //---------------------------------------------------------------------------
     // compress
-    btrblocks::Relation to_compress;
-    to_compress.addColumn({"ints", std::move(vec)});
-    btrblocks::Range range(0, to_compress.tuple_count);
-    btrblocks::Chunk input = to_compress.getChunk({range}, 0);
-    btrblocks::Datablock compressor(to_compress);
+    btrblocks::Relation relation;
+    relation.addColumn({"ints", std::move(vec)});
+    btrblocks::Datablock datablock(relation);
 
-    auto btr_stats = compressor.compress(input, compress_out);
-    stats.compressed_size = btr_stats.total_data_size;
-    stats.uncompressed_size = uncompressed_size;
-    stats.details = {0, static_cast<u32>(btr_stats.total_data_size)};
+    vector<btrblocks::Range> ranges =
+        relation.getRanges(btrblocks::SplitStrategy::SEQUENTIAL, 9999999);
+    vector<btrblocks::BytesArray> compressed_chunks;
+    compressed_chunks.resize(ranges.size());
+
+    for (u32 chunk_i = 0; chunk_i < ranges.size(); chunk_i++) {
+      auto chunk = relation.getChunk(ranges, chunk_i);
+      auto db_meta = datablock.compress(chunk, compressed_chunks[chunk_i]);
+
+      stats.uncompressed_size += chunk.size_bytes();
+      stats.compressed_size += db_meta.total_data_size;
+
+      auto &scheme = db_meta.used_compression_schemes[0];
+
+      scheme_occurences[scheme] += 1;
+    }
+
     stats.compression_rate =
         static_cast<double>(stats.uncompressed_size) / stats.compressed_size;
-
+    stats.details = {0, static_cast<u32>(stats.compressed_size)};
+    //---------------------------------------------------------------------------
     // decompress
     timer.start();
-    btrblocks::Chunk decompressed = compressor.decompress(compress_out);
+    for (u32 chunk_i = 0; chunk_i < ranges.size(); chunk_i++) {
+      btrblocks::Chunk decompressed =
+          datablock.decompress(compressed_chunks[chunk_i]);
+    }
     timer.end();
-
   } else {
     if (cli.scheme == "uncompressed") {
       compressor->setScheme(CompressionSchemeType::kUncompressed);
