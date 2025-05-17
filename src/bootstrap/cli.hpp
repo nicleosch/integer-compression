@@ -25,6 +25,8 @@ struct CLIOptions {
   string scheme;
   /// Size of a small integer block.
   u16 block_size;
+  /// Recursion depth of btrblocks.
+  u8 depth;
   //===--------------------------------------------------------------------===//
   // Compression Configuration - Phase 2 (Optional)
   //===--------------------------------------------------------------------===//

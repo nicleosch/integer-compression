@@ -63,7 +63,7 @@ int compressionLogic(bootstrap::CLIOptions &cli) {
   if (cli.scheme == "btrblocks") {
     btrblocks::BtrBlocksConfig::configure(
         [&](btrblocks::BtrBlocksConfig &config) {
-          auto max_depth = 3;
+          auto max_depth = cli.depth;
           config.integers.max_cascade_depth = max_depth;
           config.integers.schemes.enableAll();
         });

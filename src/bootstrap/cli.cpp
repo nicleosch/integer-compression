@@ -9,7 +9,8 @@ namespace bootstrap {
 CLIOptions parseCommandLine(int argc, char **argv) {
   string usage = "Usage: ./ic --data <path> --column <index> --type <type> "
                  "--delimiter <delimiter>"
-                 "--scheme <scheme> --size <block_size> --p2scheme <scheme> "
+                 "--scheme <scheme> --size <block_size> --depth <depth> "
+                 "--p2scheme <scheme> "
                  "[--p2header] [--p2payload] [--blocks] [--morsel] [--logging]";
   CLIOptions opts;
 
@@ -19,7 +20,7 @@ CLIOptions parseCommandLine(int argc, char **argv) {
     if (arg == "--data" && i + 1 < argc) {
       opts.data = argv[++i];
     } else if (arg == "--column" && i + 1 < argc) {
-      opts.column = static_cast<uint16_t>(std::atoi(argv[++i]));
+      opts.column = static_cast<u16>(std::atoi(argv[++i]));
     } else if (arg == "--type" && i + 1 < argc) {
       opts.type = argv[++i];
       if (opts.type != "int" && opts.type != "bigint") {
@@ -31,7 +32,9 @@ CLIOptions parseCommandLine(int argc, char **argv) {
     } else if (arg == "--scheme" && i + 1 < argc) {
       opts.scheme = argv[++i];
     } else if (arg == "--size" && i + 1 < argc) {
-      opts.block_size = static_cast<uint16_t>(std::atoi(argv[++i]));
+      opts.block_size = static_cast<u16>(std::atoi(argv[++i]));
+    } else if (arg == "--depth" && i + 1 < argc) {
+      opts.depth = static_cast<u8>(std::atoi(argv[++i]));
     } else if (arg == "--p2scheme" && i + 1 < argc) {
       opts.p2_scheme = argv[++i];
     } else if (arg == "--p2header") {
