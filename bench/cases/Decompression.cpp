@@ -1,3 +1,4 @@
+#include <fstream>
 #include <random>
 //---------------------------------------------------------------------------
 #include "common/PerfEvent.hpp"
@@ -8,14 +9,20 @@ using namespace compression;
 //---------------------------------------------------------------------------
 namespace benchmarks {
 //---------------------------------------------------------------------------
-static void cycleBenchmark() {
+static const u32 tuple_count = 1024;
+static const u32 iterations = 1024 * 1024;
+static std::ofstream null_stream("/dev/null");
+//---------------------------------------------------------------------------
+template <typename T, u16 kTinyBlocksSize> static void bpBenchmark() {
   //---------------------------------------------------------------------------
-  u16 iterations = 1024;
-  const u16 kTinyBlocksSize = 512;
-  using TinyBlocks = TinyBlocks<INTEGER, kTinyBlocksSize>;
+  using TinyBlocks = TinyBlocks<T, kTinyBlocksSize>;
+  //---------------------------------------------------------------------------
+  // The file to write to.
+  std::ofstream bp_file("bp_" + std::to_string(sizeof(T) * 8) + "bit_" +
+                        std::to_string(kTinyBlocksSize) + ".csv");
   //---------------------------------------------------------------------------
   // Create a column of 1024 integers and fill randomly with 0s and 1s
-  vector<INTEGER> column(1024);
+  vector<T> column(1024);
   std::random_device rd;
   std::mt19937 gen(rd());
   std::bernoulli_distribution dist(0.5);
@@ -24,45 +31,63 @@ static void cycleBenchmark() {
   }
   //---------------------------------------------------------------------------
   // Buffer to compress into
-  auto cbuffer = std::make_unique<u8[]>(column.size() * sizeof(INTEGER) * 2);
+  auto cbuffer = std::make_unique<u8[]>(column.size() * sizeof(T) * 2);
   //---------------------------------------------------------------------------
   // Calculate statistics on the data used for compression.
-  vector<Statistics<INTEGER>> stats;
+  vector<Statistics<T>> stats;
   auto block_count = column.size() / kTinyBlocksSize;
   for (size_t i = 0; i < block_count; ++i) {
-    stats.push_back(Statistics<INTEGER>::generateFrom(
+    stats.push_back(Statistics<T>::generateFrom(
         column.data() + i * kTinyBlocksSize, kTinyBlocksSize));
   }
   //---------------------------------------------------------------------------
   TinyBlocks tb;
-  for (u8 pack_size = 1; pack_size <= 32; ++pack_size) {
+  const u8 bits = sizeof(T) * 8;
+  for (u8 pack_size = bits - 31; pack_size <= bits; ++pack_size) {
     // Compress
-    const TinyBlocks::Opcode opcode{TinyBlocks::Scheme::BIT_PACKING, pack_size};
+    const typename TinyBlocks::Opcode opcode{TinyBlocks::Scheme::BIT_PACKING,
+                                             pack_size};
     tb.compress(column.data(), column.size(), cbuffer.get(), stats.data(),
                 opcode);
     //---------------------------------------------------------------------------
     // Register cpu counters
     PerfEvent perf_event;
+    if (pack_size == bits - 31) {
+      perf_event.printReport(bp_file, null_stream, 1);
+      bp_file << "Cycles/Tuple, Instructions/Tuple\n";
+    }
     perf_event.startCounters();
     //---------------------------------------------------------------------------
     // Decompress
-    for (u16 i = 0; i < iterations; ++i) {
+    for (u32 i = 0; i < iterations; ++i) {
       tb.decompress(column.data(), column.size(), cbuffer.get());
     }
     //---------------------------------------------------------------------------
-    // Output cpu counters
+    // Stop cpu counters
     perf_event.stopCounters();
-    std::cout << "Pack Size: " << static_cast<u32>(pack_size) << std::endl;
-    u32 tuples = column.size() * iterations;
-    u32 cycles = perf_event.getCounter("cycles");
-    std::cout << "Tuples: " << tuples << std::endl;
-    std::cout << "Cycles: " << cycles << std::endl;
-    std::cout << "Cycles/Tuple: " << static_cast<double>(cycles) / tuples
-              << std::endl;
-    perf_event.printReport(std::cout, 1);
-    std::cout << std::endl;
+    perf_event.printReport(null_stream, bp_file, 1);
+    bp_file << ", "
+            << static_cast<double>(perf_event.getCounter("cycles")) /
+                   (tuple_count * iterations)
+            << ", "
+            << static_cast<double>(perf_event.getCounter("instructions")) /
+                   (tuple_count * iterations)
+            << "\n";
   }
   //---------------------------------------------------------------------------
 }
+//---------------------------------------------------------------------------
+static void decompressionBenchmarks() {
+  //---------------------------------------------------------------------------
+  bpBenchmark<INTEGER, 64>();
+  bpBenchmark<INTEGER, 128>();
+  bpBenchmark<INTEGER, 256>();
+  bpBenchmark<INTEGER, 512>();
+  bpBenchmark<BIGINT, 64>();
+  bpBenchmark<BIGINT, 128>();
+  bpBenchmark<BIGINT, 256>();
+  bpBenchmark<BIGINT, 512>();
+  //---------------------------------------------------------------------------
+};
 //---------------------------------------------------------------------------
 } // namespace benchmarks
