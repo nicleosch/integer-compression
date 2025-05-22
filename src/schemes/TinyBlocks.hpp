@@ -8,69 +8,58 @@
 //---------------------------------------------------------------------------
 namespace compression {
 //---------------------------------------------------------------------------
+namespace tinyblocks {
+//---------------------------------------------------------------------------
+/// The scheme used for compression within a block.
+enum class Scheme : u8 {
+  MONOTONIC = 0,
+  FOR = 1,
+  RLE4 = 2,
+  RLE8 = 3,
+  DELTA = 4,
+  PFOR = 5,
+};
+//---------------------------------------------------------------------------
+/// The opcode stored in the header slot.
+struct Opcode {
+  /// The compression scheme.
+  Scheme scheme;
+  /// Additional meta data required for the scheme.
+  u8 payload;
+};
+//---------------------------------------------------------------------------
+/// An abstraction for a block's 3 byte offset.
+struct Offset {
+  /// The raw offset.
+  u8 value[3];
+  /// Get the offset as 32-bit integer.
+  u32 get() const {
+    return (static_cast<u32>(value[0]) << 16) |
+           (static_cast<u32>(value[1]) << 8) | value[2];
+  }
+  /// Set the offset to provided value.
+  void set(u32 v) {
+    value[0] = (v >> 16) & 0xFF;
+    value[1] = (v >> 8) & 0xFF;
+    value[2] = v & 0xFF;
+  }
+};
+//---------------------------------------------------------------------------
+/// The class wrapping tinyblocks compression.
 template <typename DataType, const u16 kBlockSize>
 class TinyBlocks : public CompressionScheme<DataType> {
 public:
+  //---------------------------------------------------------------------------
+  using RunLength = u8;
   //---------------------------------------------------------------------------
   /// The slot stored in the header per block.
   struct __attribute__((packed)) Slot {
     /// The reference of the corresponding frame.
     DataType reference;
     /// The offset into the data array.
-    u32 offset;
+    Offset offset;
     /// The number of bits used to store an integer in corresponding frame.
-    u8 opcode;
-  };
-  //---------------------------------------------------------------------------
-  /// The scheme used for compression within a block.
-  enum class Scheme : u8 {
-    ONE_VALUE = 0,
-    BIT_PACKING = 1,
-    RLE = 65,
-    DELTA = 66,
-    MONOTONICALLY_INCREASING = 67
-  };
-  //---------------------------------------------------------------------------
-  /// The opcode stored in the header slot.
-  struct Opcode {
-    //---------------------------------------------------------------------------
-    // The compression scheme.
-    Scheme scheme;
-    // Additional meta data required for the scheme.
-    u8 payload;
-    //---------------------------------------------------------------------------
-    // The serialization format of the opcode.
-    void serialize(u8 *adr) {
-      switch (scheme) {
-      case Scheme::ONE_VALUE:
-        *adr = static_cast<u8>(scheme);
-        break;
-      case Scheme::BIT_PACKING:
-        *adr = payload;
-        break;
-      case Scheme::RLE:
-        *adr = static_cast<u8>(scheme);
-        break;
-      case Scheme::DELTA:
-        *adr = static_cast<u8>(scheme);
-        break;
-      case Scheme::MONOTONICALLY_INCREASING:
-        *adr = static_cast<u8>(scheme) | (payload << 2);
-        break;
-      default:
-        throw std::runtime_error("Provided scheme is not supported.");
-      }
-    }
-    //---------------------------------------------------------------------------
-    static Opcode deserialize(const u8 *from) {
-      if (*from >= 67)
-        return {Scheme::MONOTONICALLY_INCREASING,
-                static_cast<u8>((*from & (0x40 - 4)) >> 2)};
-      if (*from > 0 && *from < 65)
-        return {Scheme::BIT_PACKING, *from};
-
-      return {static_cast<Scheme>(*from), 0};
-    }
+    Opcode opcode;
   };
 
   //---------------------------------------------------------------------------
@@ -81,18 +70,18 @@ public:
     return compressImpl(
         src, size, dest, stats,
         [this](const DataType *src, const Statistics<DataType> &stat) {
-          return chooseOpcode(src, stat);
+          return chooseScheme(src, stat);
         });
   }
   //---------------------------------------------------------------------------
   // Compress given a specific opcode.
   CompressionDetails compress(const DataType *src, const u32 size, u8 *dest,
                               const Statistics<DataType> *stats,
-                              const Opcode opcode) {
+                              const Scheme scheme) {
     return compressImpl(
         src, size, dest, stats,
-        [opcode](const DataType *, const Statistics<DataType> &) {
-          return opcode;
+        [scheme](const DataType *, const Statistics<DataType> &) {
+          return scheme;
         });
   }
 
@@ -103,24 +92,21 @@ public:
     decompress(dest, size, src, 0);
   }
   //---------------------------------------------------------------------------
+  // Decompress starting from a given block offset.
   void decompress(DataType *dest, const u32 size, const u8 *src,
                   const u32 block_offset) {
     const u32 block_count = size / kBlockSize;
-
-    // Layout: HEADER [kBlockSize] | COMPRESSED DATA
     const u8 *header_ptr = src + block_offset * sizeof(Slot);
     const u8 *data_ptr = src;
-
+    //---------------------------------------------------------------------------
     for (u32 block_i = 0; block_i < block_count; ++block_i) {
-
       // Read header
       auto &slot = *reinterpret_cast<const Slot *>(header_ptr);
-      data_ptr = src + slot.offset;
-
+      data_ptr = src + slot.offset.get();
+      //---------------------------------------------------------------------------
       // Decompress payload
-      decompressDispatch(dest, data_ptr, slot,
-                         Opcode::deserialize(&slot.opcode));
-
+      decompressDispatch(dest, data_ptr, slot);
+      //---------------------------------------------------------------------------
       // Update iterators
       dest += kBlockSize;
       header_ptr += sizeof(Slot);
@@ -128,324 +114,291 @@ public:
   }
 
   //---------------------------------------------------------------------------
+  // OTHER
+  //---------------------------------------------------------------------------
   bool isPartitioningScheme() override { return true; }
 
 private:
   //---------------------------------------------------------------------------
-  // COMPRESSION
+  // COMPRESSION HELPERS
   //---------------------------------------------------------------------------
   CompressionDetails compressImpl(const DataType *src, const u32 size, u8 *dest,
                                   const Statistics<DataType> *stats,
-                                  auto &&chooseOpcodeFn) {
+                                  auto &&chooseSchemeFn) {
     const u32 block_count = size / kBlockSize;
-
-    // Layout: HEADER [kBlockSize] | COMPRESSED DATA
     u8 *header_ptr = dest;
     u8 *data_ptr = dest;
-
     u32 data_offset = block_count * sizeof(Slot);
+    //---------------------------------------------------------------------------
     for (u32 block_i = 0; block_i < block_count; ++block_i) {
       data_ptr = dest + data_offset;
-
+      //---------------------------------------------------------------------------
       // Update header
       auto &slot = *reinterpret_cast<Slot *>(header_ptr);
       slot.reference = stats[block_i].min;
-      slot.offset = data_offset;
-
-      // Choose compression scheme
-      Opcode opcode = chooseOpcodeFn(src, stats[block_i]);
-      opcode.serialize(&slot.opcode);
-
+      slot.offset.set(data_offset);
+      //---------------------------------------------------------------------------
       // Compress
+      Scheme scheme = chooseSchemeFn(src, stats[block_i]);
       data_offset +=
-          compressDispatch(src, data_ptr, stats[block_i], slot, opcode.scheme);
-
+          compressDispatch(src, data_ptr, stats[block_i], slot, scheme);
+      //---------------------------------------------------------------------------
       // Update iterators
       src += kBlockSize;
       header_ptr += sizeof(Slot);
     }
-
+    //---------------------------------------------------------------------------
     u64 header_size = header_ptr - dest;
     u64 payload_size = data_offset - header_size;
     return {header_size, payload_size};
   }
   //---------------------------------------------------------------------------
-  Opcode chooseOpcode(const DataType *src, const Statistics<DataType> &stats) {
-    if (stats.max == stats.min) {
-      // When min and max are the same, we can use OneValue encoding.
-      return {Scheme::ONE_VALUE, 0};
-    } else if (stats.step_size > 0 && stats.step_size < 16) {
-      // When the step size is smaller than 16, we can use MonoInc encoding.
-      // We have 4 bit to represent the step size, thus smaller than 16.
-      return {Scheme::MONOTONICALLY_INCREASING,
-              static_cast<u8>(stats.step_size)};
+  // Choose the scheme that yields the smallest size.
+  // Note: This is a naive approach, which will be improved in the future.
+  Scheme chooseScheme(const DataType *src, const Statistics<DataType> &stats) {
+    if (stats.step_size >= 0 && stats.step_size < 256) {
+      return Scheme::MONOTONIC;
     }
-
-    // Choose the compression scheme that yields the smallest size
+    //---------------------------------------------------------------------------
+    // The buffer to compress into.
     auto dest = std::make_unique<u8[]>(kBlockSize * sizeof(DataType) * 2);
-
-    const u32 bp_size =
-        std::ceil(static_cast<double>(stats.diff_bits * kBlockSize) / 8);
-    const u32 rle_size =
-        compressRLE(src, dest.get(), stats.min, stats.diff_bits);
-
+    //---------------------------------------------------------------------------
+    // A dummy slot.
+    Slot slot{stats.min, {}, {}};
+    //---------------------------------------------------------------------------
+    // Compress to find best compressing scheme.
+    unordered_map<Scheme, u32> scheme2size;
+    scheme2size[Scheme::FOR] = compressFOR(src, dest.get(), stats, slot);
+    scheme2size[Scheme::RLE4] = compressRLE<4>(src, dest.get(), stats, slot);
+    scheme2size[Scheme::RLE8] = compressRLE<8>(src, dest.get(), stats, slot);
     if (stats.delta) {
-      const u32 delta_size = compressDelta(src, dest.get(), stats.min);
-      if (delta_size < std::min(rle_size, bp_size)) {
-        return {Scheme::DELTA, 0};
-      }
+      scheme2size[Scheme::DELTA] = compressDelta(src, dest.get(), slot);
     }
-
-    return (bp_size <= rle_size) ? Opcode{Scheme::BIT_PACKING, stats.diff_bits}
-                                 : Opcode{Scheme::RLE, 0};
+    //---------------------------------------------------------------------------
+    // Find minimum size.
+    auto min = std::min_element(
+        scheme2size.begin(), scheme2size.end(),
+        [](const auto &a, const auto &b) { return a.second < b.second; });
+    //---------------------------------------------------------------------------
+    return min->first;
   }
   //---------------------------------------------------------------------------
   u16 compressDispatch(const DataType *src, u8 *dest,
                        const Statistics<DataType> &stats, Slot &slot,
                        Scheme scheme) {
     switch (scheme) {
-    case Scheme::ONE_VALUE:
-      return 0;
-    case Scheme::BIT_PACKING:
-      return compressBasic(src, dest, slot);
-    case Scheme::RLE:
-      return compressRLE(src, dest, stats.min, stats.diff_bits);
+    case Scheme::MONOTONIC:
+      return compressMonotonic(src, dest, stats, slot);
+    case Scheme::FOR:
+      return compressFOR(src, dest, stats, slot);
+    case Scheme::RLE4:
+      return compressRLE<4>(src, dest, stats, slot);
+    case Scheme::RLE8:
+      return compressRLE<8>(src, dest, stats, slot);
     case Scheme::DELTA:
-      return compressDelta(src, dest, slot.reference);
-    case Scheme::MONOTONICALLY_INCREASING:
-      return 0;
+      return compressDelta(src, dest, slot);
+    case Scheme::PFOR:
+      throw std::runtime_error("TODO: Not implemented yet.");
     default:
       throw std::runtime_error(
           "Compression failed: Provided scheme does not exist.");
     }
   }
-  //---------------------------------------------------------------------------
-  u32 compressBasic(const DataType *src, u8 *dest, const Slot &slot) {
-    // Normalize
-    vector<DataType> normalized(kBlockSize);
-    for (u32 i = 0; i < kBlockSize; ++i) {
-      normalized[i] = src[i] - slot.reference;
-    }
-
-    // Compress
-    u8 pack_size = slot.opcode;
-    return bitpacking::pack<DataType, kBlockSize>(normalized.data(), dest,
-                                                  pack_size);
-  }
-  //---------------------------------------------------------------------------
-  u32 compressRLE(const DataType *src, u8 *dest, const DataType reference,
-                  const u8 pack_size) {
-    /// Layout:
-    /// Data         | Size (Bytes)
-    /// ---------------------------
-    /// run_count    | 2
-    /// lengths[]    | 1 * size
-    ///
-    /// pack_size    | 1
-    /// u32_count    | 1           -- only required for adaptive bitpacking
-    /// .... padding to 4 Byte ... -- only required for adaptive bitpacking
-    /// values[]     | x
-    ///
-    //---------------------------------------------------------------------------
-    using LengthType = u8;
-    //---------------------------------------------------------------------------
-    u16 run_count;
-    vector<DataType> values;
-    vector<LengthType> lengths;
-    LengthType max_length = 15;
-    //---------------------------------------------------------------------------
-    // Encode data
-    DataType cur = src[0];
-    LengthType run_length = 1;
-    //---------------------------------------------------------------------------
-    // Helpers for bit manipulation
-    u8 shift = 0;
-    u8 two_lengths = 0;
-    auto appendLength = [&]() {
-      two_lengths |= (run_length << (4 - shift));
-      if (shift == 4) {
-        lengths.push_back(two_lengths);
-        two_lengths = 0;
-      }
-      shift = (shift + 4) % 8;
-    };
-    //---------------------------------------------------------------------------
-    for (u32 i = 1; i < kBlockSize; ++i) {
-      if (src[i] == cur) {
-        if (run_length == max_length) {
-          appendLength();
-          values.push_back(cur - reference);
-          run_length = 0;
-        }
-        ++run_length;
-      } else {
-        appendLength();
-        values.push_back(cur - reference);
-        run_length = 1;
-        cur = src[i];
-      }
-    }
-    appendLength();
-    if (shift != 0)
-      lengths.push_back(two_lengths);
-    values.push_back(cur - reference);
-    run_count = values.size();
-    assert((values.size() + 1) / 2 == lengths.size());
-    //---------------------------------------------------------------------------
-    u16 value_offset = sizeof(run_count) + lengths.size() * sizeof(LengthType);
-    //---------------------------------------------------------------------------
-    // Write lengths
-    auto write_ptr = dest;
-    std::memcpy(write_ptr, &run_count, sizeof(run_count));
-    std::memcpy(write_ptr + sizeof(run_count), lengths.data(),
-                lengths.size() * sizeof(LengthType));
-    write_ptr += value_offset;
-    //---------------------------------------------------------------------------
-    // Write pack size
-    *write_ptr = pack_size;
-    write_ptr += sizeof(pack_size);
-    //---------------------------------------------------------------------------
-    // Write u32_count
-    // u8 &u32_count = *write_ptr;
-    // u32_count = 0;
-    // write_ptr += sizeof(u32_count);
-    //---------------------------------------------------------------------------
-    // Compress & write values
-    // Pad write_ptr, as values need to be 4-Byte aligned for BitPacking
-    // u64 padding = 0;
-    // write_ptr = reinterpret_cast<u8 *>(utils::align<u8>(write_ptr, 4,
-    // padding));
-    u32 values_size = bitpacking::pack<DataType>(values.data(), values.size(),
-                                                 write_ptr, pack_size);
-    // Include meta data
-    // values_size += padding;
-    // values_size += sizeof(u32_count);
-    values_size += sizeof(pack_size);
-    //---------------------------------------------------------------------------
-    return value_offset + values_size;
-  }
-  //---------------------------------------------------------------------------
-  u32 compressDelta(const DataType *src, u8 *dest, const DataType reference) {
-    // FOR
-    auto buffer = std::make_unique<DataType[]>(kBlockSize);
-    for (u32 i = 0; i < kBlockSize; ++i) {
-      buffer[i] = src[i] - reference;
-    }
-    //---------------------------------------------------------------------------
-    // Delta
-    simd::delta::compress<DataType, kBlockSize>(buffer.get());
-    //---------------------------------------------------------------------------
-    // Bitpacking
-    //---------------------------------------------------------------------------
-    // Prepare
-    DataType min = 0;
-    DataType max = 0;
-    for (u16 i = 0; i < kBlockSize; ++i) {
-      if (buffer[i] < min)
-        min = buffer[i];
-      if (buffer[i] > max)
-        max = buffer[i];
-    }
-    u8 pack_size = utils::requiredBits(max - min);
-    *dest++ = pack_size;
-    //---------------------------------------------------------------------------
-    // Compress
-    u32 compressed_size =
-        bitpacking::pack<DataType, kBlockSize>(buffer.get(), dest, pack_size);
-    //---------------------------------------------------------------------------
-    return sizeof(pack_size) + compressed_size;
-  }
 
   //---------------------------------------------------------------------------
-  // DECOMPRESSION
+  // DECOMPRESSION HELPERS
   //---------------------------------------------------------------------------
-  void decompressDispatch(DataType *dest, const u8 *src, const Slot &slot,
-                          Opcode opcode) {
-    switch (opcode.scheme) {
-    case Scheme::ONE_VALUE:
-      decompressBroadcast(dest, slot.reference);
-      break;
-    case Scheme::BIT_PACKING:
-      decompressBasic(dest, src, slot.reference, opcode.payload);
-      break;
-    case Scheme::RLE:
-      decompressRLE(dest, src, slot.reference);
-      break;
+  void decompressDispatch(DataType *dest, const u8 *src, const Slot &slot) {
+    switch (slot.opcode.scheme) {
+    case Scheme::MONOTONIC:
+      decompressMonotonic(dest, slot);
+      return;
+    case Scheme::FOR:
+      decompressFOR(dest, src, slot);
+      return;
+    case Scheme::RLE4:
+      decompressRLE<4>(dest, src, slot);
+      return;
+    case Scheme::RLE8:
+      decompressRLE<8>(dest, src, slot);
+      return;
     case Scheme::DELTA:
-      decompressDelta(dest, src, slot.reference);
-      break;
-    case Scheme::MONOTONICALLY_INCREASING:
-      decompressMonoInc(dest, slot.reference, opcode.payload);
-      break;
+      decompressDelta(dest, src, slot);
+      return;
+    case Scheme::PFOR:
+      throw std::runtime_error("TODO: Not implemented yet.");
     default:
       throw std::runtime_error(
           "Decompression failed: Provided opcode does not exist.");
     }
   }
+
   //---------------------------------------------------------------------------
-  void decompressBroadcast(DataType *dest, const DataType value) {
-    for (u16 i = 0; i < kBlockSize; ++i) {
-      dest[i] = value;
-    }
+  // MONOTONIC
+  //---------------------------------------------------------------------------
+  u32 compressMonotonic(const DataType *src, u8 *dest,
+                        const Statistics<DataType> &stats, Slot &slot) {
+    assert(stats.step_size >= 0 && stats.step_size < 256);
+    slot.opcode = {Scheme::MONOTONIC, static_cast<u8>(stats.step_size)};
+    return 0;
   }
   //---------------------------------------------------------------------------
-  void decompressBasic(DataType *dest, const u8 *src, const DataType reference,
-                       const u8 pack_size) {
-    // Decompress
-    bitpacking::unpack<DataType, kBlockSize>(dest, src, pack_size);
+  void decompressMonotonic(DataType *dest, const Slot &slot) {
+    for (u16 i = 0; i < kBlockSize; ++i) {
+      dest[i] = slot.reference + i * slot.opcode.payload;
+    }
+  }
 
+  //---------------------------------------------------------------------------
+  // FOR
+  //---------------------------------------------------------------------------
+  u32 compressFOR(const DataType *src, u8 *dest,
+                  const Statistics<DataType> &stats, Slot &slot) {
+    assert(stats.diff_bits >= 0 && stats.diff_bits <= sizeof(DataType) * 8);
+    slot.opcode = {Scheme::FOR, stats.diff_bits};
+    //---------------------------------------------------------------------------
+    // Normalize
+    vector<DataType> normalized(kBlockSize);
+    for (u32 i = 0; i < kBlockSize; ++i) {
+      normalized[i] = src[i] - slot.reference;
+    }
+    //---------------------------------------------------------------------------
+    // Compress
+    u8 pack_size = slot.opcode.payload;
+    return bitpacking::pack<DataType, kBlockSize>(normalized.data(), dest,
+                                                  pack_size);
+  }
+  //---------------------------------------------------------------------------
+  void decompressFOR(DataType *dest, const u8 *src, const Slot &slot) {
+    // Decompress
+    bitpacking::unpack<DataType, kBlockSize>(dest, src, slot.opcode.payload);
+    //---------------------------------------------------------------------------
     // Denormalize
     for (u32 i = 0; i < kBlockSize; ++i) {
-      dest[i] += reference;
+      dest[i] += slot.reference;
     }
   }
+
   //---------------------------------------------------------------------------
-  void decompressRLE(DataType *dest, const u8 *src, const DataType reference) {
+  // RLE
+  //---------------------------------------------------------------------------
+  template <u8 kLengthBits>
+  u32 compressRLE(const DataType *src, u8 *dest,
+                  const Statistics<DataType> &stats, Slot &slot) {
+    static_assert(kLengthBits == 4 || kLengthBits == 8,
+                  "Run-Lengths must be encoded in either 4 or 8 bits.");
+    assert(stats.diff_bits >= 0 && stats.diff_bits <= sizeof(DataType) * 8);
     //---------------------------------------------------------------------------
-    /// Layout:
-    /// Data         | Size (Bytes)
-    /// ---------------------------
-    /// run_count    | 2
-    /// lengths[]    | 1 * size
-    ///
-    /// pack_size    | 1
-    /// u32_count    | 1            -- only required for adaptive bitpacking
-    /// .... padding to 4 Byte ...  -- only required for adaptive bitpacking
-    /// values[]     | x
-    ///
+    slot.opcode = {kLengthBits == 4 ? Scheme::RLE4 : Scheme::RLE8,
+                   stats.diff_bits};
     //---------------------------------------------------------------------------
-    using LengthType = u8;
+    constexpr RunLength max_length = (kLengthBits == 4) ? 15 : 255;
+    //---------------------------------------------------------------------------
+    // Data to be stored
+    u16 run_count;
+    vector<DataType> values;
+    vector<RunLength> lengths;
+    //---------------------------------------------------------------------------
+    // Iterators
+    DataType cur = src[0];
+    RunLength run_length = 1;
+    //---------------------------------------------------------------------------
+    // Helpers for bit manipulation
+    u8 shift = 0;
+    u8 length_byte = 0;
+    auto appendLength = [&]() {
+      if constexpr (kLengthBits == 8) {
+        lengths.push_back(run_length);
+      } else {
+        length_byte |= (run_length << (4 - shift));
+        shift = (shift + 4) % 8;
+        if (shift == 0) {
+          lengths.push_back(length_byte);
+          length_byte = 0;
+        }
+      }
+    };
+    //---------------------------------------------------------------------------
+    // Fill length & value arrays
+    for (u32 i = 1; i < kBlockSize; ++i) {
+      if (src[i] == cur) {
+        if (run_length == max_length) {
+          appendLength();
+          values.push_back(cur - slot.reference);
+          run_length = 0;
+        }
+        ++run_length;
+      } else {
+        appendLength();
+        values.push_back(cur - slot.reference);
+        run_length = 1;
+        cur = src[i];
+      }
+    }
+    if constexpr (kLengthBits == 8) {
+      lengths.push_back(run_length);
+    } else {
+      lengths.push_back(length_byte | (run_length << (4 - shift)));
+    }
+    values.push_back(cur - slot.reference);
+    run_count = values.size();
+    assert(((kLengthBits == 4) ? (values.size() + 1) / 2 : values.size()) ==
+           lengths.size());
+    //---------------------------------------------------------------------------
+    // Write lengths
+    auto write_ptr = dest;
+    std::memcpy(write_ptr, &run_count, sizeof(run_count));
+    write_ptr += sizeof(run_count);
+    std::memcpy(write_ptr, lengths.data(), lengths.size() * sizeof(RunLength));
+    //---------------------------------------------------------------------------
+    // Write values
+    u16 value_offset = lengths.size() * sizeof(RunLength);
+    write_ptr += value_offset;
+    u32 values_size = bitpacking::pack<DataType>(
+        values.data(), values.size(), write_ptr, slot.opcode.payload);
+    //---------------------------------------------------------------------------
+    return sizeof(run_count) + value_offset + values_size;
+  }
+  //---------------------------------------------------------------------------
+  template <u8 kLengthBits>
+  void decompressRLE(DataType *dest, const u8 *src, const Slot &slot) {
+    static_assert(kLengthBits == 4 || kLengthBits == 8,
+                  "Run-Lengths must be encoded in either 4 or 8 bits.");
     //---------------------------------------------------------------------------
     // Decode meta data
     auto run_count = utils::unalignedLoad<u16>(src);
-    u16 length_bytes = ((run_count + 1) / 2) * sizeof(LengthType);
+    //---------------------------------------------------------------------------
+    u16 length_bytes;
+    if constexpr (kLengthBits == 4) {
+      length_bytes = ((run_count + 1) / 2);
+    } else {
+      length_bytes = run_count;
+    }
     u16 value_offset = sizeof(run_count) + length_bytes;
-    auto pack_size = *reinterpret_cast<const u8 *>(src + value_offset);
-    // auto u32_count =
-    //     *reinterpret_cast<const u8 *>(src + value_offset +
-    //     sizeof(pack_size));
     //---------------------------------------------------------------------------
     // Decompress lengths & values
-    auto read_ptr = src + value_offset + sizeof(pack_size);
-    // Pad read_ptr, as values are 4-Byte aligned for BitPacking
-    // u64 padding = 0;
-    // read_ptr = reinterpret_cast<const u8 *>(
-    //     utils::align<const u8>(read_ptr, 4, padding));
+    auto read_ptr = src + value_offset;
     // Unpack
-    vector<DataType> values(run_count * 2);
-    bitpacking::unpack<DataType>(values.data(), run_count, read_ptr, pack_size);
+    vector<DataType> values(run_count);
+    bitpacking::unpack<DataType>(values.data(), run_count, read_ptr,
+                                 slot.opcode.payload);
     // Initialize lengths
     // TODO: Can be improved probably, currently done to prevent UB
-    vector<LengthType> lengths(length_bytes);
+    vector<RunLength> lengths(length_bytes);
     std::memcpy(lengths.data(), src + sizeof(run_count), length_bytes);
     //---------------------------------------------------------------------------
     // Decode RLE using AVX2
     auto write_ptr = dest;
     u16 shift = 0;
     for (u16 i = 0; i < run_count; ++i) {
-      LengthType length = (lengths[i / 2] >> (4 - (shift % 8))) & 0x0F;
+      RunLength length;
+      if constexpr (kLengthBits == 4) {
+        length = (lengths[i / 2] >> (4 - (shift % 8))) & 0x0F;
+      } else {
+        length = lengths[i];
+      }
       auto end_ptr = write_ptr + length;
-      DataType value = values[i] + reference;
+      DataType value = values[i] + slot.reference;
 
       if constexpr (std::is_same_v<DataType, INTEGER>) {
         __m256i broadcast = _mm256_set1_epi32(value);
@@ -470,31 +423,58 @@ private:
       }
       shift += 4;
     }
+  }
+
+  //---------------------------------------------------------------------------
+  // DELTA
+  //---------------------------------------------------------------------------
+  u32 compressDelta(const DataType *src, u8 *dest, Slot &slot) {
+    // FOR
+    auto buffer = std::make_unique<DataType[]>(kBlockSize);
+    for (u32 i = 0; i < kBlockSize; ++i) {
+      buffer[i] = src[i] - slot.reference;
+    }
     //---------------------------------------------------------------------------
+    // Delta
+    simd::delta::compress<DataType, kBlockSize>(buffer.get());
+    //---------------------------------------------------------------------------
+    // Bitpacking
+    //---------------------------------------------------------------------------
+    // Prepare
+    DataType min = 0;
+    DataType max = 0;
+    for (u16 i = 0; i < kBlockSize; ++i) {
+      if (buffer[i] < min)
+        min = buffer[i];
+      if (buffer[i] > max)
+        max = buffer[i];
+    }
+    u8 pack_size = utils::requiredBits(max - min);
+    //---------------------------------------------------------------------------
+    slot.opcode = {Scheme::DELTA, pack_size};
+    //---------------------------------------------------------------------------
+    // Compress
+    u32 compressed_size =
+        bitpacking::pack<DataType, kBlockSize>(buffer.get(), dest, pack_size);
+    //---------------------------------------------------------------------------
+    return compressed_size;
   }
   //---------------------------------------------------------------------------
-  void decompressDelta(DataType *dest, const u8 *src,
-                       const DataType reference) {
+  void decompressDelta(DataType *dest, const u8 *src, const Slot &slot) {
     // Bitpacking
-    u8 pack_size = *src++;
-    bitpacking::unpack<DataType, kBlockSize>(dest, src, pack_size);
+    bitpacking::unpack<DataType, kBlockSize>(dest, src, slot.opcode.payload);
     //---------------------------------------------------------------------------
     // Delta
     simd::delta::decompress<DataType, kBlockSize>(dest);
     //---------------------------------------------------------------------------
     // FOR
     for (u32 i = 0; i < kBlockSize; ++i) {
-      dest[i] += reference;
+      dest[i] += slot.reference;
     }
   }
   //---------------------------------------------------------------------------
-  void decompressMonoInc(DataType *dest, const DataType reference,
-                         const u8 step_size) {
-    for (u16 i = 0; i < kBlockSize; ++i) {
-      dest[i] = reference + i * step_size;
-    }
-  }
-  //---------------------------------------------------------------------------
-};
+}; // namespace tinyblocks
+//---------------------------------------------------------------------------
+} // namespace tinyblocks
 //---------------------------------------------------------------------------
 } // namespace compression

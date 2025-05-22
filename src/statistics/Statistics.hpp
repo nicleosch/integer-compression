@@ -55,7 +55,7 @@ public:
       if (i > 0 && src[i] - src[i - 1] != step) {
         if (std::abs(src[i] - src[i - 1]) > std::abs(max_diff) && max_diff >= 0)
           max_diff = src[i] - src[i - 1];
-        step = 0;
+        step = -1;
       }
       if (i > 0 && src[i] - src[i - 1] < 0)
         stats.delta = false;

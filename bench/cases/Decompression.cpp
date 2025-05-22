@@ -15,7 +15,7 @@ static std::ofstream null_stream("/dev/null");
 //---------------------------------------------------------------------------
 template <typename T, u16 kTinyBlocksSize> static void bpBenchmark() {
   //---------------------------------------------------------------------------
-  using TinyBlocks = TinyBlocks<T, kTinyBlocksSize>;
+  using TinyBlocks = tinyblocks::TinyBlocks<T, kTinyBlocksSize>;
   //---------------------------------------------------------------------------
   // The file to write to.
   std::ofstream bp_file("bp_" + std::to_string(sizeof(T) * 8) + "bit_" +
@@ -45,10 +45,8 @@ template <typename T, u16 kTinyBlocksSize> static void bpBenchmark() {
   const u8 bits = sizeof(T) * 8;
   for (u8 pack_size = bits - 31; pack_size <= bits; ++pack_size) {
     // Compress
-    const typename TinyBlocks::Opcode opcode{TinyBlocks::Scheme::BIT_PACKING,
-                                             pack_size};
     tb.compress(column.data(), column.size(), cbuffer.get(), stats.data(),
-                opcode);
+                tinyblocks::Scheme::FOR);
     //---------------------------------------------------------------------------
     // Register cpu counters
     PerfEvent perf_event;

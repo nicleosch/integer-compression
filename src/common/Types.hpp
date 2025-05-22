@@ -5,6 +5,7 @@
 //---------------------------------------------------------------------------
 #include <stdint.h>
 #include <string>
+#include <unordered_map>
 #include <vector>
 //---------------------------------------------------------------------------
 namespace compression {
@@ -23,6 +24,7 @@ using INTEGER = s32;
 using BIGINT = s64;
 //---------------------------------------------------------------------------
 using std::string;
+using std::unordered_map;
 using std::vector;
 //---------------------------------------------------------------------------
 enum class ColumnType : u8 {

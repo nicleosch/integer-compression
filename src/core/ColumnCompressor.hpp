@@ -88,7 +88,7 @@ public:
       decompress<FORn<T, kTinyBlockSize>>(src);
       return;
     case CompressionSchemeType::kTinyBlocks:
-      decompress<TinyBlocks<T, kTinyBlockSize>>(src);
+      decompress<tinyblocks::TinyBlocks<T, kTinyBlockSize>>(src);
       return;
     case CompressionSchemeType::kUncompressed:
       decompress<Uncompressed<T>>(src);
@@ -123,7 +123,7 @@ private:
       details = compress<RLE<T>>(dest);
       break;
     case CompressionSchemeType::kTinyBlocks:
-      details = compress<TinyBlocks<T, kTinyBlockSize>>(dest);
+      details = compress<tinyblocks::TinyBlocks<T, kTinyBlockSize>>(dest);
       break;
     case CompressionSchemeType::kUncompressed:
       details = compress<Uncompressed<T>>(dest);
@@ -373,7 +373,7 @@ private:
       decompress<RLE<T>>(dest, src);
       return;
     case CompressionSchemeType::kTinyBlocks:
-      decompress<TinyBlocks<T, kTinyBlockSize>>(dest, src);
+      decompress<tinyblocks::TinyBlocks<T, kTinyBlockSize>>(dest, src);
       return;
     case CompressionSchemeType::kUncompressed:
       decompress<Uncompressed<T>>(dest, src);
