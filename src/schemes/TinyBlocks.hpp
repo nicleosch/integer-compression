@@ -3,8 +3,9 @@
 #include <cmath>
 //---------------------------------------------------------------------------
 #include "bitpacking/BitPacking.hpp"
+#include "extern/fastpfor/Delta.hpp"
+#include "extern/fastpfor/PFOR.hpp"
 #include "schemes/CompressionScheme.hpp"
-#include "simd/delta.hpp"
 //---------------------------------------------------------------------------
 namespace compression {
 //---------------------------------------------------------------------------
@@ -171,6 +172,7 @@ private:
     scheme2size[Scheme::FOR] = compressFOR(src, dest.get(), stats, slot);
     scheme2size[Scheme::RLE4] = compressRLE<4>(src, dest.get(), stats, slot);
     scheme2size[Scheme::RLE8] = compressRLE<8>(src, dest.get(), stats, slot);
+    scheme2size[Scheme::PFOR] = compressPFOR(src, dest.get(), slot);
     if (stats.delta) {
       scheme2size[Scheme::DELTA] = compressDelta(src, dest.get(), slot);
     }
@@ -198,7 +200,7 @@ private:
     case Scheme::DELTA:
       return compressDelta(src, dest, slot);
     case Scheme::PFOR:
-      throw std::runtime_error("TODO: Not implemented yet.");
+      return compressPFOR(src, dest, slot);
     default:
       throw std::runtime_error(
           "Compression failed: Provided scheme does not exist.");
@@ -226,7 +228,8 @@ private:
       decompressDelta(dest, src, slot);
       return;
     case Scheme::PFOR:
-      throw std::runtime_error("TODO: Not implemented yet.");
+      decompressPFOR(dest, src, slot);
+      return;
     default:
       throw std::runtime_error(
           "Decompression failed: Provided opcode does not exist.");
@@ -436,7 +439,7 @@ private:
     }
     //---------------------------------------------------------------------------
     // Delta
-    simd::delta::compress<DataType, kBlockSize>(buffer.get());
+    pfor::delta::compress<DataType, kBlockSize>(buffer.get());
     //---------------------------------------------------------------------------
     // Bitpacking
     //---------------------------------------------------------------------------
@@ -465,12 +468,29 @@ private:
     bitpacking::unpack<DataType, kBlockSize>(dest, src, slot.opcode.payload);
     //---------------------------------------------------------------------------
     // Delta
-    simd::delta::decompress<DataType, kBlockSize>(dest);
+    pfor::delta::decompress<DataType, kBlockSize>(dest);
     //---------------------------------------------------------------------------
     // FOR
     for (u32 i = 0; i < kBlockSize; ++i) {
       dest[i] += slot.reference;
     }
+  }
+
+  //---------------------------------------------------------------------------
+  // PFOR
+  //---------------------------------------------------------------------------
+  u32 compressPFOR(const DataType *src, u8 *dest, Slot &slot) {
+    u8 pack_size;
+    slot.opcode = {Scheme::PFOR, pack_size};
+    //---------------------------------------------------------------------------
+    // Compress
+    return pfor::compress<DataType, kBlockSize>(src, dest, slot.reference,
+                                                slot.opcode.payload);
+  }
+  //---------------------------------------------------------------------------
+  void decompressPFOR(DataType *dest, const u8 *src, const Slot &slot) {
+    pfor::decompress<DataType, kBlockSize>(dest, src, slot.reference,
+                                           slot.opcode.payload);
   }
   //---------------------------------------------------------------------------
 }; // namespace tinyblocks

@@ -5,7 +5,7 @@
 //---------------------------------------------------------------------------
 #include "bitpacking/simd64bit/BitPacking.hpp"
 #include "common/Types.hpp"
-#include "extern/FastPFOR.hpp"
+#include "extern/fastpfor/FastPFOR.hpp"
 //---------------------------------------------------------------------------
 namespace compression {
 //---------------------------------------------------------------------------

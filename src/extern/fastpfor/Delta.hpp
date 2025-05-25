@@ -6,16 +6,18 @@
 //---------------------------------------------------------------------------
 namespace compression {
 //---------------------------------------------------------------------------
-namespace simd {
+namespace pfor {
 //---------------------------------------------------------------------------
 namespace delta {
 //---------------------------------------------------------------------------
-// Inspired by Daniel Lemire (https://github.com/fast-pack/FastPFOR)
-template <typename T, u16 kLength> void compress(T *array) {
-  static_assert(kLength % 4 == 0);
+/// This function is derived from "deltaSIMD" from the deltautil.h header in
+/// https://github.com/fast-pack/FastPFOR. To be precise, symbol names are
+/// changed and some edge cases are not considered as unnecessary.
+template <typename T, const u16 kBlockSize> void compress(T *array) {
+  static_assert(kBlockSize % 4 == 0);
 
   const auto ipr = sizeof(__m128i) / sizeof(T);
-  const u16 iterations = kLength / ipr;
+  const u16 iterations = kBlockSize / ipr;
 
   auto start_ptr = reinterpret_cast<const __m128i *>(array);
   auto cur_ptr = reinterpret_cast<__m128i *>(array) + iterations - 1;
@@ -28,12 +30,14 @@ template <typename T, u16 kLength> void compress(T *array) {
   }
 }
 //---------------------------------------------------------------------------
-// Inspired by Daniel Lemire (https://github.com/fast-pack/FastPFOR)
-template <typename T, u16 kLength> void decompress(T *array) {
-  static_assert(kLength % 4 == 0);
+/// This function is derived from "inverseDeltaSIMD" from the deltautil.h header
+/// in https://github.com/fast-pack/FastPFOR. To be precise, symbol names are
+/// changed and some edge cases are not considered as unnecessary.
+template <typename T, const u16 kBlockSize> void decompress(T *array) {
+  static_assert(kBlockSize % 4 == 0);
 
   const auto ipr = sizeof(__m128i) / sizeof(T);
-  const u16 iterations = kLength / ipr;
+  const u16 iterations = kBlockSize / ipr;
 
   auto cur_ptr = reinterpret_cast<__m128i *>(array);
   auto end_ptr = reinterpret_cast<__m128i *>(array) + iterations;
@@ -48,6 +52,6 @@ template <typename T, u16 kLength> void decompress(T *array) {
 //---------------------------------------------------------------------------
 } // namespace delta
 //---------------------------------------------------------------------------
-} // namespace simd
+} // namespace pfor
 //---------------------------------------------------------------------------
 } // namespace compression
