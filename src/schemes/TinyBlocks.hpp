@@ -19,6 +19,7 @@ enum class Scheme : u8 {
   RLE8 = 3,
   DELTA = 4,
   PFOR = 5,
+  PFOREBP = 6,
 };
 //---------------------------------------------------------------------------
 /// The opcode stored in the header slot.
@@ -173,6 +174,7 @@ private:
     scheme2size[Scheme::RLE4] = compressRLE<4>(src, dest.get(), stats, slot);
     scheme2size[Scheme::RLE8] = compressRLE<8>(src, dest.get(), stats, slot);
     scheme2size[Scheme::PFOR] = compressPFOR(src, dest.get(), slot);
+    scheme2size[Scheme::PFOREBP] = compressPFOREBP(src, dest.get(), slot);
     if (stats.delta) {
       scheme2size[Scheme::DELTA] = compressDelta(src, dest.get(), slot);
     }
@@ -201,6 +203,8 @@ private:
       return compressDelta(src, dest, slot);
     case Scheme::PFOR:
       return compressPFOR(src, dest, slot);
+    case Scheme::PFOREBP:
+      return compressPFOREBP(src, dest, slot);
     default:
       throw std::runtime_error(
           "Compression failed: Provided scheme does not exist.");
@@ -229,6 +233,9 @@ private:
       return;
     case Scheme::PFOR:
       decompressPFOR(dest, src, slot);
+      return;
+    case Scheme::PFOREBP:
+      decompressPFOREBP(dest, src, slot);
       return;
     default:
       throw std::runtime_error(
@@ -484,13 +491,30 @@ private:
     slot.opcode = {Scheme::PFOR, pack_size};
     //---------------------------------------------------------------------------
     // Compress
-    return pfor::compress<DataType, kBlockSize>(src, dest, slot.reference,
-                                                slot.opcode.payload);
+    return pfor::compressPFOR<DataType, kBlockSize>(src, dest, slot.reference,
+                                                    slot.opcode.payload);
   }
   //---------------------------------------------------------------------------
   void decompressPFOR(DataType *dest, const u8 *src, const Slot &slot) {
-    pfor::decompress<DataType, kBlockSize>(dest, src, slot.reference,
-                                           slot.opcode.payload);
+    pfor::decompressPFOR<DataType, kBlockSize>(dest, src, slot.reference,
+                                               slot.opcode.payload);
+  }
+
+  //---------------------------------------------------------------------------
+  // PFOREBP
+  //---------------------------------------------------------------------------
+  u32 compressPFOREBP(const DataType *src, u8 *dest, Slot &slot) {
+    u8 pack_size;
+    slot.opcode = {Scheme::PFOREBP, pack_size};
+    //---------------------------------------------------------------------------
+    // Compress
+    return pfor::compressPFOREBP<DataType, kBlockSize>(
+        src, dest, slot.reference, slot.opcode.payload);
+  }
+  //---------------------------------------------------------------------------
+  void decompressPFOREBP(DataType *dest, const u8 *src, const Slot &slot) {
+    pfor::decompressPFOREBP<DataType, kBlockSize>(dest, src, slot.reference,
+                                                  slot.opcode.payload);
   }
   //---------------------------------------------------------------------------
 }; // namespace tinyblocks

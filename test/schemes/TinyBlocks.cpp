@@ -289,7 +289,7 @@ TEST(TinyBlocksTest, PFORDecompressionInvariant) {
   constexpr uint16_t kTinyBlocksSize = 256;
   using TinyBlocks = tinyblocks::TinyBlocks<INTEGER, kTinyBlocksSize>;
   //---------------------------------------------------------------------------
-  auto path = "../data/tpch/sf1/nation.tbl";
+  auto path = "../data/tpch/sf1/partsupp.tbl";
   auto column = storage::Column<INTEGER>::fromFile(path, 0, '|');
   column.padToMultipleOf(kTinyBlocksSize);
   //---------------------------------------------------------------------------
@@ -308,6 +308,42 @@ TEST(TinyBlocksTest, PFORDecompressionInvariant) {
   TinyBlocks tb;
   tb.compress(column.data(), column.size(), compression_out.get(), stats.data(),
               tinyblocks::Scheme::PFOR);
+  //---------------------------------------------------------------------------
+  // decompress
+  vector<INTEGER> decompression_out(column.size());
+  tb.decompress(decompression_out.data(), column.size(), compression_out.get());
+  //---------------------------------------------------------------------------
+  // verify
+  for (size_t i = 0; i < column.size(); ++i) {
+    ASSERT_EQ(column.data()[i], decompression_out[i]);
+  }
+}
+//---------------------------------------------------------------------------
+// Verifies that the data remains unchanged after PFOREBP compression and
+// decompression for 32 bit integers.
+TEST(TinyBlocksTest, PFOREBPDecompressionInvariant) {
+  constexpr uint16_t kTinyBlocksSize = 256;
+  using TinyBlocks = tinyblocks::TinyBlocks<INTEGER, kTinyBlocksSize>;
+  //---------------------------------------------------------------------------
+  auto path = "../data/tpch/sf1/partsupp.tbl";
+  auto column = storage::Column<INTEGER>::fromFile(path, 0, '|');
+  column.padToMultipleOf(kTinyBlocksSize);
+  //---------------------------------------------------------------------------
+  // compress
+  auto compression_out =
+      std::make_unique<u8[]>(column.size() * sizeof(INTEGER) * 2);
+  //---------------------------------------------------------------------------
+  // Calculate statistics on the data used for compression.
+  vector<Statistics<INTEGER>> stats;
+  auto block_count = column.size() / kTinyBlocksSize;
+  for (size_t i = 0; i < block_count; ++i) {
+    stats.push_back(Statistics<INTEGER>::generateFrom(
+        column.data() + i * kTinyBlocksSize, kTinyBlocksSize));
+  }
+  //---------------------------------------------------------------------------
+  TinyBlocks tb;
+  tb.compress(column.data(), column.size(), compression_out.get(), stats.data(),
+              tinyblocks::Scheme::PFOREBP);
   //---------------------------------------------------------------------------
   // decompress
   vector<INTEGER> decompression_out(column.size());
