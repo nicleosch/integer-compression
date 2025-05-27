@@ -126,6 +126,7 @@ u32 compress(const T *src, u8 *dest, const T &reference, u8 &best_pack_size,
 /// @brief Decompresses given data using PFOR.
 ///
 /// @tparam T: They type of the values to be decompressed.
+/// @tparam ExceptionT: The type of the exceptions to be decompressed.
 /// @tparam kBlockSize: The size of a block of values.
 ///
 /// @param dest The decompressed integers.
@@ -137,9 +138,11 @@ u32 compress(const T *src, u8 *dest, const T &reference, u8 &best_pack_size,
 ///
 /// Note: This function is derived from "__decodeArray" from the simdfastpfor.h
 /// header in https://github.com/fast-pack/FastPFOR.
-template <typename T, const u16 kBlockSize>
+template <typename T, typename ExceptionT, const u16 kBlockSize>
 void decompress(T *dest, const u8 *src, const T &reference, const u8 &pack_size,
-                const T *exceptions) {
+                const ExceptionT *exceptions) {
+  assert(sizeof(T) >= sizeof(ExceptionT));
+  //---------------------------------------------------------------------------
   // Unpack the payload.
   bitpacking::unpack<T, kBlockSize>(dest, src, pack_size);
   //---------------------------------------------------------------------------
@@ -148,7 +151,7 @@ void decompress(T *dest, const u8 *src, const T &reference, const u8 &pack_size,
   u16 cexcept = 0;
   for (u32 i = 0; i < kBlockSize; ++i) {
     if (dest[i] == max_value) {
-      dest[i] = exceptions[cexcept++];
+      dest[i] = utils::unalignedLoad<ExceptionT>(&exceptions[cexcept++]);
     }
     dest[i] += reference;
   }
@@ -162,7 +165,18 @@ template <const u16 kBlockSize> u32 getExceptionOffset(const u8 pack_size) {
          ~(sizeof(SIMDRegister) - 1);
 }
 //---------------------------------------------------------------------------
+/// @brief Write "size" values of type "SourceType" to "TargetType".
+template <typename SourceType, typename TargetType>
+u32 intpack(const SourceType *src, const u32 size, u8 *dest) {
+  for (u32 i = 0; i < size; ++i) {
+    utils::unalignedStore<TargetType>(dest + i * sizeof(TargetType),
+                                      static_cast<TargetType>(src[i]));
+  }
+  return sizeof(TargetType) * size;
+}
+//---------------------------------------------------------------------------
 } // namespace internal
+
 //---------------------------------------------------------------------------
 /// @brief This function compresses given data using PFOR and leaves the
 /// exception-values uncompressed.
@@ -220,6 +234,60 @@ u32 compressPFOREBP(const T *src, u8 *dest, const T &reference, u8 &pack_size) {
   //---------------------------------------------------------------------------
   return write_ptr - dest;
 };
+//---------------------------------------------------------------------------
+/// @brief This function compresses given data using PFOR and packs the
+/// exception-values into the minimum possible integer type (1,2,4,8 bytes).
+template <typename T, const u16 kBlockSize>
+u32 compressPFOREP(const T *src, u8 *dest, const T &reference, u8 &pack_size) {
+  // Compress payload using PFOR.
+  u8 max_pack_size;
+  vector<T> exceptions;
+  u32 payload_size = internal::compress<T, kBlockSize>(
+      src, dest, reference, pack_size, max_pack_size, exceptions,
+      [&](const u32 cexcept, const u32 b, const u32 eb) {
+        u32 req_bytes = sizeof(u64);
+        if (eb <= 8)
+          req_bytes = sizeof(u32);
+        else if (eb <= 16)
+          req_bytes = sizeof(u16);
+        else if (eb <= 8)
+          req_bytes = sizeof(u8);
+        return b * kBlockSize / 8 + // Payload
+               cexcept * req_bytes; // Exceptions
+      });
+  auto write_ptr = dest + payload_size;
+  //---------------------------------------------------------------------------
+  // Write the exceptions, if there are any.
+  assert(exceptions.size() < (1U << 24));
+  auto cexc = static_cast<u16>(exceptions.size());
+  u32 exceptions_size = 0; // The number of bytes of compressed exceptions.
+  u8 byte_code = 0;        // The number of required bytes for the exceptions.
+  if (max_pack_size <= 8) {
+    exceptions_size +=
+        internal::intpack<T, u8>(exceptions.data(), cexc, write_ptr);
+  } else if (max_pack_size <= 16) {
+    exceptions_size +=
+        internal::intpack<T, u16>(exceptions.data(), cexc, write_ptr);
+    byte_code = 1;
+  } else if (max_pack_size <= 32) {
+    exceptions_size +=
+        internal::intpack<T, u32>(exceptions.data(), cexc, write_ptr);
+    byte_code = 2;
+  } else {
+    assert(max_pack_size <= 64);
+    exceptions_size +=
+        internal::intpack<T, u64>(exceptions.data(), cexc, write_ptr);
+    byte_code = 3;
+  }
+  //---------------------------------------------------------------------------
+  // Write byte-code into the-pack size. (Use the upper two bits)
+  if (max_pack_size == 64) [[unlikely]]
+    pack_size = 0; // special value
+  else
+    pack_size |= (byte_code << 6);
+  //---------------------------------------------------------------------------
+  return payload_size + exceptions_size;
+};
 
 //---------------------------------------------------------------------------
 /// @brief Decompress PFOR with uncompressed exception values.
@@ -231,8 +299,8 @@ void decompressPFOR(T *dest, const u8 *src, const T &reference,
       src + internal::getExceptionOffset<kBlockSize>(pack_size));
   //---------------------------------------------------------------------------
   // Decompress the payload.
-  internal::decompress<T, kBlockSize>(dest, src, reference, pack_size,
-                                      exceptions);
+  internal::decompress<T, T, kBlockSize>(dest, src, reference, pack_size,
+                                         exceptions);
 };
 //---------------------------------------------------------------------------
 /// @brief Decompress PFOR with bitpacked exception values.
@@ -255,8 +323,54 @@ void decompressPFOREBP(T *dest, const u8 *src, const T &reference,
                         exc_pack_size);
   //---------------------------------------------------------------------------
   // Decompress the payload.
-  internal::decompress<T, kBlockSize>(dest, src, reference, pack_size,
-                                      exceptions.get());
+  internal::decompress<T, T, kBlockSize>(dest, src, reference, pack_size,
+                                         exceptions.get());
+};
+//---------------------------------------------------------------------------
+/// @brief Decompress PFOR with "integer-packed" exceptions values.
+template <typename T, const u16 kBlockSize>
+void decompressPFOREP(T *dest, const u8 *src, const T &reference,
+                      const u8 &pack_size) {
+  // Determine required bytes and bits.
+  u8 req_bits = 0;
+  u8 byte_code = 0;
+  if (pack_size == 0) [[unlikely]] {
+    req_bits = 64;
+    byte_code = 3;
+  } else {
+    req_bits = pack_size & 63;
+    byte_code = pack_size >> 6;
+  }
+  //---------------------------------------------------------------------------
+  // Determine exception offset.
+  auto exceptions = src + internal::getExceptionOffset<kBlockSize>(req_bits);
+  //---------------------------------------------------------------------------
+  // Decompress the payload.
+  switch (byte_code) {
+  case 0:
+    internal::decompress<T, u8, kBlockSize>(
+        dest, src, reference, req_bits,
+        reinterpret_cast<const u8 *>(exceptions));
+    return;
+  case 1:
+    internal::decompress<T, u16, kBlockSize>(
+        dest, src, reference, req_bits,
+        reinterpret_cast<const u16 *>(exceptions));
+    return;
+  case 2:
+    internal::decompress<T, u32, kBlockSize>(
+        dest, src, reference, req_bits,
+        reinterpret_cast<const u32 *>(exceptions));
+    return;
+  case 3:
+    internal::decompress<T, u64, kBlockSize>(
+        dest, src, reference, req_bits,
+        reinterpret_cast<const u64 *>(exceptions));
+    return;
+  default:
+    throw std::runtime_error("Invalid byte code: " + byte_code);
+  }
+  //---------------------------------------------------------------------------
 };
 //---------------------------------------------------------------------------
 } // namespace pfor
