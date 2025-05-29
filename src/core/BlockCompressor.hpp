@@ -6,8 +6,8 @@
 #include "schemes/FOR.hpp"
 #include "schemes/FORn.hpp"
 #include "schemes/RLE.hpp"
-#include "schemes/TinyBlocks.hpp"
 #include "statistics/Statistics.hpp"
+#include "tinyblocks/TinyBlocks.hpp"
 //---------------------------------------------------------------------------
 namespace compression {
 //---------------------------------------------------------------------------

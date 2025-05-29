@@ -11,9 +11,9 @@
 #include "schemes/FOR.hpp"
 #include "schemes/FORn.hpp"
 #include "schemes/RLE.hpp"
-#include "schemes/TinyBlocks.hpp"
 #include "schemes/Uncompressed.hpp"
 #include "statistics/Statistics.hpp"
+#include "tinyblocks/DataBlock.hpp"
 //---------------------------------------------------------------------------
 namespace compression {
 //---------------------------------------------------------------------------
@@ -88,8 +88,7 @@ public:
       decompress<FORn<T, kTinyBlockSize>>(src);
       return;
     case CompressionSchemeType::kTinyBlocks:
-      decompress<tinyblocks::TinyBlocks<T, kTinyBlockSize>>(src);
-      return;
+      throw std::runtime_error("TODO: Currently not supported!");
     case CompressionSchemeType::kUncompressed:
       decompress<Uncompressed<T>>(src);
       return;
@@ -123,7 +122,9 @@ private:
       details = compress<RLE<T>>(dest);
       break;
     case CompressionSchemeType::kTinyBlocks:
-      details = compress<tinyblocks::TinyBlocks<T, kTinyBlockSize>>(dest);
+      tinyblocks::datablock::DataBlock<T, kTinyBlockSize, kDefaultDataBlockSize>
+          db;
+      details = db.compress(this->column.data(), this->column.size(), dest);
       break;
     case CompressionSchemeType::kUncompressed:
       details = compress<Uncompressed<T>>(dest);
@@ -373,7 +374,9 @@ private:
       decompress<RLE<T>>(dest, src);
       return;
     case CompressionSchemeType::kTinyBlocks:
-      decompress<tinyblocks::TinyBlocks<T, kTinyBlockSize>>(dest, src);
+      tinyblocks::datablock::DataBlock<T, kTinyBlockSize, kDefaultDataBlockSize>
+          db;
+      db.decompress(dest, this->column.size(), src);
       return;
     case CompressionSchemeType::kUncompressed:
       decompress<Uncompressed<T>>(dest, src);

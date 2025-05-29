@@ -390,3 +390,40 @@ TEST(TinyBlocksTest, PFOREPDecompressionInvariant) {
     ASSERT_EQ(column.data()[i], decompression_out[i]);
   }
 }
+//---------------------------------------------------------------------------
+// Verifies that the data remains unchanged after using the Datablock
+// abstraction over TinyBlocks.
+TEST(TinyBlocksTest, DataBlockTest) {
+  constexpr u16 kTinyBlocksSize = 256;
+  constexpr u32 kDataBlockSize = 65536;
+  using DataBlocks = tinyblocks::datablock::DataBlock<INTEGER, kTinyBlocksSize,
+                                                      kDataBlockSize>;
+  //---------------------------------------------------------------------------
+  auto path = "../data/tpch/sf1/partsupp.tbl";
+  auto column = storage::Column<INTEGER>::fromFile(path, 0, '|');
+  column.padToMultipleOf(kTinyBlocksSize);
+  //---------------------------------------------------------------------------
+  // compress
+  auto compression_out =
+      std::make_unique<u8[]>(column.size() * sizeof(INTEGER) * 2);
+  //---------------------------------------------------------------------------
+  // Calculate statistics on the data used for compression.
+  vector<Statistics<INTEGER>> stats;
+  auto block_count = column.size() / kTinyBlocksSize;
+  for (size_t i = 0; i < block_count; ++i) {
+    stats.push_back(Statistics<INTEGER>::generateFrom(
+        column.data() + i * kTinyBlocksSize, kTinyBlocksSize));
+  }
+  //---------------------------------------------------------------------------
+  DataBlocks tb;
+  tb.compress(column.data(), column.size(), compression_out.get());
+  //---------------------------------------------------------------------------
+  // decompress
+  vector<INTEGER> decompression_out(column.size());
+  tb.decompress(decompression_out.data(), column.size(), compression_out.get());
+  //---------------------------------------------------------------------------
+  // verify
+  for (size_t i = 0; i < column.size(); ++i) {
+    ASSERT_EQ(column.data()[i], decompression_out[i]);
+  }
+}
