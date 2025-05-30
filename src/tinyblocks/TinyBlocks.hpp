@@ -49,8 +49,7 @@ struct Offset {
 };
 //---------------------------------------------------------------------------
 /// The class wrapping tinyblocks compression.
-template <typename DataType, const u16 kBlockSize>
-class TinyBlocks : public CompressionScheme<DataType> {
+template <typename DataType, const u16 kBlockSize> class TinyBlocks {
 public:
   //---------------------------------------------------------------------------
   using RunLength = u8;
@@ -69,7 +68,7 @@ public:
   // COMPRESSION
   //---------------------------------------------------------------------------
   CompressionDetails compress(const DataType *src, const u32 size, u8 *dest,
-                              const Statistics<DataType> *stats) override {
+                              const Statistics<DataType> *stats) {
     return compressImpl(
         src, size, dest, stats,
         [this](const DataType *src, const Statistics<DataType> &stat) {
@@ -91,7 +90,7 @@ public:
   //---------------------------------------------------------------------------
   // DECOMPRESSION
   //---------------------------------------------------------------------------
-  void decompress(DataType *dest, const u32 size, const u8 *src) override {
+  void decompress(DataType *dest, const u32 size, const u8 *src) {
     decompress(dest, size, src, 0);
   }
   //---------------------------------------------------------------------------
@@ -115,11 +114,6 @@ public:
       header_ptr += sizeof(Slot);
     }
   }
-
-  //---------------------------------------------------------------------------
-  // OTHER
-  //---------------------------------------------------------------------------
-  bool isPartitioningScheme() override { return true; }
 
 private:
   //---------------------------------------------------------------------------

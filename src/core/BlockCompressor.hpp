@@ -7,7 +7,6 @@
 #include "schemes/FORn.hpp"
 #include "schemes/RLE.hpp"
 #include "statistics/Statistics.hpp"
-#include "tinyblocks/TinyBlocks.hpp"
 //---------------------------------------------------------------------------
 namespace compression {
 //---------------------------------------------------------------------------
@@ -76,10 +75,6 @@ public:
     case CompressionSchemeType::kRLE:
       details = compress<RLE<T>>(write_ptr, meta_data);
       break;
-    case CompressionSchemeType::kTinyBlocks:
-      details = compress<tinyblocks::TinyBlocks<T, kTinyBlockSize>>(write_ptr,
-                                                                    meta_data);
-      break;
     default:
       throw std::runtime_error(
           "Compression on DataBlocks not supported for this scheme.");
@@ -122,10 +117,6 @@ public:
     case CompressionSchemeType::kRLE:
       decompress<RLE<T>>(dest.data(), read_ptr, meta_data);
       return;
-    case CompressionSchemeType::kTinyBlocks:
-      decompress<tinyblocks::TinyBlocks<T, kTinyBlockSize>>(
-          dest.data(), read_ptr, meta_data);
-      return;
     default:
       throw std::runtime_error(
           "Compression on DataBlocks not supported for this scheme.");
@@ -147,10 +138,6 @@ public:
       return;
     case CompressionSchemeType::kFORn:
       decompress<FORn<T, kTinyBlockSize>>(read_ptr, meta_data);
-      return;
-    case CompressionSchemeType::kTinyBlocks:
-      decompress<tinyblocks::TinyBlocks<T, kTinyBlockSize>>(read_ptr,
-                                                            meta_data);
       return;
     default:
       throw std::runtime_error(
