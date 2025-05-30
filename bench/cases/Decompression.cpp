@@ -3,7 +3,7 @@
 //---------------------------------------------------------------------------
 #include "common/PerfEvent.hpp"
 #include "common/Types.hpp"
-#include "schemes/TinyBlocks.hpp"
+#include "tinyblocks/TinyBlocks.hpp"
 //---------------------------------------------------------------------------
 using namespace compression;
 //---------------------------------------------------------------------------
