@@ -19,8 +19,9 @@ enum class Scheme : u8 {
   RLE8 = 3,
   DELTA = 4,
   PFOR = 5,
-  PFOREBP = 6,
-  PFOREP = 7,
+  PFOR_EBP = 6,
+  PFOR_EP = 7,
+  PFOR_DELTA = 8,
 };
 //---------------------------------------------------------------------------
 /// The opcode stored in the header slot.
@@ -169,10 +170,12 @@ private:
     scheme2size[Scheme::RLE4] = compressRLE<4>(src, dest.get(), stats, slot);
     scheme2size[Scheme::RLE8] = compressRLE<8>(src, dest.get(), stats, slot);
     scheme2size[Scheme::PFOR] = compressPFOR(src, dest.get(), slot);
-    scheme2size[Scheme::PFOREBP] = compressPFOREBP(src, dest.get(), slot);
-    scheme2size[Scheme::PFOREP] = compressPFOREP(src, dest.get(), slot);
+    scheme2size[Scheme::PFOR_EBP] = compressPFOREBP(src, dest.get(), slot);
+    scheme2size[Scheme::PFOR_EP] = compressPFOREP(src, dest.get(), slot);
     if (stats.delta) {
       scheme2size[Scheme::DELTA] = compressDelta(src, dest.get(), slot);
+      scheme2size[Scheme::PFOR_DELTA] =
+          compressPFORDelta(src, dest.get(), slot);
     }
     //---------------------------------------------------------------------------
     // Find minimum size.
@@ -199,10 +202,12 @@ private:
       return compressDelta(src, dest, slot);
     case Scheme::PFOR:
       return compressPFOR(src, dest, slot);
-    case Scheme::PFOREBP:
+    case Scheme::PFOR_EBP:
       return compressPFOREBP(src, dest, slot);
-    case Scheme::PFOREP:
+    case Scheme::PFOR_EP:
       return compressPFOREP(src, dest, slot);
+    case Scheme::PFOR_DELTA:
+      return compressPFORDelta(src, dest, slot);
     default:
       throw std::runtime_error(
           "Compression failed: Provided scheme does not exist.");
@@ -232,11 +237,14 @@ private:
     case Scheme::PFOR:
       decompressPFOR(dest, src, slot);
       return;
-    case Scheme::PFOREBP:
+    case Scheme::PFOR_EBP:
       decompressPFOREBP(dest, src, slot);
       return;
-    case Scheme::PFOREP:
+    case Scheme::PFOR_EP:
       decompressPFOREP(dest, src, slot);
+      return;
+    case Scheme::PFOR_DELTA:
+      decompressPFORDelta(dest, src, slot);
       return;
     default:
       throw std::runtime_error(
@@ -502,11 +510,11 @@ private:
   }
 
   //---------------------------------------------------------------------------
-  // PFOREBP
+  // PFOR_EBP
   //---------------------------------------------------------------------------
   u32 compressPFOREBP(const DataType *src, u8 *dest, Slot &slot) {
     u8 pack_size;
-    slot.opcode = {Scheme::PFOREBP, pack_size};
+    slot.opcode = {Scheme::PFOR_EBP, pack_size};
     //---------------------------------------------------------------------------
     // Compress
     return pfor::compressPFOREBP<DataType, kBlockSize>(
@@ -519,11 +527,11 @@ private:
   }
 
   //---------------------------------------------------------------------------
-  // PFOREP
+  // PFOR_EP
   //---------------------------------------------------------------------------
   u32 compressPFOREP(const DataType *src, u8 *dest, Slot &slot) {
     u8 pack_size;
-    slot.opcode = {Scheme::PFOREP, pack_size};
+    slot.opcode = {Scheme::PFOR_EP, pack_size};
     //---------------------------------------------------------------------------
     // Compress
     return pfor::compressPFOREP<DataType, kBlockSize>(src, dest, slot.reference,
@@ -533,6 +541,39 @@ private:
   void decompressPFOREP(DataType *dest, const u8 *src, const Slot &slot) {
     pfor::decompressPFOREP<DataType, kBlockSize>(dest, src, slot.reference,
                                                  slot.opcode.payload);
+  }
+  //---------------------------------------------------------------------------
+
+  //---------------------------------------------------------------------------
+  // PFOR_DELTA
+  //---------------------------------------------------------------------------
+  u32 compressPFORDelta(const DataType *src, u8 *dest, Slot &slot) {
+    slot.opcode = {Scheme::PFOR_DELTA, 0};
+    //---------------------------------------------------------------------------
+    // Compress Delta
+    auto buffer = std::make_unique<DataType[]>(kBlockSize);
+    pfor::delta::compress<DataType, kBlockSize>(src, buffer.get());
+    //---------------------------------------------------------------------------
+    // Update Stats
+    DataType min = buffer[0];
+    for (u16 i = 1; i < kBlockSize; ++i) {
+      if (buffer[i] < min)
+        min = buffer[i];
+    }
+    slot.reference = min;
+    //---------------------------------------------------------------------------
+    // Compress PFOR
+    return pfor::compressPFOREP<DataType, kBlockSize>(
+        buffer.get(), dest, slot.reference, slot.opcode.payload);
+  }
+  //---------------------------------------------------------------------------
+  void decompressPFORDelta(DataType *dest, const u8 *src, const Slot &slot) {
+    // PFOR
+    pfor::decompressPFOREP<DataType, kBlockSize>(dest, src, slot.reference,
+                                                 slot.opcode.payload);
+    //---------------------------------------------------------------------------
+    // Delta
+    pfor::delta::decompress<DataType, kBlockSize>(dest);
   }
   //---------------------------------------------------------------------------
 }; // namespace tinyblocks
