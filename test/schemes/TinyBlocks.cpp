@@ -409,3 +409,39 @@ TEST(TinyBlocksTest, DataBlockTest) {
     ASSERT_EQ(column.data()[i], decompression_out[i]);
   }
 }
+//---------------------------------------------------------------------------
+// Verifies that the data remains unchanged after PFOR_LEMIRE compression and
+// decompression for 32 bit integers.
+TEST(TinyBlocksTest, PFORLemireDecompressionInvariant) {
+  constexpr uint16_t kTinyBlocksSize = 256;
+  using TinyBlocks = tinyblocks::TinyBlocks<INTEGER, kTinyBlocksSize>;
+  //---------------------------------------------------------------------------
+  auto path = "../data/tpch/sf1/partsupp.tbl";
+  auto column = storage::Column<INTEGER>::fromFile(path, 0, '|');
+  column.padToMultipleOf(kTinyBlocksSize);
+  //---------------------------------------------------------------------------
+  // compress
+  auto compression_out =
+      std::make_unique<u8[]>(column.size() * sizeof(INTEGER) * 2);
+  //---------------------------------------------------------------------------
+  // Calculate statistics on the data used for compression.
+  vector<Statistics<INTEGER>> stats;
+  auto block_count = column.size() / kTinyBlocksSize;
+  for (size_t i = 0; i < block_count; ++i) {
+    stats.push_back(Statistics<INTEGER>::generateFrom(
+        column.data() + i * kTinyBlocksSize, kTinyBlocksSize));
+  }
+  //---------------------------------------------------------------------------
+  TinyBlocks tb;
+  tb.compress(column.data(), column.size(), compression_out.get(), stats.data(),
+              tinyblocks::Scheme::PFOR_LEMIRE);
+  //---------------------------------------------------------------------------
+  // decompress
+  vector<INTEGER> decompression_out(column.size());
+  tb.decompress(decompression_out.data(), column.size(), compression_out.get());
+  //---------------------------------------------------------------------------
+  // verify
+  for (size_t i = 0; i < column.size(); ++i) {
+    ASSERT_EQ(column.data()[i], decompression_out[i]);
+  }
+}

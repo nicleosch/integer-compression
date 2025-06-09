@@ -22,6 +22,7 @@ enum class Scheme : u8 {
   PFOR_EBP = 6,
   PFOR_EP = 7,
   PFOR_DELTA = 8,
+  PFOR_LEMIRE = 9,
 };
 //---------------------------------------------------------------------------
 /// The opcode stored in the header slot.
@@ -172,6 +173,8 @@ private:
     scheme2size[Scheme::PFOR] = compressPFOR(src, dest.get(), slot);
     scheme2size[Scheme::PFOR_EBP] = compressPFOREBP(src, dest.get(), slot);
     scheme2size[Scheme::PFOR_EP] = compressPFOREP(src, dest.get(), slot);
+    scheme2size[Scheme::PFOR_LEMIRE] =
+        compressPFORLemire(src, dest.get(), slot);
     if (stats.delta) {
       scheme2size[Scheme::DELTA] = compressDelta(src, dest.get(), slot);
       scheme2size[Scheme::PFOR_DELTA] =
@@ -208,6 +211,8 @@ private:
       return compressPFOREP(src, dest, slot);
     case Scheme::PFOR_DELTA:
       return compressPFORDelta(src, dest, slot);
+    case Scheme::PFOR_LEMIRE:
+      return compressPFORLemire(src, dest, slot);
     default:
       throw std::runtime_error(
           "Compression failed: Provided scheme does not exist.");
@@ -245,6 +250,9 @@ private:
       return;
     case Scheme::PFOR_DELTA:
       decompressPFORDelta(dest, src, slot);
+      return;
+    case Scheme::PFOR_LEMIRE:
+      decompressPFORLemire(dest, src, slot);
       return;
     default:
       throw std::runtime_error(
@@ -574,6 +582,35 @@ private:
     //---------------------------------------------------------------------------
     // Delta
     pfor::delta::decompress<DataType, kBlockSize>(dest);
+  }
+
+  //---------------------------------------------------------------------------
+  // PFOR_Lemire
+  //---------------------------------------------------------------------------
+  u32 compressPFORLemire(const DataType *src, u8 *dest, Slot &slot) {
+    u8 pack_size;
+    slot.opcode = {Scheme::PFOR_LEMIRE, pack_size};
+    //---------------------------------------------------------------------------
+    // Normalize
+    vector<DataType> normalized(kBlockSize);
+    for (u32 i = 0; i < kBlockSize; ++i) {
+      normalized[i] = src[i] - slot.reference;
+    }
+    //---------------------------------------------------------------------------
+    // Compress
+    return pfor::compressPFORLemire<DataType, kBlockSize>(
+        normalized.data(), dest, slot.opcode.payload);
+  }
+  //---------------------------------------------------------------------------
+  void decompressPFORLemire(DataType *dest, const u8 *src, const Slot &slot) {
+    // Decompress
+    pfor::decompressPFORLemire<DataType, kBlockSize>(dest, src,
+                                                     slot.opcode.payload);
+    //---------------------------------------------------------------------------
+    // Denormalize
+    for (u32 i = 0; i < kBlockSize; ++i) {
+      dest[i] += slot.reference;
+    }
   }
   //---------------------------------------------------------------------------
 }; // namespace tinyblocks
