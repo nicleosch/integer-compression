@@ -221,10 +221,12 @@ void getBestPackSize(const T *src, u8 &best_pack_size, u8 &max_pack_size) {
   u32 cexcept = 0;
   for (u32 b = best_pack_size - 1; b > 0; --b) {
     cexcept += bit_freqs[b + 1];
-    u32 thiscost = cexcept * kExceptionOverhead // Constant Exception Overhead
-                   + cexcept * (maxb - b)       // Packed Exceptions
-                   + b * kBlockSize;            // Packed Payload
-    if (maxb - b == 1)
+    u32 thiscost =
+        cexcept * kExceptionOverhead // Constant Exception Overhead
+        + ((cexcept * (max_pack_size - b) + (sizeof(SIMDRegister) * 8 - 1)) &
+           ~(sizeof(SIMDRegister) * 8 - 1)) // Packed Exceptions
+        + b * kBlockSize;                   // Packed Payload
+    if (max_pack_size - b == 1)
       thiscost -= cexcept;
     if (thiscost < bestcost) {
       bestcost = thiscost;
