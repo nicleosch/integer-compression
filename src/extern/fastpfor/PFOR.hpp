@@ -1,5 +1,7 @@
 #pragma once
 //---------------------------------------------------------------------------
+#include <cassert>
+//---------------------------------------------------------------------------
 #include "bitpacking/BitPacking.hpp"
 #include "common/Types.hpp"
 #include "common/Utils.hpp"
