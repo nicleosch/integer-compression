@@ -5,6 +5,7 @@
 #include "bitpacking/BitPacking.hpp"
 #include "common/Types.hpp"
 #include "common/Utils.hpp"
+#include "extern/fastpfor/BitPacking.hpp"
 //---------------------------------------------------------------------------
 namespace compression {
 //---------------------------------------------------------------------------
@@ -223,11 +224,9 @@ void getBestPackSize(const T *src, u8 &best_pack_size, u8 &max_pack_size) {
   u32 cexcept = 0;
   for (u32 b = best_pack_size - 1; b > 0; --b) {
     cexcept += bit_freqs[b + 1];
-    u32 thiscost =
-        cexcept * kExceptionOverhead // Constant Exception Overhead
-        + ((cexcept * (max_pack_size - b) + (sizeof(SIMDRegister) * 8 - 1)) &
-           ~(sizeof(SIMDRegister) * 8 - 1)) // Packed Exceptions
-        + b * kBlockSize;                   // Packed Payload
+    u32 thiscost = cexcept * kExceptionOverhead // Constant Exception Overhead
+                   + cexcept * (max_pack_size - b) // Packed Exceptions
+                   + b * kBlockSize;               // Packed Payload
     if (max_pack_size - b == 1)
       thiscost -= cexcept;
     if (thiscost < bestcost) {
@@ -271,8 +270,8 @@ u32 compress(const T *src, u8 *dest, u8 &best_pack_size) {
   // Exceptions.
   u64 padding = 0;
   utils::align<u8>(write_ptr, 4, padding);
-  write_ptr += bitpacking::pack<T>(exceptions.data(), exceptions.size(),
-                                   write_ptr, max_pack_size - best_pack_size);
+  packAdaptive<T>(exceptions, reinterpret_cast<u32 *>(write_ptr),
+                  max_pack_size - best_pack_size);
   //---------------------------------------------------------------------------
   return write_ptr - dest;
 }
@@ -299,8 +298,8 @@ void decompress(T *dest, const u8 *src, const u8 &pack_size) {
   vector<T> exceptions(exceptions_size);
   u64 padding = 0;
   utils::align<const u8>(read_ptr, 4, padding);
-  bitpacking::unpack<T>(exceptions.data(), exceptions_size, read_ptr,
-                        max_pack_size - pack_size);
+  unpackAdaptive<T>(exceptions, reinterpret_cast<const u32 *>(read_ptr),
+                    max_pack_size - pack_size);
   //---------------------------------------------------------------------------
   // Decompress the payload.
   for (u16 i = 0; i < exceptions_size; ++i) {
