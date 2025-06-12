@@ -148,54 +148,72 @@ TEST(TinyBlocksTest, Phase2CompressionInvariant) {
   }
 }
 //---------------------------------------------------------------------------
-// Verifies that the data remains unchanged after RLE compression and
+// Verifies that the data remains unchanged after RLE4 compression and
 // decompression for 32 bit integers.
-TEST(TinyBlocksTest, RLEDecompressionInvariant32bit) {
-  constexpr uint16_t kBlockSize = 256;
-
-  auto path = "../data/tpch/sf1/nation.tbl";
+TEST(TinyBlocksTest, RLE4DecompressionInvariant32bit) {
+  constexpr uint16_t kTinyBlocksSize = 256;
+  using TinyBlocks = tinyblocks::TinyBlocks<INTEGER, kTinyBlocksSize>;
+  //---------------------------------------------------------------------------
+  auto path = "../data/tpch/sf1/partsupp.tbl";
   auto column = storage::Column<INTEGER>::fromFile(path, 0, '|');
-
-  column.padToMultipleOf(kBlockSize);
-
-  ColumnCompressor<INTEGER, kBlockSize> compressor(
-      column, CompressionSchemeType::kTinyBlocks);
-
+  column.padToMultipleOf(kTinyBlocksSize);
+  //---------------------------------------------------------------------------
   // compress
-  std::unique_ptr<compression::u8[]> compression_out;
-  compressor.compress(compression_out);
-
+  auto compression_out =
+      std::make_unique<u8[]>(column.size() * sizeof(INTEGER) * 2);
+  //---------------------------------------------------------------------------
+  // Calculate statistics on the data used for compression.
+  vector<Statistics<INTEGER>> stats;
+  auto block_count = column.size() / kTinyBlocksSize;
+  for (size_t i = 0; i < block_count; ++i) {
+    stats.push_back(Statistics<INTEGER>::generateFrom(
+        column.data() + i * kTinyBlocksSize, kTinyBlocksSize));
+  }
+  //---------------------------------------------------------------------------
+  TinyBlocks tb;
+  tb.compress(column.data(), column.size(), compression_out.get(), stats.data(),
+              tinyblocks::Scheme::RLE4);
+  //---------------------------------------------------------------------------
   // decompress
-  std::vector<compression::INTEGER> decompression_out;
-  compressor.decompress(decompression_out, compression_out.get());
-
+  vector<INTEGER> decompression_out(column.size());
+  tb.decompress(decompression_out.data(), column.size(), compression_out.get());
+  //---------------------------------------------------------------------------
   // verify
   for (size_t i = 0; i < column.size(); ++i) {
     ASSERT_EQ(column.data()[i], decompression_out[i]);
   }
 }
 //---------------------------------------------------------------------------
-// Verifies that the data remains unchanged after RLE compression and
-// decompression for 64 bit integers.
-TEST(TinyBlocksTest, RLEDecompressionInvariant64bit) {
-  constexpr uint16_t kBlockSize = 256;
-
-  auto path = "../data/tpch/sf1/nation.tbl";
-  auto column = storage::Column<BIGINT>::fromFile(path, 0, '|');
-
-  column.padToMultipleOf(kBlockSize);
-
-  ColumnCompressor<BIGINT, kBlockSize> compressor(
-      column, CompressionSchemeType::kTinyBlocks);
-
+// Verifies that the data remains unchanged after RLE8 compression and
+// decompression for 32 bit integers.
+TEST(TinyBlocksTest, RLE8DecompressionInvariant32bit) {
+  constexpr uint16_t kTinyBlocksSize = 256;
+  using TinyBlocks = tinyblocks::TinyBlocks<INTEGER, kTinyBlocksSize>;
+  //---------------------------------------------------------------------------
+  auto path = "../data/tpch/sf1/partsupp.tbl";
+  auto column = storage::Column<INTEGER>::fromFile(path, 0, '|');
+  column.padToMultipleOf(kTinyBlocksSize);
+  //---------------------------------------------------------------------------
   // compress
-  std::unique_ptr<compression::u8[]> compression_out;
-  compressor.compress(compression_out);
-
+  auto compression_out =
+      std::make_unique<u8[]>(column.size() * sizeof(INTEGER) * 2);
+  //---------------------------------------------------------------------------
+  // Calculate statistics on the data used for compression.
+  vector<Statistics<INTEGER>> stats;
+  auto block_count = column.size() / kTinyBlocksSize;
+  for (size_t i = 0; i < block_count; ++i) {
+    stats.push_back(Statistics<INTEGER>::generateFrom(
+        column.data() + i * kTinyBlocksSize, kTinyBlocksSize));
+  }
+  //---------------------------------------------------------------------------
+  TinyBlocks tb;
+  tb.compress(column.data(), column.size(), compression_out.get(), stats.data(),
+              tinyblocks::Scheme::RLE8);
+  //---------------------------------------------------------------------------
   // decompress
-  std::vector<compression::BIGINT> decompression_out;
-  compressor.decompress(decompression_out, compression_out.get());
-
+  vector<INTEGER> decompression_out(column.size());
+  tb.decompress(decompression_out.data(), column.size(), compression_out.get());
+  //---------------------------------------------------------------------------
   // verify
   for (size_t i = 0; i < column.size(); ++i) {
     ASSERT_EQ(column.data()[i], decompression_out[i]);
