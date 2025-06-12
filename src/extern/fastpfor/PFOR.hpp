@@ -242,7 +242,7 @@ public:
     // Build buffers.
     vector<T> exceptions;
     vector<ExceptionLocation> locations;
-    T max_value = (1U << best_pack_size) - 1;
+    T max_value = 1U << best_pack_size;
     for (u16 i = 0; i < kBlockSize; ++i) {
       if (src[i] >= max_value) {
         exceptions.push_back(src[i] >> best_pack_size);
@@ -254,7 +254,7 @@ public:
     auto write_ptr = dest;
     // Payload.
     write_ptr +=
-        bitpacking::pack<T, kBlockSize>(src, write_ptr, best_pack_size);
+        bitpacking::packmask<T, kBlockSize>(src, write_ptr, best_pack_size);
     // Meta data.
     assert(locations.size() < (1ULL << 24));
     u32 meta = ((static_cast<u32>(max_pack_size) << 24) |
@@ -268,8 +268,8 @@ public:
     // Exceptions.
     u64 padding = 0;
     utils::align<u8>(write_ptr, 4, padding);
-    packAdaptive<T>(exceptions, reinterpret_cast<u32 *>(write_ptr),
-                    max_pack_size - best_pack_size);
+    write_ptr += packAdaptive<T>(exceptions, reinterpret_cast<u32 *>(write_ptr),
+                                 max_pack_size - best_pack_size);
     //---------------------------------------------------------------------------
     return write_ptr - dest;
   }
