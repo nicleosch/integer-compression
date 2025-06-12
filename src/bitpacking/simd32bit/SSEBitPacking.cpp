@@ -14,6 +14,10 @@ void pack(const u32 *in, __m128i *out, const u8 bit) {
   return simdpackwithoutmask(in, out, bit);
 }
 //---------------------------------------------------------------------------
+void packmask(const u32 *in, __m128i *out, const u8 bit) {
+  return simdpack(in, out, bit);
+}
+//---------------------------------------------------------------------------
 void unpack(const __m128i *in, u32 *out, const u8 bit) {
   return simdunpack(in, out, bit);
 }

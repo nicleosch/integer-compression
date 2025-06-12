@@ -14,6 +14,10 @@ void pack(const u32 *in, __m256i *out, const u8 bit) {
   return avxpackwithoutmask(in, out, bit);
 }
 //---------------------------------------------------------------------------
+void packmask(const u32 *in, __m256i *out, const u8 bit) {
+  return avxpack(in, out, bit);
+}
+//---------------------------------------------------------------------------
 void unpack(const __m256i *in, u32 *out, const u8 bit) {
   avxunpack(in, out, bit);
 }
