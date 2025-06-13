@@ -344,9 +344,7 @@ u32 compressPFOREBP(const T *src, u8 *dest, const T &reference, u8 &pack_size) {
       src, dest, reference, pack_size, exc_pack_size, exceptions,
       [&](const u32 cexcept, const u32 b, const u32 eb) {
         return b * kBlockSize / 8 + // Payload
-                   sizeof(u32) +    // Exceptions-Length
-                   (cexcept * eb / 8 + (sizeof(SIMDRegister) - 1)) &
-               ~(sizeof(SIMDRegister) - 1); // Exceptions
+               (cexcept * eb / 8);  // Exceptions
       });
   //---------------------------------------------------------------------------
   // Write meta data.
@@ -361,6 +359,8 @@ u32 compressPFOREBP(const T *src, u8 *dest, const T &reference, u8 &pack_size) {
   if (exceptions_length > 0) {
     write_ptr += bitpacking::pack<T>(exceptions.data(), exceptions.size(),
                                      write_ptr, exc_pack_size);
+    write_ptr += packAdaptive<T>(exceptions, reinterpret_cast<u32 *>(write_ptr),
+                                 exc_pack_size);
   }
   //---------------------------------------------------------------------------
   return write_ptr - dest;
