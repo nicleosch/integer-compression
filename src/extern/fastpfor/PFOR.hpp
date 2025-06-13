@@ -210,8 +210,11 @@ public:
     u32 bit_freqs[maxb + 1];
     for (u32 k = 0; k <= maxb; ++k)
       bit_freqs[k] = 0;
-    for (u32 k = 0; k < kBlockSize; ++k)
-      bit_freqs[utils::requiredBits<T>(src[k])]++;
+    for (u32 k = 0; k < kBlockSize; ++k) {
+      assert(src[k] <
+             INT64_MAX); // TODO: Will break for values larger than MAX_INT64
+      bit_freqs[FastPForLib::asmbits(static_cast<u64>(src[k]))]++;
+    }
     //---------------------------------------------------------------------------
     best_pack_size = maxb;
     while (bit_freqs[best_pack_size] == 0)
@@ -220,7 +223,7 @@ public:
     //---------------------------------------------------------------------------
     u32 bestcost = best_pack_size * kBlockSize;
     u32 cexcept = 0;
-    for (u32 b = best_pack_size - 1; b > 0; --b) {
+    for (u32 b = best_pack_size - 1; b < sizeof(T) * 8; --b) {
       cexcept += bit_freqs[b + 1];
       u32 thiscost = cexcept * kExceptionOverhead // Constant Exception Overhead
                      + cexcept * (max_pack_size - b) // Packed Exceptions
