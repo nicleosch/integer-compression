@@ -360,8 +360,6 @@ u32 compressPFOREBP(const T *src, u8 *dest, const T &reference, u8 &pack_size) {
   //---------------------------------------------------------------------------
   // Pack the exceptions, if there are any.
   if (exceptions_length > 0) {
-    write_ptr += bitpacking::pack<T>(exceptions.data(), exceptions.size(),
-                                     write_ptr, exc_pack_size);
     write_ptr += packAdaptive<T>(exceptions, reinterpret_cast<u32 *>(write_ptr),
                                  exc_pack_size);
   }
@@ -460,13 +458,13 @@ void decompressPFOREBP(T *dest, const u8 *src, const T &reference,
   const u8 exc_pack_size = exceptions_meta >> 24;
   // TODO: Move such allocations one level up as it is not necessary to
   // allocate for each block.
-  auto exceptions = std::make_unique<T[]>(exceptions_length);
-  bitpacking::unpack<T>(exceptions.get(), exceptions_length, exception_ptr,
-                        exc_pack_size);
+  vector<T> exceptions(exceptions_length);
+  unpackAdaptive<T>(exceptions, reinterpret_cast<const u32 *>(exception_ptr),
+                    exc_pack_size);
   //---------------------------------------------------------------------------
   // Decompress the payload.
   internal::decompress<T, T, kBlockSize>(dest, src, reference, pack_size,
-                                         exceptions.get());
+                                         exceptions.data());
 };
 //---------------------------------------------------------------------------
 /// @brief Decompress PFOR with "integer-packed" exceptions values.
