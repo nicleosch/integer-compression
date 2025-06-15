@@ -558,30 +558,43 @@ private:
   u32 compressPFORDelta(const DataType *src, u8 *dest, Slot &slot) {
     slot.opcode = {Scheme::PFOR_DELTA, 0};
     //---------------------------------------------------------------------------
-    // Compress Delta
-    auto buffer = std::make_unique<DataType[]>(kBlockSize);
-    pfor::delta::compress<DataType, kBlockSize>(src, buffer.get());
-    //---------------------------------------------------------------------------
-    // Update Stats
-    DataType min = buffer[0];
-    for (u16 i = 1; i < kBlockSize; ++i) {
-      if (buffer[i] < min)
-        min = buffer[i];
+    // Normalize
+    vector<DataType> normalized(kBlockSize);
+    for (u32 i = 0; i < kBlockSize; ++i) {
+      normalized[i] = src[i] - slot.reference;
     }
-    slot.reference = min;
+    //---------------------------------------------------------------------------
+    // Compress Delta
+    pfor::delta::compress<DataType, kBlockSize>(normalized.data());
+    //---------------------------------------------------------------------------
+    // Prepare
+    DataType min = 0;
+    DataType max = 0;
+    for (u16 i = 0; i < kBlockSize; ++i) {
+      if (normalized[i] < min)
+        min = normalized[i];
+      if (normalized[i] > max)
+        max = normalized[i];
+    }
+    u8 pack_size = utils::requiredBits(max - min);
     //---------------------------------------------------------------------------
     // Compress PFOR
-    return pfor::compressPFOREP<DataType, kBlockSize>(
-        buffer.get(), dest, slot.reference, slot.opcode.payload);
+    return pfor::compressPFORLemire<DataType, kBlockSize>(
+        normalized.data(), dest, slot.opcode.payload);
   }
   //---------------------------------------------------------------------------
   void decompressPFORDelta(DataType *dest, const u8 *src, const Slot &slot) {
-    // PFOR
-    pfor::decompressPFOREP<DataType, kBlockSize>(dest, src, slot.reference,
-                                                 slot.opcode.payload);
+    // Decompress
+    pfor::decompressPFORLemire<DataType, kBlockSize>(dest, src,
+                                                     slot.opcode.payload);
     //---------------------------------------------------------------------------
     // Delta
     pfor::delta::decompress<DataType, kBlockSize>(dest);
+    //---------------------------------------------------------------------------
+    // Denormalize
+    for (u32 i = 0; i < kBlockSize; ++i) {
+      dest[i] += slot.reference;
+    }
   }
 
   //---------------------------------------------------------------------------
