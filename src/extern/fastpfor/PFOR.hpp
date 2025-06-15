@@ -48,7 +48,9 @@ void getBestPackSize(const T *src, u8 &best_pack_size, u8 &max_pack_size,
     max_values[k] = false;
   }
   for (u32 k = 0; k < kBlockSize; ++k) {
-    u8 b = utils::requiredBits<T>(src[k]);
+    assert(src[k] <
+           INT64_MAX); // TODO: Will break for values larger than MAX_INT64
+    u32 b = FastPForLib::asmbits(static_cast<u64>(src[k]));
     bit_freqs[b]++;
     T max_value = (1 << b) - 1;
     if (src[k] == max_value)
