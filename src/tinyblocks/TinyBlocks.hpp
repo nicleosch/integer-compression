@@ -3,6 +3,7 @@
 #include <cmath>
 //---------------------------------------------------------------------------
 #include "bitpacking/BitPacking.hpp"
+#include "extern/fastpfor/BitPacking.hpp"
 #include "extern/fastpfor/Delta.hpp"
 #include "extern/fastpfor/PFOR.hpp"
 #include "schemes/CompressionScheme.hpp"
@@ -381,8 +382,8 @@ private:
     // Write values
     u16 value_offset = lengths.size() * sizeof(RunLength);
     write_ptr += value_offset;
-    u32 values_size = bitpacking::pack<DataType>(
-        values.data(), values.size(), write_ptr, slot.opcode.payload);
+    u32 values_size = pfor::packAdaptive(
+        values, reinterpret_cast<u32 *>(write_ptr), slot.opcode.payload);
     //---------------------------------------------------------------------------
     return sizeof(run_count) + value_offset + values_size;
   }
@@ -407,8 +408,8 @@ private:
     auto read_ptr = src + value_offset;
     // Unpack
     vector<DataType> values(run_count);
-    bitpacking::unpack<DataType>(values.data(), run_count, read_ptr,
-                                 slot.opcode.payload);
+    pfor::unpackAdaptive<DataType>(
+        values, reinterpret_cast<const u32 *>(read_ptr), slot.opcode.payload);
     // Initialize lengths
     // TODO: Can be improved probably, currently done to prevent UB
     vector<RunLength> lengths(length_bytes);
