@@ -4,7 +4,6 @@
 //---------------------------------------------------------------------------
 #include "bitpacking/simd32bit/BitPacking.hpp"
 #include "bitpacking/simd64bit/BitPacking.hpp"
-#include "common/Types.hpp"
 //---------------------------------------------------------------------------
 namespace compression {
 //---------------------------------------------------------------------------
