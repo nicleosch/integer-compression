@@ -1,0 +1,17570 @@
+#include <cstring>
+//---------------------------------------------------------------------------
+#include "Block64BitPacking.hpp"
+//---------------------------------------------------------------------------
+namespace compression {
+//---------------------------------------------------------------------------
+namespace bitpacking {
+//---------------------------------------------------------------------------
+namespace simd64 {
+//---------------------------------------------------------------------------
+namespace block64 {
+//---------------------------------------------------------------------------
+typedef void (*simdpackblockfnc)(const u64 *pin, __m128i *compressed);
+typedef void (*simdunpackblockfnc)(const __m128i *compressed, u64 *out);
+
+static void simdpackblock0(const u64 *pin, __m128i *compressed) {
+  (void)compressed;
+  (void)pin; /* we consumed 64 64-bit integers */
+}
+
+/* we are going to pack 64 1-bit values, touching 1 128-bit words, using 16
+ * bytes */
+static void simdpackblock1(const u64 *pin, __m128i *compressed) {
+  const __m128i *in = (const __m128i *)pin;
+  /* we are going to touch  1 128-bit word */
+  __m128i w0;
+  w0 = _mm_loadu_si128(in + 0);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 1), 1));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 2), 2));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 3), 3));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 4), 4));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 5), 5));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 6), 6));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 7), 7));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 8), 8));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 9), 9));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 10), 10));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 11), 11));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 12), 12));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 13), 13));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 14), 14));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 15), 15));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 16), 16));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 17), 17));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 18), 18));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 19), 19));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 20), 20));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 21), 21));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 22), 22));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 23), 23));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 24), 24));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 25), 25));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 26), 26));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 27), 27));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 28), 28));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 29), 29));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 30), 30));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 31), 31));
+  _mm_storeu_si128(compressed + 0, w0);
+}
+
+/* we are going to pack 64 2-bit values, touching 1 128-bit words, using 16
+ * bytes */
+static void simdpackblock2(const u64 *pin, __m128i *compressed) {
+  const __m128i *in = (const __m128i *)pin;
+  /* we are going to touch  1 128-bit word */
+  __m128i w0;
+  w0 = _mm_loadu_si128(in + 0);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 1), 2));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 2), 4));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 3), 6));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 4), 8));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 5), 10));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 6), 12));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 7), 14));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 8), 16));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 9), 18));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 10), 20));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 11), 22));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 12), 24));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 13), 26));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 14), 28));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 15), 30));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 16), 32));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 17), 34));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 18), 36));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 19), 38));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 20), 40));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 21), 42));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 22), 44));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 23), 46));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 24), 48));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 25), 50));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 26), 52));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 27), 54));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 28), 56));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 29), 58));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 30), 60));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 31), 62));
+  _mm_storeu_si128(compressed + 0, w0);
+}
+
+/* we are going to pack 64 3-bit values, touching 2 128-bit words, using 32
+ * bytes */
+static void simdpackblock3(const u64 *pin, __m128i *compressed) {
+  const __m128i *in = (const __m128i *)pin;
+  /* we are going to touch  2 128-bit words */
+  __m128i w0, w1;
+  __m128i tmp; /* used to store inputs at word boundary */
+  w0 = _mm_loadu_si128(in + 0);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 1), 3));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 2), 6));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 3), 9));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 4), 12));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 5), 15));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 6), 18));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 7), 21));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 8), 24));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 9), 27));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 10), 30));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 11), 33));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 12), 36));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 13), 39));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 14), 42));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 15), 45));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 16), 48));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 17), 51));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 18), 54));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 19), 57));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 20), 60));
+  tmp = _mm_loadu_si128(in + 21);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 63));
+  w1 = _mm_srli_epi64(tmp, 1);
+  _mm_storeu_si128(compressed + 0, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 22), 2));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 23), 5));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 24), 8));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 25), 11));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 26), 14));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 27), 17));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 28), 20));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 29), 23));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 30), 26));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 31), 29));
+  _mm_storeu_si128(compressed + 1, w1);
+}
+
+/* we are going to pack 64 4-bit values, touching 2 128-bit words, using 32
+ * bytes */
+static void simdpackblock4(const u64 *pin, __m128i *compressed) {
+  const __m128i *in = (const __m128i *)pin;
+  /* we are going to touch  2 128-bit words */
+  __m128i w0, w1;
+  w0 = _mm_loadu_si128(in + 0);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 1), 4));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 2), 8));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 3), 12));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 4), 16));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 5), 20));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 6), 24));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 7), 28));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 8), 32));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 9), 36));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 10), 40));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 11), 44));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 12), 48));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 13), 52));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 14), 56));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 15), 60));
+  _mm_storeu_si128(compressed + 0, w0);
+  w1 = _mm_loadu_si128(in + 16);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 17), 4));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 18), 8));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 19), 12));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 20), 16));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 21), 20));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 22), 24));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 23), 28));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 24), 32));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 25), 36));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 26), 40));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 27), 44));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 28), 48));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 29), 52));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 30), 56));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 31), 60));
+  _mm_storeu_si128(compressed + 1, w1);
+}
+
+/* we are going to pack 64 5-bit values, touching 3 128-bit words, using 48
+ * bytes */
+static void simdpackblock5(const u64 *pin, __m128i *compressed) {
+  const __m128i *in = (const __m128i *)pin;
+  /* we are going to touch  3 128-bit words */
+  __m128i w0, w1;
+  __m128i tmp; /* used to store inputs at word boundary */
+  w0 = _mm_loadu_si128(in + 0);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 1), 5));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 2), 10));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 3), 15));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 4), 20));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 5), 25));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 6), 30));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 7), 35));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 8), 40));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 9), 45));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 10), 50));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 11), 55));
+  tmp = _mm_loadu_si128(in + 12);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 60));
+  w1 = _mm_srli_epi64(tmp, 4);
+  _mm_storeu_si128(compressed + 0, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 13), 1));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 14), 6));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 15), 11));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 16), 16));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 17), 21));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 18), 26));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 19), 31));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 20), 36));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 21), 41));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 22), 46));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 23), 51));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 24), 56));
+  tmp = _mm_loadu_si128(in + 25);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 61));
+  w0 = _mm_srli_epi64(tmp, 3);
+  _mm_storeu_si128(compressed + 1, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 26), 2));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 27), 7));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 28), 12));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 29), 17));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 30), 22));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 31), 27));
+  _mm_storeu_si128(compressed + 2, w0);
+}
+
+/* we are going to pack 64 6-bit values, touching 3 128-bit words, using 48
+ * bytes */
+static void simdpackblock6(const u64 *pin, __m128i *compressed) {
+  const __m128i *in = (const __m128i *)pin;
+  /* we are going to touch  3 128-bit words */
+  __m128i w0, w1;
+  __m128i tmp; /* used to store inputs at word boundary */
+  w0 = _mm_loadu_si128(in + 0);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 1), 6));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 2), 12));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 3), 18));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 4), 24));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 5), 30));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 6), 36));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 7), 42));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 8), 48));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 9), 54));
+  tmp = _mm_loadu_si128(in + 10);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 60));
+  w1 = _mm_srli_epi64(tmp, 4);
+  _mm_storeu_si128(compressed + 0, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 11), 2));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 12), 8));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 13), 14));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 14), 20));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 15), 26));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 16), 32));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 17), 38));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 18), 44));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 19), 50));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 20), 56));
+  tmp = _mm_loadu_si128(in + 21);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 62));
+  w0 = _mm_srli_epi64(tmp, 2);
+  _mm_storeu_si128(compressed + 1, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 22), 4));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 23), 10));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 24), 16));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 25), 22));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 26), 28));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 27), 34));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 28), 40));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 29), 46));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 30), 52));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 31), 58));
+  _mm_storeu_si128(compressed + 2, w0);
+}
+
+/* we are going to pack 64 7-bit values, touching 4 128-bit words, using 64
+ * bytes */
+static void simdpackblock7(const u64 *pin, __m128i *compressed) {
+  const __m128i *in = (const __m128i *)pin;
+  /* we are going to touch  4 128-bit words */
+  __m128i w0, w1;
+  __m128i tmp; /* used to store inputs at word boundary */
+  w0 = _mm_loadu_si128(in + 0);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 1), 7));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 2), 14));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 3), 21));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 4), 28));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 5), 35));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 6), 42));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 7), 49));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 8), 56));
+  tmp = _mm_loadu_si128(in + 9);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 63));
+  w1 = _mm_srli_epi64(tmp, 1);
+  _mm_storeu_si128(compressed + 0, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 10), 6));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 11), 13));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 12), 20));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 13), 27));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 14), 34));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 15), 41));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 16), 48));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 17), 55));
+  tmp = _mm_loadu_si128(in + 18);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 62));
+  w0 = _mm_srli_epi64(tmp, 2);
+  _mm_storeu_si128(compressed + 1, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 19), 5));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 20), 12));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 21), 19));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 22), 26));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 23), 33));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 24), 40));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 25), 47));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 26), 54));
+  tmp = _mm_loadu_si128(in + 27);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 61));
+  w1 = _mm_srli_epi64(tmp, 3);
+  _mm_storeu_si128(compressed + 2, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 28), 4));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 29), 11));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 30), 18));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 31), 25));
+  _mm_storeu_si128(compressed + 3, w1);
+}
+
+/* we are going to pack 64 8-bit values, touching 4 128-bit words, using 64
+ * bytes */
+static void simdpackblock8(const u64 *pin, __m128i *compressed) {
+  const __m128i *in = (const __m128i *)pin;
+  /* we are going to touch  4 128-bit words */
+  __m128i w0, w1;
+  w0 = _mm_loadu_si128(in + 0);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 1), 8));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 2), 16));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 3), 24));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 4), 32));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 5), 40));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 6), 48));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 7), 56));
+  _mm_storeu_si128(compressed + 0, w0);
+  w1 = _mm_loadu_si128(in + 8);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 9), 8));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 10), 16));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 11), 24));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 12), 32));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 13), 40));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 14), 48));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 15), 56));
+  _mm_storeu_si128(compressed + 1, w1);
+  w0 = _mm_loadu_si128(in + 16);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 17), 8));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 18), 16));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 19), 24));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 20), 32));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 21), 40));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 22), 48));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 23), 56));
+  _mm_storeu_si128(compressed + 2, w0);
+  w1 = _mm_loadu_si128(in + 24);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 25), 8));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 26), 16));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 27), 24));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 28), 32));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 29), 40));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 30), 48));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 31), 56));
+  _mm_storeu_si128(compressed + 3, w1);
+}
+
+/* we are going to pack 64 9-bit values, touching 5 128-bit words, using 80
+ * bytes */
+static void simdpackblock9(const u64 *pin, __m128i *compressed) {
+  const __m128i *in = (const __m128i *)pin;
+  /* we are going to touch  5 128-bit words */
+  __m128i w0, w1;
+  __m128i tmp; /* used to store inputs at word boundary */
+  w0 = _mm_loadu_si128(in + 0);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 1), 9));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 2), 18));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 3), 27));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 4), 36));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 5), 45));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 6), 54));
+  tmp = _mm_loadu_si128(in + 7);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 63));
+  w1 = _mm_srli_epi64(tmp, 1);
+  _mm_storeu_si128(compressed + 0, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 8), 8));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 9), 17));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 10), 26));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 11), 35));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 12), 44));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 13), 53));
+  tmp = _mm_loadu_si128(in + 14);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 62));
+  w0 = _mm_srli_epi64(tmp, 2);
+  _mm_storeu_si128(compressed + 1, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 15), 7));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 16), 16));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 17), 25));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 18), 34));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 19), 43));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 20), 52));
+  tmp = _mm_loadu_si128(in + 21);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 61));
+  w1 = _mm_srli_epi64(tmp, 3);
+  _mm_storeu_si128(compressed + 2, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 22), 6));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 23), 15));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 24), 24));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 25), 33));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 26), 42));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 27), 51));
+  tmp = _mm_loadu_si128(in + 28);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 60));
+  w0 = _mm_srli_epi64(tmp, 4);
+  _mm_storeu_si128(compressed + 3, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 29), 5));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 30), 14));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 31), 23));
+  _mm_storeu_si128(compressed + 4, w0);
+}
+
+/* we are going to pack 64 10-bit values, touching 5 128-bit words, using 80
+ * bytes */
+static void simdpackblock10(const u64 *pin, __m128i *compressed) {
+  const __m128i *in = (const __m128i *)pin;
+  /* we are going to touch  5 128-bit words */
+  __m128i w0, w1;
+  __m128i tmp; /* used to store inputs at word boundary */
+  w0 = _mm_loadu_si128(in + 0);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 1), 10));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 2), 20));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 3), 30));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 4), 40));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 5), 50));
+  tmp = _mm_loadu_si128(in + 6);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 60));
+  w1 = _mm_srli_epi64(tmp, 4);
+  _mm_storeu_si128(compressed + 0, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 7), 6));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 8), 16));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 9), 26));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 10), 36));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 11), 46));
+  tmp = _mm_loadu_si128(in + 12);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 56));
+  w0 = _mm_srli_epi64(tmp, 8);
+  _mm_storeu_si128(compressed + 1, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 13), 2));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 14), 12));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 15), 22));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 16), 32));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 17), 42));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 18), 52));
+  tmp = _mm_loadu_si128(in + 19);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 62));
+  w1 = _mm_srli_epi64(tmp, 2);
+  _mm_storeu_si128(compressed + 2, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 20), 8));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 21), 18));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 22), 28));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 23), 38));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 24), 48));
+  tmp = _mm_loadu_si128(in + 25);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 58));
+  w0 = _mm_srli_epi64(tmp, 6);
+  _mm_storeu_si128(compressed + 3, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 26), 4));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 27), 14));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 28), 24));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 29), 34));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 30), 44));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 31), 54));
+  _mm_storeu_si128(compressed + 4, w0);
+}
+
+/* we are going to pack 64 11-bit values, touching 6 128-bit words, using 96
+ * bytes */
+static void simdpackblock11(const u64 *pin, __m128i *compressed) {
+  const __m128i *in = (const __m128i *)pin;
+  /* we are going to touch  6 128-bit words */
+  __m128i w0, w1;
+  __m128i tmp; /* used to store inputs at word boundary */
+  w0 = _mm_loadu_si128(in + 0);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 1), 11));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 2), 22));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 3), 33));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 4), 44));
+  tmp = _mm_loadu_si128(in + 5);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 55));
+  w1 = _mm_srli_epi64(tmp, 9);
+  _mm_storeu_si128(compressed + 0, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 6), 2));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 7), 13));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 8), 24));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 9), 35));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 10), 46));
+  tmp = _mm_loadu_si128(in + 11);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 57));
+  w0 = _mm_srli_epi64(tmp, 7);
+  _mm_storeu_si128(compressed + 1, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 12), 4));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 13), 15));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 14), 26));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 15), 37));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 16), 48));
+  tmp = _mm_loadu_si128(in + 17);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 59));
+  w1 = _mm_srli_epi64(tmp, 5);
+  _mm_storeu_si128(compressed + 2, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 18), 6));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 19), 17));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 20), 28));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 21), 39));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 22), 50));
+  tmp = _mm_loadu_si128(in + 23);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 61));
+  w0 = _mm_srli_epi64(tmp, 3);
+  _mm_storeu_si128(compressed + 3, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 24), 8));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 25), 19));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 26), 30));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 27), 41));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 28), 52));
+  tmp = _mm_loadu_si128(in + 29);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 63));
+  w1 = _mm_srli_epi64(tmp, 1);
+  _mm_storeu_si128(compressed + 4, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 30), 10));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 31), 21));
+  _mm_storeu_si128(compressed + 5, w1);
+}
+
+/* we are going to pack 64 12-bit values, touching 6 128-bit words, using 96
+ * bytes */
+static void simdpackblock12(const u64 *pin, __m128i *compressed) {
+  const __m128i *in = (const __m128i *)pin;
+  /* we are going to touch  6 128-bit words */
+  __m128i w0, w1;
+  __m128i tmp; /* used to store inputs at word boundary */
+  w0 = _mm_loadu_si128(in + 0);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 1), 12));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 2), 24));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 3), 36));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 4), 48));
+  tmp = _mm_loadu_si128(in + 5);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 60));
+  w1 = _mm_srli_epi64(tmp, 4);
+  _mm_storeu_si128(compressed + 0, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 6), 8));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 7), 20));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 8), 32));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 9), 44));
+  tmp = _mm_loadu_si128(in + 10);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 56));
+  w0 = _mm_srli_epi64(tmp, 8);
+  _mm_storeu_si128(compressed + 1, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 11), 4));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 12), 16));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 13), 28));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 14), 40));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 15), 52));
+  _mm_storeu_si128(compressed + 2, w0);
+  w1 = _mm_loadu_si128(in + 16);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 17), 12));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 18), 24));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 19), 36));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 20), 48));
+  tmp = _mm_loadu_si128(in + 21);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 60));
+  w0 = _mm_srli_epi64(tmp, 4);
+  _mm_storeu_si128(compressed + 3, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 22), 8));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 23), 20));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 24), 32));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 25), 44));
+  tmp = _mm_loadu_si128(in + 26);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 56));
+  w1 = _mm_srli_epi64(tmp, 8);
+  _mm_storeu_si128(compressed + 4, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 27), 4));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 28), 16));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 29), 28));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 30), 40));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 31), 52));
+  _mm_storeu_si128(compressed + 5, w1);
+}
+
+/* we are going to pack 64 13-bit values, touching 7 128-bit words, using 112
+ * bytes */
+static void simdpackblock13(const u64 *pin, __m128i *compressed) {
+  const __m128i *in = (const __m128i *)pin;
+  /* we are going to touch  7 128-bit words */
+  __m128i w0, w1;
+  __m128i tmp; /* used to store inputs at word boundary */
+  w0 = _mm_loadu_si128(in + 0);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 1), 13));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 2), 26));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 3), 39));
+  tmp = _mm_loadu_si128(in + 4);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 52));
+  w1 = _mm_srli_epi64(tmp, 12);
+  _mm_storeu_si128(compressed + 0, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 5), 1));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 6), 14));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 7), 27));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 8), 40));
+  tmp = _mm_loadu_si128(in + 9);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 53));
+  w0 = _mm_srli_epi64(tmp, 11);
+  _mm_storeu_si128(compressed + 1, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 10), 2));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 11), 15));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 12), 28));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 13), 41));
+  tmp = _mm_loadu_si128(in + 14);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 54));
+  w1 = _mm_srli_epi64(tmp, 10);
+  _mm_storeu_si128(compressed + 2, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 15), 3));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 16), 16));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 17), 29));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 18), 42));
+  tmp = _mm_loadu_si128(in + 19);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 55));
+  w0 = _mm_srli_epi64(tmp, 9);
+  _mm_storeu_si128(compressed + 3, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 20), 4));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 21), 17));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 22), 30));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 23), 43));
+  tmp = _mm_loadu_si128(in + 24);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 56));
+  w1 = _mm_srli_epi64(tmp, 8);
+  _mm_storeu_si128(compressed + 4, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 25), 5));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 26), 18));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 27), 31));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 28), 44));
+  tmp = _mm_loadu_si128(in + 29);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 57));
+  w0 = _mm_srli_epi64(tmp, 7);
+  _mm_storeu_si128(compressed + 5, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 30), 6));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 31), 19));
+  _mm_storeu_si128(compressed + 6, w0);
+}
+
+/* we are going to pack 64 14-bit values, touching 7 128-bit words, using 112
+ * bytes */
+static void simdpackblock14(const u64 *pin, __m128i *compressed) {
+  const __m128i *in = (const __m128i *)pin;
+  /* we are going to touch  7 128-bit words */
+  __m128i w0, w1;
+  __m128i tmp; /* used to store inputs at word boundary */
+  w0 = _mm_loadu_si128(in + 0);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 1), 14));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 2), 28));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 3), 42));
+  tmp = _mm_loadu_si128(in + 4);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 56));
+  w1 = _mm_srli_epi64(tmp, 8);
+  _mm_storeu_si128(compressed + 0, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 5), 6));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 6), 20));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 7), 34));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 8), 48));
+  tmp = _mm_loadu_si128(in + 9);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 62));
+  w0 = _mm_srli_epi64(tmp, 2);
+  _mm_storeu_si128(compressed + 1, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 10), 12));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 11), 26));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 12), 40));
+  tmp = _mm_loadu_si128(in + 13);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 54));
+  w1 = _mm_srli_epi64(tmp, 10);
+  _mm_storeu_si128(compressed + 2, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 14), 4));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 15), 18));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 16), 32));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 17), 46));
+  tmp = _mm_loadu_si128(in + 18);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 60));
+  w0 = _mm_srli_epi64(tmp, 4);
+  _mm_storeu_si128(compressed + 3, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 19), 10));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 20), 24));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 21), 38));
+  tmp = _mm_loadu_si128(in + 22);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 52));
+  w1 = _mm_srli_epi64(tmp, 12);
+  _mm_storeu_si128(compressed + 4, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 23), 2));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 24), 16));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 25), 30));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 26), 44));
+  tmp = _mm_loadu_si128(in + 27);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 58));
+  w0 = _mm_srli_epi64(tmp, 6);
+  _mm_storeu_si128(compressed + 5, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 28), 8));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 29), 22));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 30), 36));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 31), 50));
+  _mm_storeu_si128(compressed + 6, w0);
+}
+
+/* we are going to pack 64 15-bit values, touching 8 128-bit words, using 128
+ * bytes */
+static void simdpackblock15(const u64 *pin, __m128i *compressed) {
+  const __m128i *in = (const __m128i *)pin;
+  /* we are going to touch  8 128-bit words */
+  __m128i w0, w1;
+  __m128i tmp; /* used to store inputs at word boundary */
+  w0 = _mm_loadu_si128(in + 0);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 1), 15));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 2), 30));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 3), 45));
+  tmp = _mm_loadu_si128(in + 4);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 60));
+  w1 = _mm_srli_epi64(tmp, 4);
+  _mm_storeu_si128(compressed + 0, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 5), 11));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 6), 26));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 7), 41));
+  tmp = _mm_loadu_si128(in + 8);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 56));
+  w0 = _mm_srli_epi64(tmp, 8);
+  _mm_storeu_si128(compressed + 1, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 9), 7));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 10), 22));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 11), 37));
+  tmp = _mm_loadu_si128(in + 12);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 52));
+  w1 = _mm_srli_epi64(tmp, 12);
+  _mm_storeu_si128(compressed + 2, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 13), 3));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 14), 18));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 15), 33));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 16), 48));
+  tmp = _mm_loadu_si128(in + 17);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 63));
+  w0 = _mm_srli_epi64(tmp, 1);
+  _mm_storeu_si128(compressed + 3, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 18), 14));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 19), 29));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 20), 44));
+  tmp = _mm_loadu_si128(in + 21);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 59));
+  w1 = _mm_srli_epi64(tmp, 5);
+  _mm_storeu_si128(compressed + 4, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 22), 10));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 23), 25));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 24), 40));
+  tmp = _mm_loadu_si128(in + 25);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 55));
+  w0 = _mm_srli_epi64(tmp, 9);
+  _mm_storeu_si128(compressed + 5, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 26), 6));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 27), 21));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 28), 36));
+  tmp = _mm_loadu_si128(in + 29);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 51));
+  w1 = _mm_srli_epi64(tmp, 13);
+  _mm_storeu_si128(compressed + 6, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 30), 2));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 31), 17));
+  _mm_storeu_si128(compressed + 7, w1);
+}
+
+/* we are going to pack 64 16-bit values, touching 8 128-bit words, using 128
+ * bytes */
+static void simdpackblock16(const u64 *pin, __m128i *compressed) {
+  const __m128i *in = (const __m128i *)pin;
+  /* we are going to touch  8 128-bit words */
+  __m128i w0, w1;
+  w0 = _mm_loadu_si128(in + 0);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 1), 16));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 2), 32));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 3), 48));
+  _mm_storeu_si128(compressed + 0, w0);
+  w1 = _mm_loadu_si128(in + 4);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 5), 16));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 6), 32));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 7), 48));
+  _mm_storeu_si128(compressed + 1, w1);
+  w0 = _mm_loadu_si128(in + 8);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 9), 16));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 10), 32));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 11), 48));
+  _mm_storeu_si128(compressed + 2, w0);
+  w1 = _mm_loadu_si128(in + 12);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 13), 16));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 14), 32));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 15), 48));
+  _mm_storeu_si128(compressed + 3, w1);
+  w0 = _mm_loadu_si128(in + 16);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 17), 16));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 18), 32));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 19), 48));
+  _mm_storeu_si128(compressed + 4, w0);
+  w1 = _mm_loadu_si128(in + 20);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 21), 16));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 22), 32));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 23), 48));
+  _mm_storeu_si128(compressed + 5, w1);
+  w0 = _mm_loadu_si128(in + 24);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 25), 16));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 26), 32));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 27), 48));
+  _mm_storeu_si128(compressed + 6, w0);
+  w1 = _mm_loadu_si128(in + 28);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 29), 16));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 30), 32));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 31), 48));
+  _mm_storeu_si128(compressed + 7, w1);
+}
+
+/* we are going to pack 64 17-bit values, touching 9 128-bit words, using 144
+ * bytes */
+static void simdpackblock17(const u64 *pin, __m128i *compressed) {
+  const __m128i *in = (const __m128i *)pin;
+  /* we are going to touch  9 128-bit words */
+  __m128i w0, w1;
+  __m128i tmp; /* used to store inputs at word boundary */
+  w0 = _mm_loadu_si128(in + 0);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 1), 17));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 2), 34));
+  tmp = _mm_loadu_si128(in + 3);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 51));
+  w1 = _mm_srli_epi64(tmp, 13);
+  _mm_storeu_si128(compressed + 0, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 4), 4));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 5), 21));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 6), 38));
+  tmp = _mm_loadu_si128(in + 7);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 55));
+  w0 = _mm_srli_epi64(tmp, 9);
+  _mm_storeu_si128(compressed + 1, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 8), 8));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 9), 25));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 10), 42));
+  tmp = _mm_loadu_si128(in + 11);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 59));
+  w1 = _mm_srli_epi64(tmp, 5);
+  _mm_storeu_si128(compressed + 2, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 12), 12));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 13), 29));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 14), 46));
+  tmp = _mm_loadu_si128(in + 15);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 63));
+  w0 = _mm_srli_epi64(tmp, 1);
+  _mm_storeu_si128(compressed + 3, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 16), 16));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 17), 33));
+  tmp = _mm_loadu_si128(in + 18);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 50));
+  w1 = _mm_srli_epi64(tmp, 14);
+  _mm_storeu_si128(compressed + 4, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 19), 3));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 20), 20));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 21), 37));
+  tmp = _mm_loadu_si128(in + 22);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 54));
+  w0 = _mm_srli_epi64(tmp, 10);
+  _mm_storeu_si128(compressed + 5, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 23), 7));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 24), 24));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 25), 41));
+  tmp = _mm_loadu_si128(in + 26);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 58));
+  w1 = _mm_srli_epi64(tmp, 6);
+  _mm_storeu_si128(compressed + 6, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 27), 11));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 28), 28));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 29), 45));
+  tmp = _mm_loadu_si128(in + 30);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 62));
+  w0 = _mm_srli_epi64(tmp, 2);
+  _mm_storeu_si128(compressed + 7, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 31), 15));
+  _mm_storeu_si128(compressed + 8, w0);
+}
+
+/* we are going to pack 64 18-bit values, touching 9 128-bit words, using 144
+ * bytes */
+static void simdpackblock18(const u64 *pin, __m128i *compressed) {
+  const __m128i *in = (const __m128i *)pin;
+  /* we are going to touch  9 128-bit words */
+  __m128i w0, w1;
+  __m128i tmp; /* used to store inputs at word boundary */
+  w0 = _mm_loadu_si128(in + 0);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 1), 18));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 2), 36));
+  tmp = _mm_loadu_si128(in + 3);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 54));
+  w1 = _mm_srli_epi64(tmp, 10);
+  _mm_storeu_si128(compressed + 0, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 4), 8));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 5), 26));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 6), 44));
+  tmp = _mm_loadu_si128(in + 7);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 62));
+  w0 = _mm_srli_epi64(tmp, 2);
+  _mm_storeu_si128(compressed + 1, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 8), 16));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 9), 34));
+  tmp = _mm_loadu_si128(in + 10);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 52));
+  w1 = _mm_srli_epi64(tmp, 12);
+  _mm_storeu_si128(compressed + 2, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 11), 6));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 12), 24));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 13), 42));
+  tmp = _mm_loadu_si128(in + 14);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 60));
+  w0 = _mm_srli_epi64(tmp, 4);
+  _mm_storeu_si128(compressed + 3, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 15), 14));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 16), 32));
+  tmp = _mm_loadu_si128(in + 17);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 50));
+  w1 = _mm_srli_epi64(tmp, 14);
+  _mm_storeu_si128(compressed + 4, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 18), 4));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 19), 22));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 20), 40));
+  tmp = _mm_loadu_si128(in + 21);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 58));
+  w0 = _mm_srli_epi64(tmp, 6);
+  _mm_storeu_si128(compressed + 5, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 22), 12));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 23), 30));
+  tmp = _mm_loadu_si128(in + 24);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 48));
+  w1 = _mm_srli_epi64(tmp, 16);
+  _mm_storeu_si128(compressed + 6, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 25), 2));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 26), 20));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 27), 38));
+  tmp = _mm_loadu_si128(in + 28);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 56));
+  w0 = _mm_srli_epi64(tmp, 8);
+  _mm_storeu_si128(compressed + 7, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 29), 10));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 30), 28));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 31), 46));
+  _mm_storeu_si128(compressed + 8, w0);
+}
+
+/* we are going to pack 64 19-bit values, touching 10 128-bit words, using 160
+ * bytes */
+static void simdpackblock19(const u64 *pin, __m128i *compressed) {
+  const __m128i *in = (const __m128i *)pin;
+  /* we are going to touch  10 128-bit words */
+  __m128i w0, w1;
+  __m128i tmp; /* used to store inputs at word boundary */
+  w0 = _mm_loadu_si128(in + 0);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 1), 19));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 2), 38));
+  tmp = _mm_loadu_si128(in + 3);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 57));
+  w1 = _mm_srli_epi64(tmp, 7);
+  _mm_storeu_si128(compressed + 0, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 4), 12));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 5), 31));
+  tmp = _mm_loadu_si128(in + 6);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 50));
+  w0 = _mm_srli_epi64(tmp, 14);
+  _mm_storeu_si128(compressed + 1, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 7), 5));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 8), 24));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 9), 43));
+  tmp = _mm_loadu_si128(in + 10);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 62));
+  w1 = _mm_srli_epi64(tmp, 2);
+  _mm_storeu_si128(compressed + 2, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 11), 17));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 12), 36));
+  tmp = _mm_loadu_si128(in + 13);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 55));
+  w0 = _mm_srli_epi64(tmp, 9);
+  _mm_storeu_si128(compressed + 3, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 14), 10));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 15), 29));
+  tmp = _mm_loadu_si128(in + 16);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 48));
+  w1 = _mm_srli_epi64(tmp, 16);
+  _mm_storeu_si128(compressed + 4, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 17), 3));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 18), 22));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 19), 41));
+  tmp = _mm_loadu_si128(in + 20);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 60));
+  w0 = _mm_srli_epi64(tmp, 4);
+  _mm_storeu_si128(compressed + 5, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 21), 15));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 22), 34));
+  tmp = _mm_loadu_si128(in + 23);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 53));
+  w1 = _mm_srli_epi64(tmp, 11);
+  _mm_storeu_si128(compressed + 6, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 24), 8));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 25), 27));
+  tmp = _mm_loadu_si128(in + 26);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 46));
+  w0 = _mm_srli_epi64(tmp, 18);
+  _mm_storeu_si128(compressed + 7, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 27), 1));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 28), 20));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 29), 39));
+  tmp = _mm_loadu_si128(in + 30);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 58));
+  w1 = _mm_srli_epi64(tmp, 6);
+  _mm_storeu_si128(compressed + 8, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 31), 13));
+  _mm_storeu_si128(compressed + 9, w1);
+}
+
+/* we are going to pack 64 20-bit values, touching 10 128-bit words, using 160
+ * bytes */
+static void simdpackblock20(const u64 *pin, __m128i *compressed) {
+  const __m128i *in = (const __m128i *)pin;
+  /* we are going to touch  10 128-bit words */
+  __m128i w0, w1;
+  __m128i tmp; /* used to store inputs at word boundary */
+  w0 = _mm_loadu_si128(in + 0);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 1), 20));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 2), 40));
+  tmp = _mm_loadu_si128(in + 3);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 60));
+  w1 = _mm_srli_epi64(tmp, 4);
+  _mm_storeu_si128(compressed + 0, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 4), 16));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 5), 36));
+  tmp = _mm_loadu_si128(in + 6);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 56));
+  w0 = _mm_srli_epi64(tmp, 8);
+  _mm_storeu_si128(compressed + 1, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 7), 12));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 8), 32));
+  tmp = _mm_loadu_si128(in + 9);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 52));
+  w1 = _mm_srli_epi64(tmp, 12);
+  _mm_storeu_si128(compressed + 2, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 10), 8));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 11), 28));
+  tmp = _mm_loadu_si128(in + 12);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 48));
+  w0 = _mm_srli_epi64(tmp, 16);
+  _mm_storeu_si128(compressed + 3, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 13), 4));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 14), 24));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 15), 44));
+  _mm_storeu_si128(compressed + 4, w0);
+  w1 = _mm_loadu_si128(in + 16);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 17), 20));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 18), 40));
+  tmp = _mm_loadu_si128(in + 19);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 60));
+  w0 = _mm_srli_epi64(tmp, 4);
+  _mm_storeu_si128(compressed + 5, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 20), 16));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 21), 36));
+  tmp = _mm_loadu_si128(in + 22);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 56));
+  w1 = _mm_srli_epi64(tmp, 8);
+  _mm_storeu_si128(compressed + 6, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 23), 12));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 24), 32));
+  tmp = _mm_loadu_si128(in + 25);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 52));
+  w0 = _mm_srli_epi64(tmp, 12);
+  _mm_storeu_si128(compressed + 7, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 26), 8));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 27), 28));
+  tmp = _mm_loadu_si128(in + 28);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 48));
+  w1 = _mm_srli_epi64(tmp, 16);
+  _mm_storeu_si128(compressed + 8, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 29), 4));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 30), 24));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 31), 44));
+  _mm_storeu_si128(compressed + 9, w1);
+}
+
+/* we are going to pack 64 21-bit values, touching 11 128-bit words, using 176
+ * bytes */
+static void simdpackblock21(const u64 *pin, __m128i *compressed) {
+  const __m128i *in = (const __m128i *)pin;
+  /* we are going to touch  11 128-bit words */
+  __m128i w0, w1;
+  __m128i tmp; /* used to store inputs at word boundary */
+  w0 = _mm_loadu_si128(in + 0);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 1), 21));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 2), 42));
+  tmp = _mm_loadu_si128(in + 3);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 63));
+  w1 = _mm_srli_epi64(tmp, 1);
+  _mm_storeu_si128(compressed + 0, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 4), 20));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 5), 41));
+  tmp = _mm_loadu_si128(in + 6);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 62));
+  w0 = _mm_srli_epi64(tmp, 2);
+  _mm_storeu_si128(compressed + 1, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 7), 19));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 8), 40));
+  tmp = _mm_loadu_si128(in + 9);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 61));
+  w1 = _mm_srli_epi64(tmp, 3);
+  _mm_storeu_si128(compressed + 2, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 10), 18));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 11), 39));
+  tmp = _mm_loadu_si128(in + 12);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 60));
+  w0 = _mm_srli_epi64(tmp, 4);
+  _mm_storeu_si128(compressed + 3, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 13), 17));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 14), 38));
+  tmp = _mm_loadu_si128(in + 15);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 59));
+  w1 = _mm_srli_epi64(tmp, 5);
+  _mm_storeu_si128(compressed + 4, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 16), 16));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 17), 37));
+  tmp = _mm_loadu_si128(in + 18);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 58));
+  w0 = _mm_srli_epi64(tmp, 6);
+  _mm_storeu_si128(compressed + 5, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 19), 15));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 20), 36));
+  tmp = _mm_loadu_si128(in + 21);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 57));
+  w1 = _mm_srli_epi64(tmp, 7);
+  _mm_storeu_si128(compressed + 6, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 22), 14));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 23), 35));
+  tmp = _mm_loadu_si128(in + 24);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 56));
+  w0 = _mm_srli_epi64(tmp, 8);
+  _mm_storeu_si128(compressed + 7, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 25), 13));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 26), 34));
+  tmp = _mm_loadu_si128(in + 27);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 55));
+  w1 = _mm_srli_epi64(tmp, 9);
+  _mm_storeu_si128(compressed + 8, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 28), 12));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 29), 33));
+  tmp = _mm_loadu_si128(in + 30);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 54));
+  w0 = _mm_srli_epi64(tmp, 10);
+  _mm_storeu_si128(compressed + 9, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 31), 11));
+  _mm_storeu_si128(compressed + 10, w0);
+}
+
+/* we are going to pack 64 22-bit values, touching 11 128-bit words, using 176
+ * bytes */
+static void simdpackblock22(const u64 *pin, __m128i *compressed) {
+  const __m128i *in = (const __m128i *)pin;
+  /* we are going to touch  11 128-bit words */
+  __m128i w0, w1;
+  __m128i tmp; /* used to store inputs at word boundary */
+  w0 = _mm_loadu_si128(in + 0);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 1), 22));
+  tmp = _mm_loadu_si128(in + 2);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 44));
+  w1 = _mm_srli_epi64(tmp, 20);
+  _mm_storeu_si128(compressed + 0, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 3), 2));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 4), 24));
+  tmp = _mm_loadu_si128(in + 5);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 46));
+  w0 = _mm_srli_epi64(tmp, 18);
+  _mm_storeu_si128(compressed + 1, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 6), 4));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 7), 26));
+  tmp = _mm_loadu_si128(in + 8);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 48));
+  w1 = _mm_srli_epi64(tmp, 16);
+  _mm_storeu_si128(compressed + 2, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 9), 6));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 10), 28));
+  tmp = _mm_loadu_si128(in + 11);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 50));
+  w0 = _mm_srli_epi64(tmp, 14);
+  _mm_storeu_si128(compressed + 3, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 12), 8));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 13), 30));
+  tmp = _mm_loadu_si128(in + 14);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 52));
+  w1 = _mm_srli_epi64(tmp, 12);
+  _mm_storeu_si128(compressed + 4, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 15), 10));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 16), 32));
+  tmp = _mm_loadu_si128(in + 17);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 54));
+  w0 = _mm_srli_epi64(tmp, 10);
+  _mm_storeu_si128(compressed + 5, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 18), 12));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 19), 34));
+  tmp = _mm_loadu_si128(in + 20);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 56));
+  w1 = _mm_srli_epi64(tmp, 8);
+  _mm_storeu_si128(compressed + 6, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 21), 14));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 22), 36));
+  tmp = _mm_loadu_si128(in + 23);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 58));
+  w0 = _mm_srli_epi64(tmp, 6);
+  _mm_storeu_si128(compressed + 7, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 24), 16));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 25), 38));
+  tmp = _mm_loadu_si128(in + 26);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 60));
+  w1 = _mm_srli_epi64(tmp, 4);
+  _mm_storeu_si128(compressed + 8, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 27), 18));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 28), 40));
+  tmp = _mm_loadu_si128(in + 29);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 62));
+  w0 = _mm_srli_epi64(tmp, 2);
+  _mm_storeu_si128(compressed + 9, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 30), 20));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 31), 42));
+  _mm_storeu_si128(compressed + 10, w0);
+}
+
+/* we are going to pack 64 23-bit values, touching 12 128-bit words, using 192
+ * bytes */
+static void simdpackblock23(const u64 *pin, __m128i *compressed) {
+  const __m128i *in = (const __m128i *)pin;
+  /* we are going to touch  12 128-bit words */
+  __m128i w0, w1;
+  __m128i tmp; /* used to store inputs at word boundary */
+  w0 = _mm_loadu_si128(in + 0);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 1), 23));
+  tmp = _mm_loadu_si128(in + 2);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 46));
+  w1 = _mm_srli_epi64(tmp, 18);
+  _mm_storeu_si128(compressed + 0, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 3), 5));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 4), 28));
+  tmp = _mm_loadu_si128(in + 5);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 51));
+  w0 = _mm_srli_epi64(tmp, 13);
+  _mm_storeu_si128(compressed + 1, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 6), 10));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 7), 33));
+  tmp = _mm_loadu_si128(in + 8);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 56));
+  w1 = _mm_srli_epi64(tmp, 8);
+  _mm_storeu_si128(compressed + 2, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 9), 15));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 10), 38));
+  tmp = _mm_loadu_si128(in + 11);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 61));
+  w0 = _mm_srli_epi64(tmp, 3);
+  _mm_storeu_si128(compressed + 3, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 12), 20));
+  tmp = _mm_loadu_si128(in + 13);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 43));
+  w1 = _mm_srli_epi64(tmp, 21);
+  _mm_storeu_si128(compressed + 4, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 14), 2));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 15), 25));
+  tmp = _mm_loadu_si128(in + 16);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 48));
+  w0 = _mm_srli_epi64(tmp, 16);
+  _mm_storeu_si128(compressed + 5, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 17), 7));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 18), 30));
+  tmp = _mm_loadu_si128(in + 19);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 53));
+  w1 = _mm_srli_epi64(tmp, 11);
+  _mm_storeu_si128(compressed + 6, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 20), 12));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 21), 35));
+  tmp = _mm_loadu_si128(in + 22);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 58));
+  w0 = _mm_srli_epi64(tmp, 6);
+  _mm_storeu_si128(compressed + 7, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 23), 17));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 24), 40));
+  tmp = _mm_loadu_si128(in + 25);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 63));
+  w1 = _mm_srli_epi64(tmp, 1);
+  _mm_storeu_si128(compressed + 8, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 26), 22));
+  tmp = _mm_loadu_si128(in + 27);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 45));
+  w0 = _mm_srli_epi64(tmp, 19);
+  _mm_storeu_si128(compressed + 9, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 28), 4));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 29), 27));
+  tmp = _mm_loadu_si128(in + 30);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 50));
+  w1 = _mm_srli_epi64(tmp, 14);
+  _mm_storeu_si128(compressed + 10, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 31), 9));
+  _mm_storeu_si128(compressed + 11, w1);
+}
+
+/* we are going to pack 64 24-bit values, touching 12 128-bit words, using 192
+ * bytes */
+static void simdpackblock24(const u64 *pin, __m128i *compressed) {
+  const __m128i *in = (const __m128i *)pin;
+  /* we are going to touch  12 128-bit words */
+  __m128i w0, w1;
+  __m128i tmp; /* used to store inputs at word boundary */
+  w0 = _mm_loadu_si128(in + 0);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 1), 24));
+  tmp = _mm_loadu_si128(in + 2);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 48));
+  w1 = _mm_srli_epi64(tmp, 16);
+  _mm_storeu_si128(compressed + 0, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 3), 8));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 4), 32));
+  tmp = _mm_loadu_si128(in + 5);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 56));
+  w0 = _mm_srli_epi64(tmp, 8);
+  _mm_storeu_si128(compressed + 1, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 6), 16));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 7), 40));
+  _mm_storeu_si128(compressed + 2, w0);
+  w1 = _mm_loadu_si128(in + 8);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 9), 24));
+  tmp = _mm_loadu_si128(in + 10);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 48));
+  w0 = _mm_srli_epi64(tmp, 16);
+  _mm_storeu_si128(compressed + 3, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 11), 8));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 12), 32));
+  tmp = _mm_loadu_si128(in + 13);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 56));
+  w1 = _mm_srli_epi64(tmp, 8);
+  _mm_storeu_si128(compressed + 4, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 14), 16));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 15), 40));
+  _mm_storeu_si128(compressed + 5, w1);
+  w0 = _mm_loadu_si128(in + 16);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 17), 24));
+  tmp = _mm_loadu_si128(in + 18);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 48));
+  w1 = _mm_srli_epi64(tmp, 16);
+  _mm_storeu_si128(compressed + 6, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 19), 8));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 20), 32));
+  tmp = _mm_loadu_si128(in + 21);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 56));
+  w0 = _mm_srli_epi64(tmp, 8);
+  _mm_storeu_si128(compressed + 7, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 22), 16));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 23), 40));
+  _mm_storeu_si128(compressed + 8, w0);
+  w1 = _mm_loadu_si128(in + 24);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 25), 24));
+  tmp = _mm_loadu_si128(in + 26);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 48));
+  w0 = _mm_srli_epi64(tmp, 16);
+  _mm_storeu_si128(compressed + 9, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 27), 8));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 28), 32));
+  tmp = _mm_loadu_si128(in + 29);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 56));
+  w1 = _mm_srli_epi64(tmp, 8);
+  _mm_storeu_si128(compressed + 10, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 30), 16));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 31), 40));
+  _mm_storeu_si128(compressed + 11, w1);
+}
+
+/* we are going to pack 64 25-bit values, touching 13 128-bit words, using 208
+ * bytes */
+static void simdpackblock25(const u64 *pin, __m128i *compressed) {
+  const __m128i *in = (const __m128i *)pin;
+  /* we are going to touch  13 128-bit words */
+  __m128i w0, w1;
+  __m128i tmp; /* used to store inputs at word boundary */
+  w0 = _mm_loadu_si128(in + 0);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 1), 25));
+  tmp = _mm_loadu_si128(in + 2);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 50));
+  w1 = _mm_srli_epi64(tmp, 14);
+  _mm_storeu_si128(compressed + 0, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 3), 11));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 4), 36));
+  tmp = _mm_loadu_si128(in + 5);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 61));
+  w0 = _mm_srli_epi64(tmp, 3);
+  _mm_storeu_si128(compressed + 1, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 6), 22));
+  tmp = _mm_loadu_si128(in + 7);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 47));
+  w1 = _mm_srli_epi64(tmp, 17);
+  _mm_storeu_si128(compressed + 2, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 8), 8));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 9), 33));
+  tmp = _mm_loadu_si128(in + 10);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 58));
+  w0 = _mm_srli_epi64(tmp, 6);
+  _mm_storeu_si128(compressed + 3, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 11), 19));
+  tmp = _mm_loadu_si128(in + 12);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 44));
+  w1 = _mm_srli_epi64(tmp, 20);
+  _mm_storeu_si128(compressed + 4, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 13), 5));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 14), 30));
+  tmp = _mm_loadu_si128(in + 15);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 55));
+  w0 = _mm_srli_epi64(tmp, 9);
+  _mm_storeu_si128(compressed + 5, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 16), 16));
+  tmp = _mm_loadu_si128(in + 17);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 41));
+  w1 = _mm_srli_epi64(tmp, 23);
+  _mm_storeu_si128(compressed + 6, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 18), 2));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 19), 27));
+  tmp = _mm_loadu_si128(in + 20);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 52));
+  w0 = _mm_srli_epi64(tmp, 12);
+  _mm_storeu_si128(compressed + 7, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 21), 13));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 22), 38));
+  tmp = _mm_loadu_si128(in + 23);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 63));
+  w1 = _mm_srli_epi64(tmp, 1);
+  _mm_storeu_si128(compressed + 8, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 24), 24));
+  tmp = _mm_loadu_si128(in + 25);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 49));
+  w0 = _mm_srli_epi64(tmp, 15);
+  _mm_storeu_si128(compressed + 9, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 26), 10));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 27), 35));
+  tmp = _mm_loadu_si128(in + 28);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 60));
+  w1 = _mm_srli_epi64(tmp, 4);
+  _mm_storeu_si128(compressed + 10, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 29), 21));
+  tmp = _mm_loadu_si128(in + 30);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 46));
+  w0 = _mm_srli_epi64(tmp, 18);
+  _mm_storeu_si128(compressed + 11, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 31), 7));
+  _mm_storeu_si128(compressed + 12, w0);
+}
+
+/* we are going to pack 64 26-bit values, touching 13 128-bit words, using 208
+ * bytes */
+static void simdpackblock26(const u64 *pin, __m128i *compressed) {
+  const __m128i *in = (const __m128i *)pin;
+  /* we are going to touch  13 128-bit words */
+  __m128i w0, w1;
+  __m128i tmp; /* used to store inputs at word boundary */
+  w0 = _mm_loadu_si128(in + 0);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 1), 26));
+  tmp = _mm_loadu_si128(in + 2);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 52));
+  w1 = _mm_srli_epi64(tmp, 12);
+  _mm_storeu_si128(compressed + 0, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 3), 14));
+  tmp = _mm_loadu_si128(in + 4);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 40));
+  w0 = _mm_srli_epi64(tmp, 24);
+  _mm_storeu_si128(compressed + 1, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 5), 2));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 6), 28));
+  tmp = _mm_loadu_si128(in + 7);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 54));
+  w1 = _mm_srli_epi64(tmp, 10);
+  _mm_storeu_si128(compressed + 2, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 8), 16));
+  tmp = _mm_loadu_si128(in + 9);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 42));
+  w0 = _mm_srli_epi64(tmp, 22);
+  _mm_storeu_si128(compressed + 3, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 10), 4));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 11), 30));
+  tmp = _mm_loadu_si128(in + 12);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 56));
+  w1 = _mm_srli_epi64(tmp, 8);
+  _mm_storeu_si128(compressed + 4, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 13), 18));
+  tmp = _mm_loadu_si128(in + 14);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 44));
+  w0 = _mm_srli_epi64(tmp, 20);
+  _mm_storeu_si128(compressed + 5, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 15), 6));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 16), 32));
+  tmp = _mm_loadu_si128(in + 17);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 58));
+  w1 = _mm_srli_epi64(tmp, 6);
+  _mm_storeu_si128(compressed + 6, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 18), 20));
+  tmp = _mm_loadu_si128(in + 19);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 46));
+  w0 = _mm_srli_epi64(tmp, 18);
+  _mm_storeu_si128(compressed + 7, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 20), 8));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 21), 34));
+  tmp = _mm_loadu_si128(in + 22);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 60));
+  w1 = _mm_srli_epi64(tmp, 4);
+  _mm_storeu_si128(compressed + 8, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 23), 22));
+  tmp = _mm_loadu_si128(in + 24);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 48));
+  w0 = _mm_srli_epi64(tmp, 16);
+  _mm_storeu_si128(compressed + 9, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 25), 10));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 26), 36));
+  tmp = _mm_loadu_si128(in + 27);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 62));
+  w1 = _mm_srli_epi64(tmp, 2);
+  _mm_storeu_si128(compressed + 10, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 28), 24));
+  tmp = _mm_loadu_si128(in + 29);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 50));
+  w0 = _mm_srli_epi64(tmp, 14);
+  _mm_storeu_si128(compressed + 11, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 30), 12));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 31), 38));
+  _mm_storeu_si128(compressed + 12, w0);
+}
+
+/* we are going to pack 64 27-bit values, touching 14 128-bit words, using 224
+ * bytes */
+static void simdpackblock27(const u64 *pin, __m128i *compressed) {
+  const __m128i *in = (const __m128i *)pin;
+  /* we are going to touch  14 128-bit words */
+  __m128i w0, w1;
+  __m128i tmp; /* used to store inputs at word boundary */
+  w0 = _mm_loadu_si128(in + 0);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 1), 27));
+  tmp = _mm_loadu_si128(in + 2);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 54));
+  w1 = _mm_srli_epi64(tmp, 10);
+  _mm_storeu_si128(compressed + 0, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 3), 17));
+  tmp = _mm_loadu_si128(in + 4);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 44));
+  w0 = _mm_srli_epi64(tmp, 20);
+  _mm_storeu_si128(compressed + 1, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 5), 7));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 6), 34));
+  tmp = _mm_loadu_si128(in + 7);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 61));
+  w1 = _mm_srli_epi64(tmp, 3);
+  _mm_storeu_si128(compressed + 2, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 8), 24));
+  tmp = _mm_loadu_si128(in + 9);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 51));
+  w0 = _mm_srli_epi64(tmp, 13);
+  _mm_storeu_si128(compressed + 3, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 10), 14));
+  tmp = _mm_loadu_si128(in + 11);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 41));
+  w1 = _mm_srli_epi64(tmp, 23);
+  _mm_storeu_si128(compressed + 4, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 12), 4));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 13), 31));
+  tmp = _mm_loadu_si128(in + 14);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 58));
+  w0 = _mm_srli_epi64(tmp, 6);
+  _mm_storeu_si128(compressed + 5, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 15), 21));
+  tmp = _mm_loadu_si128(in + 16);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 48));
+  w1 = _mm_srli_epi64(tmp, 16);
+  _mm_storeu_si128(compressed + 6, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 17), 11));
+  tmp = _mm_loadu_si128(in + 18);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 38));
+  w0 = _mm_srli_epi64(tmp, 26);
+  _mm_storeu_si128(compressed + 7, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 19), 1));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 20), 28));
+  tmp = _mm_loadu_si128(in + 21);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 55));
+  w1 = _mm_srli_epi64(tmp, 9);
+  _mm_storeu_si128(compressed + 8, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 22), 18));
+  tmp = _mm_loadu_si128(in + 23);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 45));
+  w0 = _mm_srli_epi64(tmp, 19);
+  _mm_storeu_si128(compressed + 9, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 24), 8));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 25), 35));
+  tmp = _mm_loadu_si128(in + 26);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 62));
+  w1 = _mm_srli_epi64(tmp, 2);
+  _mm_storeu_si128(compressed + 10, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 27), 25));
+  tmp = _mm_loadu_si128(in + 28);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 52));
+  w0 = _mm_srli_epi64(tmp, 12);
+  _mm_storeu_si128(compressed + 11, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 29), 15));
+  tmp = _mm_loadu_si128(in + 30);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 42));
+  w1 = _mm_srli_epi64(tmp, 22);
+  _mm_storeu_si128(compressed + 12, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 31), 5));
+  _mm_storeu_si128(compressed + 13, w1);
+}
+
+/* we are going to pack 64 28-bit values, touching 14 128-bit words, using 224
+ * bytes */
+static void simdpackblock28(const u64 *pin, __m128i *compressed) {
+  const __m128i *in = (const __m128i *)pin;
+  /* we are going to touch  14 128-bit words */
+  __m128i w0, w1;
+  __m128i tmp; /* used to store inputs at word boundary */
+  w0 = _mm_loadu_si128(in + 0);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 1), 28));
+  tmp = _mm_loadu_si128(in + 2);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 56));
+  w1 = _mm_srli_epi64(tmp, 8);
+  _mm_storeu_si128(compressed + 0, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 3), 20));
+  tmp = _mm_loadu_si128(in + 4);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 48));
+  w0 = _mm_srli_epi64(tmp, 16);
+  _mm_storeu_si128(compressed + 1, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 5), 12));
+  tmp = _mm_loadu_si128(in + 6);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 40));
+  w1 = _mm_srli_epi64(tmp, 24);
+  _mm_storeu_si128(compressed + 2, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 7), 4));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 8), 32));
+  tmp = _mm_loadu_si128(in + 9);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 60));
+  w0 = _mm_srli_epi64(tmp, 4);
+  _mm_storeu_si128(compressed + 3, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 10), 24));
+  tmp = _mm_loadu_si128(in + 11);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 52));
+  w1 = _mm_srli_epi64(tmp, 12);
+  _mm_storeu_si128(compressed + 4, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 12), 16));
+  tmp = _mm_loadu_si128(in + 13);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 44));
+  w0 = _mm_srli_epi64(tmp, 20);
+  _mm_storeu_si128(compressed + 5, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 14), 8));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 15), 36));
+  _mm_storeu_si128(compressed + 6, w0);
+  w1 = _mm_loadu_si128(in + 16);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 17), 28));
+  tmp = _mm_loadu_si128(in + 18);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 56));
+  w0 = _mm_srli_epi64(tmp, 8);
+  _mm_storeu_si128(compressed + 7, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 19), 20));
+  tmp = _mm_loadu_si128(in + 20);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 48));
+  w1 = _mm_srli_epi64(tmp, 16);
+  _mm_storeu_si128(compressed + 8, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 21), 12));
+  tmp = _mm_loadu_si128(in + 22);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 40));
+  w0 = _mm_srli_epi64(tmp, 24);
+  _mm_storeu_si128(compressed + 9, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 23), 4));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 24), 32));
+  tmp = _mm_loadu_si128(in + 25);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 60));
+  w1 = _mm_srli_epi64(tmp, 4);
+  _mm_storeu_si128(compressed + 10, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 26), 24));
+  tmp = _mm_loadu_si128(in + 27);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 52));
+  w0 = _mm_srli_epi64(tmp, 12);
+  _mm_storeu_si128(compressed + 11, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 28), 16));
+  tmp = _mm_loadu_si128(in + 29);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 44));
+  w1 = _mm_srli_epi64(tmp, 20);
+  _mm_storeu_si128(compressed + 12, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 30), 8));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 31), 36));
+  _mm_storeu_si128(compressed + 13, w1);
+}
+
+/* we are going to pack 64 29-bit values, touching 15 128-bit words, using 240
+ * bytes */
+static void simdpackblock29(const u64 *pin, __m128i *compressed) {
+  const __m128i *in = (const __m128i *)pin;
+  /* we are going to touch  15 128-bit words */
+  __m128i w0, w1;
+  __m128i tmp; /* used to store inputs at word boundary */
+  w0 = _mm_loadu_si128(in + 0);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 1), 29));
+  tmp = _mm_loadu_si128(in + 2);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 58));
+  w1 = _mm_srli_epi64(tmp, 6);
+  _mm_storeu_si128(compressed + 0, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 3), 23));
+  tmp = _mm_loadu_si128(in + 4);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 52));
+  w0 = _mm_srli_epi64(tmp, 12);
+  _mm_storeu_si128(compressed + 1, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 5), 17));
+  tmp = _mm_loadu_si128(in + 6);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 46));
+  w1 = _mm_srli_epi64(tmp, 18);
+  _mm_storeu_si128(compressed + 2, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 7), 11));
+  tmp = _mm_loadu_si128(in + 8);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 40));
+  w0 = _mm_srli_epi64(tmp, 24);
+  _mm_storeu_si128(compressed + 3, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 9), 5));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 10), 34));
+  tmp = _mm_loadu_si128(in + 11);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 63));
+  w1 = _mm_srli_epi64(tmp, 1);
+  _mm_storeu_si128(compressed + 4, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 12), 28));
+  tmp = _mm_loadu_si128(in + 13);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 57));
+  w0 = _mm_srli_epi64(tmp, 7);
+  _mm_storeu_si128(compressed + 5, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 14), 22));
+  tmp = _mm_loadu_si128(in + 15);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 51));
+  w1 = _mm_srli_epi64(tmp, 13);
+  _mm_storeu_si128(compressed + 6, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 16), 16));
+  tmp = _mm_loadu_si128(in + 17);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 45));
+  w0 = _mm_srli_epi64(tmp, 19);
+  _mm_storeu_si128(compressed + 7, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 18), 10));
+  tmp = _mm_loadu_si128(in + 19);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 39));
+  w1 = _mm_srli_epi64(tmp, 25);
+  _mm_storeu_si128(compressed + 8, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 20), 4));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 21), 33));
+  tmp = _mm_loadu_si128(in + 22);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 62));
+  w0 = _mm_srli_epi64(tmp, 2);
+  _mm_storeu_si128(compressed + 9, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 23), 27));
+  tmp = _mm_loadu_si128(in + 24);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 56));
+  w1 = _mm_srli_epi64(tmp, 8);
+  _mm_storeu_si128(compressed + 10, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 25), 21));
+  tmp = _mm_loadu_si128(in + 26);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 50));
+  w0 = _mm_srli_epi64(tmp, 14);
+  _mm_storeu_si128(compressed + 11, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 27), 15));
+  tmp = _mm_loadu_si128(in + 28);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 44));
+  w1 = _mm_srli_epi64(tmp, 20);
+  _mm_storeu_si128(compressed + 12, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 29), 9));
+  tmp = _mm_loadu_si128(in + 30);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 38));
+  w0 = _mm_srli_epi64(tmp, 26);
+  _mm_storeu_si128(compressed + 13, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 31), 3));
+  _mm_storeu_si128(compressed + 14, w0);
+}
+
+/* we are going to pack 64 30-bit values, touching 15 128-bit words, using 240
+ * bytes */
+static void simdpackblock30(const u64 *pin, __m128i *compressed) {
+  const __m128i *in = (const __m128i *)pin;
+  /* we are going to touch  15 128-bit words */
+  __m128i w0, w1;
+  __m128i tmp; /* used to store inputs at word boundary */
+  w0 = _mm_loadu_si128(in + 0);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 1), 30));
+  tmp = _mm_loadu_si128(in + 2);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 60));
+  w1 = _mm_srli_epi64(tmp, 4);
+  _mm_storeu_si128(compressed + 0, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 3), 26));
+  tmp = _mm_loadu_si128(in + 4);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 56));
+  w0 = _mm_srli_epi64(tmp, 8);
+  _mm_storeu_si128(compressed + 1, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 5), 22));
+  tmp = _mm_loadu_si128(in + 6);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 52));
+  w1 = _mm_srli_epi64(tmp, 12);
+  _mm_storeu_si128(compressed + 2, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 7), 18));
+  tmp = _mm_loadu_si128(in + 8);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 48));
+  w0 = _mm_srli_epi64(tmp, 16);
+  _mm_storeu_si128(compressed + 3, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 9), 14));
+  tmp = _mm_loadu_si128(in + 10);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 44));
+  w1 = _mm_srli_epi64(tmp, 20);
+  _mm_storeu_si128(compressed + 4, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 11), 10));
+  tmp = _mm_loadu_si128(in + 12);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 40));
+  w0 = _mm_srli_epi64(tmp, 24);
+  _mm_storeu_si128(compressed + 5, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 13), 6));
+  tmp = _mm_loadu_si128(in + 14);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 36));
+  w1 = _mm_srli_epi64(tmp, 28);
+  _mm_storeu_si128(compressed + 6, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 15), 2));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 16), 32));
+  tmp = _mm_loadu_si128(in + 17);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 62));
+  w0 = _mm_srli_epi64(tmp, 2);
+  _mm_storeu_si128(compressed + 7, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 18), 28));
+  tmp = _mm_loadu_si128(in + 19);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 58));
+  w1 = _mm_srli_epi64(tmp, 6);
+  _mm_storeu_si128(compressed + 8, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 20), 24));
+  tmp = _mm_loadu_si128(in + 21);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 54));
+  w0 = _mm_srli_epi64(tmp, 10);
+  _mm_storeu_si128(compressed + 9, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 22), 20));
+  tmp = _mm_loadu_si128(in + 23);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 50));
+  w1 = _mm_srli_epi64(tmp, 14);
+  _mm_storeu_si128(compressed + 10, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 24), 16));
+  tmp = _mm_loadu_si128(in + 25);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 46));
+  w0 = _mm_srli_epi64(tmp, 18);
+  _mm_storeu_si128(compressed + 11, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 26), 12));
+  tmp = _mm_loadu_si128(in + 27);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 42));
+  w1 = _mm_srli_epi64(tmp, 22);
+  _mm_storeu_si128(compressed + 12, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 28), 8));
+  tmp = _mm_loadu_si128(in + 29);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 38));
+  w0 = _mm_srli_epi64(tmp, 26);
+  _mm_storeu_si128(compressed + 13, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 30), 4));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 31), 34));
+  _mm_storeu_si128(compressed + 14, w0);
+}
+
+/* we are going to pack 64 31-bit values, touching 16 128-bit words, using 256
+ * bytes */
+static void simdpackblock31(const u64 *pin, __m128i *compressed) {
+  const __m128i *in = (const __m128i *)pin;
+  /* we are going to touch  16 128-bit words */
+  __m128i w0, w1;
+  __m128i tmp; /* used to store inputs at word boundary */
+  w0 = _mm_loadu_si128(in + 0);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 1), 31));
+  tmp = _mm_loadu_si128(in + 2);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 62));
+  w1 = _mm_srli_epi64(tmp, 2);
+  _mm_storeu_si128(compressed + 0, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 3), 29));
+  tmp = _mm_loadu_si128(in + 4);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 60));
+  w0 = _mm_srli_epi64(tmp, 4);
+  _mm_storeu_si128(compressed + 1, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 5), 27));
+  tmp = _mm_loadu_si128(in + 6);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 58));
+  w1 = _mm_srli_epi64(tmp, 6);
+  _mm_storeu_si128(compressed + 2, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 7), 25));
+  tmp = _mm_loadu_si128(in + 8);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 56));
+  w0 = _mm_srli_epi64(tmp, 8);
+  _mm_storeu_si128(compressed + 3, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 9), 23));
+  tmp = _mm_loadu_si128(in + 10);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 54));
+  w1 = _mm_srli_epi64(tmp, 10);
+  _mm_storeu_si128(compressed + 4, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 11), 21));
+  tmp = _mm_loadu_si128(in + 12);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 52));
+  w0 = _mm_srli_epi64(tmp, 12);
+  _mm_storeu_si128(compressed + 5, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 13), 19));
+  tmp = _mm_loadu_si128(in + 14);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 50));
+  w1 = _mm_srli_epi64(tmp, 14);
+  _mm_storeu_si128(compressed + 6, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 15), 17));
+  tmp = _mm_loadu_si128(in + 16);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 48));
+  w0 = _mm_srli_epi64(tmp, 16);
+  _mm_storeu_si128(compressed + 7, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 17), 15));
+  tmp = _mm_loadu_si128(in + 18);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 46));
+  w1 = _mm_srli_epi64(tmp, 18);
+  _mm_storeu_si128(compressed + 8, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 19), 13));
+  tmp = _mm_loadu_si128(in + 20);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 44));
+  w0 = _mm_srli_epi64(tmp, 20);
+  _mm_storeu_si128(compressed + 9, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 21), 11));
+  tmp = _mm_loadu_si128(in + 22);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 42));
+  w1 = _mm_srli_epi64(tmp, 22);
+  _mm_storeu_si128(compressed + 10, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 23), 9));
+  tmp = _mm_loadu_si128(in + 24);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 40));
+  w0 = _mm_srli_epi64(tmp, 24);
+  _mm_storeu_si128(compressed + 11, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 25), 7));
+  tmp = _mm_loadu_si128(in + 26);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 38));
+  w1 = _mm_srli_epi64(tmp, 26);
+  _mm_storeu_si128(compressed + 12, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 27), 5));
+  tmp = _mm_loadu_si128(in + 28);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 36));
+  w0 = _mm_srli_epi64(tmp, 28);
+  _mm_storeu_si128(compressed + 13, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 29), 3));
+  tmp = _mm_loadu_si128(in + 30);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 34));
+  w1 = _mm_srli_epi64(tmp, 30);
+  _mm_storeu_si128(compressed + 14, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 31), 1));
+  _mm_storeu_si128(compressed + 15, w1);
+}
+
+/* we are going to pack 64 32-bit values, touching 16 128-bit words, using 256
+ * bytes */
+static void simdpackblock32(const u64 *pin, __m128i *compressed) {
+  const __m128i *in = (const __m128i *)pin;
+  /* we are going to touch  16 128-bit words */
+  __m128i w0, w1;
+  w0 = _mm_loadu_si128(in + 0);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 1), 32));
+  _mm_storeu_si128(compressed + 0, w0);
+  w1 = _mm_loadu_si128(in + 2);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 3), 32));
+  _mm_storeu_si128(compressed + 1, w1);
+  w0 = _mm_loadu_si128(in + 4);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 5), 32));
+  _mm_storeu_si128(compressed + 2, w0);
+  w1 = _mm_loadu_si128(in + 6);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 7), 32));
+  _mm_storeu_si128(compressed + 3, w1);
+  w0 = _mm_loadu_si128(in + 8);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 9), 32));
+  _mm_storeu_si128(compressed + 4, w0);
+  w1 = _mm_loadu_si128(in + 10);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 11), 32));
+  _mm_storeu_si128(compressed + 5, w1);
+  w0 = _mm_loadu_si128(in + 12);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 13), 32));
+  _mm_storeu_si128(compressed + 6, w0);
+  w1 = _mm_loadu_si128(in + 14);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 15), 32));
+  _mm_storeu_si128(compressed + 7, w1);
+  w0 = _mm_loadu_si128(in + 16);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 17), 32));
+  _mm_storeu_si128(compressed + 8, w0);
+  w1 = _mm_loadu_si128(in + 18);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 19), 32));
+  _mm_storeu_si128(compressed + 9, w1);
+  w0 = _mm_loadu_si128(in + 20);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 21), 32));
+  _mm_storeu_si128(compressed + 10, w0);
+  w1 = _mm_loadu_si128(in + 22);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 23), 32));
+  _mm_storeu_si128(compressed + 11, w1);
+  w0 = _mm_loadu_si128(in + 24);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 25), 32));
+  _mm_storeu_si128(compressed + 12, w0);
+  w1 = _mm_loadu_si128(in + 26);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 27), 32));
+  _mm_storeu_si128(compressed + 13, w1);
+  w0 = _mm_loadu_si128(in + 28);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 29), 32));
+  _mm_storeu_si128(compressed + 14, w0);
+  w1 = _mm_loadu_si128(in + 30);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 31), 32));
+  _mm_storeu_si128(compressed + 15, w1);
+}
+
+/* we are going to pack 64 33-bit values, touching 17 128-bit words, using 272
+ * bytes */
+static void simdpackblock33(const u64 *pin, __m128i *compressed) {
+  const __m128i *in = (const __m128i *)pin;
+  /* we are going to touch  17 128-bit words */
+  __m128i w0, w1;
+  __m128i tmp; /* used to store inputs at word boundary */
+  w0 = _mm_loadu_si128(in + 0);
+  tmp = _mm_loadu_si128(in + 1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 33));
+  w1 = _mm_srli_epi64(tmp, 31);
+  _mm_storeu_si128(compressed + 0, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 2), 2));
+  tmp = _mm_loadu_si128(in + 3);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 35));
+  w0 = _mm_srli_epi64(tmp, 29);
+  _mm_storeu_si128(compressed + 1, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 4), 4));
+  tmp = _mm_loadu_si128(in + 5);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 37));
+  w1 = _mm_srli_epi64(tmp, 27);
+  _mm_storeu_si128(compressed + 2, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 6), 6));
+  tmp = _mm_loadu_si128(in + 7);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 39));
+  w0 = _mm_srli_epi64(tmp, 25);
+  _mm_storeu_si128(compressed + 3, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 8), 8));
+  tmp = _mm_loadu_si128(in + 9);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 41));
+  w1 = _mm_srli_epi64(tmp, 23);
+  _mm_storeu_si128(compressed + 4, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 10), 10));
+  tmp = _mm_loadu_si128(in + 11);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 43));
+  w0 = _mm_srli_epi64(tmp, 21);
+  _mm_storeu_si128(compressed + 5, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 12), 12));
+  tmp = _mm_loadu_si128(in + 13);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 45));
+  w1 = _mm_srli_epi64(tmp, 19);
+  _mm_storeu_si128(compressed + 6, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 14), 14));
+  tmp = _mm_loadu_si128(in + 15);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 47));
+  w0 = _mm_srli_epi64(tmp, 17);
+  _mm_storeu_si128(compressed + 7, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 16), 16));
+  tmp = _mm_loadu_si128(in + 17);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 49));
+  w1 = _mm_srli_epi64(tmp, 15);
+  _mm_storeu_si128(compressed + 8, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 18), 18));
+  tmp = _mm_loadu_si128(in + 19);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 51));
+  w0 = _mm_srli_epi64(tmp, 13);
+  _mm_storeu_si128(compressed + 9, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 20), 20));
+  tmp = _mm_loadu_si128(in + 21);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 53));
+  w1 = _mm_srli_epi64(tmp, 11);
+  _mm_storeu_si128(compressed + 10, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 22), 22));
+  tmp = _mm_loadu_si128(in + 23);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 55));
+  w0 = _mm_srli_epi64(tmp, 9);
+  _mm_storeu_si128(compressed + 11, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 24), 24));
+  tmp = _mm_loadu_si128(in + 25);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 57));
+  w1 = _mm_srli_epi64(tmp, 7);
+  _mm_storeu_si128(compressed + 12, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 26), 26));
+  tmp = _mm_loadu_si128(in + 27);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 59));
+  w0 = _mm_srli_epi64(tmp, 5);
+  _mm_storeu_si128(compressed + 13, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 28), 28));
+  tmp = _mm_loadu_si128(in + 29);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 61));
+  w1 = _mm_srli_epi64(tmp, 3);
+  _mm_storeu_si128(compressed + 14, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 30), 30));
+  tmp = _mm_loadu_si128(in + 31);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 63));
+  w0 = _mm_srli_epi64(tmp, 1);
+  _mm_storeu_si128(compressed + 16, w0);
+}
+
+/* we are going to pack 64 34-bit values, touching 17 128-bit words, using 272
+ * bytes */
+static void simdpackblock34(const u64 *pin, __m128i *compressed) {
+  const __m128i *in = (const __m128i *)pin;
+  /* we are going to touch  17 128-bit words */
+  __m128i w0, w1;
+  __m128i tmp; /* used to store inputs at word boundary */
+  w0 = _mm_loadu_si128(in + 0);
+  tmp = _mm_loadu_si128(in + 1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 34));
+  w1 = _mm_srli_epi64(tmp, 30);
+  _mm_storeu_si128(compressed + 0, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 2), 4));
+  tmp = _mm_loadu_si128(in + 3);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 38));
+  w0 = _mm_srli_epi64(tmp, 26);
+  _mm_storeu_si128(compressed + 1, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 4), 8));
+  tmp = _mm_loadu_si128(in + 5);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 42));
+  w1 = _mm_srli_epi64(tmp, 22);
+  _mm_storeu_si128(compressed + 2, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 6), 12));
+  tmp = _mm_loadu_si128(in + 7);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 46));
+  w0 = _mm_srli_epi64(tmp, 18);
+  _mm_storeu_si128(compressed + 3, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 8), 16));
+  tmp = _mm_loadu_si128(in + 9);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 50));
+  w1 = _mm_srli_epi64(tmp, 14);
+  _mm_storeu_si128(compressed + 4, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 10), 20));
+  tmp = _mm_loadu_si128(in + 11);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 54));
+  w0 = _mm_srli_epi64(tmp, 10);
+  _mm_storeu_si128(compressed + 5, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 12), 24));
+  tmp = _mm_loadu_si128(in + 13);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 58));
+  w1 = _mm_srli_epi64(tmp, 6);
+  _mm_storeu_si128(compressed + 6, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 14), 28));
+  tmp = _mm_loadu_si128(in + 15);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 62));
+  w0 = _mm_srli_epi64(tmp, 2);
+  _mm_storeu_si128(compressed + 7, w1);
+  tmp = _mm_loadu_si128(in + 16);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 32));
+  w1 = _mm_srli_epi64(tmp, 32);
+  _mm_storeu_si128(compressed + 8, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 17), 2));
+  tmp = _mm_loadu_si128(in + 18);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 36));
+  w0 = _mm_srli_epi64(tmp, 28);
+  _mm_storeu_si128(compressed + 9, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 19), 6));
+  tmp = _mm_loadu_si128(in + 20);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 40));
+  w1 = _mm_srli_epi64(tmp, 24);
+  _mm_storeu_si128(compressed + 10, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 21), 10));
+  tmp = _mm_loadu_si128(in + 22);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 44));
+  w0 = _mm_srli_epi64(tmp, 20);
+  _mm_storeu_si128(compressed + 11, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 23), 14));
+  tmp = _mm_loadu_si128(in + 24);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 48));
+  w1 = _mm_srli_epi64(tmp, 16);
+  _mm_storeu_si128(compressed + 12, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 25), 18));
+  tmp = _mm_loadu_si128(in + 26);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 52));
+  w0 = _mm_srli_epi64(tmp, 12);
+  _mm_storeu_si128(compressed + 13, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 27), 22));
+  tmp = _mm_loadu_si128(in + 28);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 56));
+  w1 = _mm_srli_epi64(tmp, 8);
+  _mm_storeu_si128(compressed + 14, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 29), 26));
+  tmp = _mm_loadu_si128(in + 30);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 60));
+  w0 = _mm_srli_epi64(tmp, 4);
+  _mm_storeu_si128(compressed + 15, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 31), 30));
+  _mm_storeu_si128(compressed + 16, w0);
+}
+
+/* we are going to pack 64 35-bit values, touching 18 128-bit words, using 288
+ * bytes */
+static void simdpackblock35(const u64 *pin, __m128i *compressed) {
+  const __m128i *in = (const __m128i *)pin;
+  /* we are going to touch  18 128-bit words */
+  __m128i w0, w1;
+  __m128i tmp; /* used to store inputs at word boundary */
+  w0 = _mm_loadu_si128(in + 0);
+  tmp = _mm_loadu_si128(in + 1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 35));
+  w1 = _mm_srli_epi64(tmp, 29);
+  _mm_storeu_si128(compressed + 0, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 2), 6));
+  tmp = _mm_loadu_si128(in + 3);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 41));
+  w0 = _mm_srli_epi64(tmp, 23);
+  _mm_storeu_si128(compressed + 1, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 4), 12));
+  tmp = _mm_loadu_si128(in + 5);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 47));
+  w1 = _mm_srli_epi64(tmp, 17);
+  _mm_storeu_si128(compressed + 2, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 6), 18));
+  tmp = _mm_loadu_si128(in + 7);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 53));
+  w0 = _mm_srli_epi64(tmp, 11);
+  _mm_storeu_si128(compressed + 3, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 8), 24));
+  tmp = _mm_loadu_si128(in + 9);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 59));
+  w1 = _mm_srli_epi64(tmp, 5);
+  _mm_storeu_si128(compressed + 4, w0);
+  tmp = _mm_loadu_si128(in + 10);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 30));
+  w0 = _mm_srli_epi64(tmp, 34);
+  _mm_storeu_si128(compressed + 5, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 11), 1));
+  tmp = _mm_loadu_si128(in + 12);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 36));
+  w1 = _mm_srli_epi64(tmp, 28);
+  _mm_storeu_si128(compressed + 6, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 13), 7));
+  tmp = _mm_loadu_si128(in + 14);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 42));
+  w0 = _mm_srli_epi64(tmp, 22);
+  _mm_storeu_si128(compressed + 7, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 15), 13));
+  tmp = _mm_loadu_si128(in + 16);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 48));
+  w1 = _mm_srli_epi64(tmp, 16);
+  _mm_storeu_si128(compressed + 8, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 17), 19));
+  tmp = _mm_loadu_si128(in + 18);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 54));
+  w0 = _mm_srli_epi64(tmp, 10);
+  _mm_storeu_si128(compressed + 9, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 19), 25));
+  tmp = _mm_loadu_si128(in + 20);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 60));
+  w1 = _mm_srli_epi64(tmp, 4);
+  _mm_storeu_si128(compressed + 10, w0);
+  tmp = _mm_loadu_si128(in + 21);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 31));
+  w0 = _mm_srli_epi64(tmp, 33);
+  _mm_storeu_si128(compressed + 11, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 22), 2));
+  tmp = _mm_loadu_si128(in + 23);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 37));
+  w1 = _mm_srli_epi64(tmp, 27);
+  _mm_storeu_si128(compressed + 12, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 24), 8));
+  tmp = _mm_loadu_si128(in + 25);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 43));
+  w0 = _mm_srli_epi64(tmp, 21);
+  _mm_storeu_si128(compressed + 13, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 26), 14));
+  tmp = _mm_loadu_si128(in + 27);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 49));
+  w1 = _mm_srli_epi64(tmp, 15);
+  _mm_storeu_si128(compressed + 14, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 28), 20));
+  tmp = _mm_loadu_si128(in + 29);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 55));
+  w0 = _mm_srli_epi64(tmp, 9);
+  _mm_storeu_si128(compressed + 15, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 30), 26));
+  tmp = _mm_loadu_si128(in + 31);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 61));
+  w1 = _mm_srli_epi64(tmp, 3);
+  _mm_storeu_si128(compressed + 17, w1);
+}
+
+/* we are going to pack 64 36-bit values, touching 18 128-bit words, using 288
+ * bytes */
+static void simdpackblock36(const u64 *pin, __m128i *compressed) {
+  const __m128i *in = (const __m128i *)pin;
+  /* we are going to touch  18 128-bit words */
+  __m128i w0, w1;
+  __m128i tmp; /* used to store inputs at word boundary */
+  w0 = _mm_loadu_si128(in + 0);
+  tmp = _mm_loadu_si128(in + 1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 36));
+  w1 = _mm_srli_epi64(tmp, 28);
+  _mm_storeu_si128(compressed + 0, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 2), 8));
+  tmp = _mm_loadu_si128(in + 3);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 44));
+  w0 = _mm_srli_epi64(tmp, 20);
+  _mm_storeu_si128(compressed + 1, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 4), 16));
+  tmp = _mm_loadu_si128(in + 5);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 52));
+  w1 = _mm_srli_epi64(tmp, 12);
+  _mm_storeu_si128(compressed + 2, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 6), 24));
+  tmp = _mm_loadu_si128(in + 7);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 60));
+  w0 = _mm_srli_epi64(tmp, 4);
+  _mm_storeu_si128(compressed + 3, w1);
+  tmp = _mm_loadu_si128(in + 8);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 32));
+  w1 = _mm_srli_epi64(tmp, 32);
+  _mm_storeu_si128(compressed + 4, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 9), 4));
+  tmp = _mm_loadu_si128(in + 10);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 40));
+  w0 = _mm_srli_epi64(tmp, 24);
+  _mm_storeu_si128(compressed + 5, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 11), 12));
+  tmp = _mm_loadu_si128(in + 12);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 48));
+  w1 = _mm_srli_epi64(tmp, 16);
+  _mm_storeu_si128(compressed + 6, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 13), 20));
+  tmp = _mm_loadu_si128(in + 14);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 56));
+  w0 = _mm_srli_epi64(tmp, 8);
+  _mm_storeu_si128(compressed + 7, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 15), 28));
+  _mm_storeu_si128(compressed + 8, w0);
+  w1 = _mm_loadu_si128(in + 16);
+  tmp = _mm_loadu_si128(in + 17);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 36));
+  w0 = _mm_srli_epi64(tmp, 28);
+  _mm_storeu_si128(compressed + 9, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 18), 8));
+  tmp = _mm_loadu_si128(in + 19);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 44));
+  w1 = _mm_srli_epi64(tmp, 20);
+  _mm_storeu_si128(compressed + 10, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 20), 16));
+  tmp = _mm_loadu_si128(in + 21);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 52));
+  w0 = _mm_srli_epi64(tmp, 12);
+  _mm_storeu_si128(compressed + 11, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 22), 24));
+  tmp = _mm_loadu_si128(in + 23);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 60));
+  w1 = _mm_srli_epi64(tmp, 4);
+  _mm_storeu_si128(compressed + 12, w0);
+  tmp = _mm_loadu_si128(in + 24);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 32));
+  w0 = _mm_srli_epi64(tmp, 32);
+  _mm_storeu_si128(compressed + 13, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 25), 4));
+  tmp = _mm_loadu_si128(in + 26);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 40));
+  w1 = _mm_srli_epi64(tmp, 24);
+  _mm_storeu_si128(compressed + 14, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 27), 12));
+  tmp = _mm_loadu_si128(in + 28);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 48));
+  w0 = _mm_srli_epi64(tmp, 16);
+  _mm_storeu_si128(compressed + 15, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 29), 20));
+  tmp = _mm_loadu_si128(in + 30);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 56));
+  w1 = _mm_srli_epi64(tmp, 8);
+  _mm_storeu_si128(compressed + 16, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 31), 28));
+  _mm_storeu_si128(compressed + 17, w1);
+}
+
+/* we are going to pack 64 37-bit values, touching 19 128-bit words, using 304
+ * bytes */
+static void simdpackblock37(const u64 *pin, __m128i *compressed) {
+  const __m128i *in = (const __m128i *)pin;
+  /* we are going to touch  19 128-bit words */
+  __m128i w0, w1;
+  __m128i tmp; /* used to store inputs at word boundary */
+  w0 = _mm_loadu_si128(in + 0);
+  tmp = _mm_loadu_si128(in + 1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 37));
+  w1 = _mm_srli_epi64(tmp, 27);
+  _mm_storeu_si128(compressed + 0, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 2), 10));
+  tmp = _mm_loadu_si128(in + 3);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 47));
+  w0 = _mm_srli_epi64(tmp, 17);
+  _mm_storeu_si128(compressed + 1, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 4), 20));
+  tmp = _mm_loadu_si128(in + 5);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 57));
+  w1 = _mm_srli_epi64(tmp, 7);
+  _mm_storeu_si128(compressed + 2, w0);
+  tmp = _mm_loadu_si128(in + 6);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 30));
+  w0 = _mm_srli_epi64(tmp, 34);
+  _mm_storeu_si128(compressed + 3, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 7), 3));
+  tmp = _mm_loadu_si128(in + 8);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 40));
+  w1 = _mm_srli_epi64(tmp, 24);
+  _mm_storeu_si128(compressed + 4, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 9), 13));
+  tmp = _mm_loadu_si128(in + 10);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 50));
+  w0 = _mm_srli_epi64(tmp, 14);
+  _mm_storeu_si128(compressed + 5, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 11), 23));
+  tmp = _mm_loadu_si128(in + 12);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 60));
+  w1 = _mm_srli_epi64(tmp, 4);
+  _mm_storeu_si128(compressed + 6, w0);
+  tmp = _mm_loadu_si128(in + 13);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 33));
+  w0 = _mm_srli_epi64(tmp, 31);
+  _mm_storeu_si128(compressed + 7, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 14), 6));
+  tmp = _mm_loadu_si128(in + 15);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 43));
+  w1 = _mm_srli_epi64(tmp, 21);
+  _mm_storeu_si128(compressed + 8, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 16), 16));
+  tmp = _mm_loadu_si128(in + 17);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 53));
+  w0 = _mm_srli_epi64(tmp, 11);
+  _mm_storeu_si128(compressed + 9, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 18), 26));
+  tmp = _mm_loadu_si128(in + 19);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 63));
+  w1 = _mm_srli_epi64(tmp, 1);
+  _mm_storeu_si128(compressed + 10, w0);
+  tmp = _mm_loadu_si128(in + 20);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 36));
+  w0 = _mm_srli_epi64(tmp, 28);
+  _mm_storeu_si128(compressed + 11, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 21), 9));
+  tmp = _mm_loadu_si128(in + 22);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 46));
+  w1 = _mm_srli_epi64(tmp, 18);
+  _mm_storeu_si128(compressed + 12, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 23), 19));
+  tmp = _mm_loadu_si128(in + 24);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 56));
+  w0 = _mm_srli_epi64(tmp, 8);
+  _mm_storeu_si128(compressed + 13, w1);
+  tmp = _mm_loadu_si128(in + 25);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 29));
+  w1 = _mm_srli_epi64(tmp, 35);
+  _mm_storeu_si128(compressed + 14, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 26), 2));
+  tmp = _mm_loadu_si128(in + 27);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 39));
+  w0 = _mm_srli_epi64(tmp, 25);
+  _mm_storeu_si128(compressed + 15, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 28), 12));
+  tmp = _mm_loadu_si128(in + 29);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 49));
+  w1 = _mm_srli_epi64(tmp, 15);
+  _mm_storeu_si128(compressed + 16, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 30), 22));
+  tmp = _mm_loadu_si128(in + 31);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 59));
+  w0 = _mm_srli_epi64(tmp, 5);
+  _mm_storeu_si128(compressed + 18, w0);
+}
+
+/* we are going to pack 64 38-bit values, touching 19 128-bit words, using 304
+ * bytes */
+static void simdpackblock38(const u64 *pin, __m128i *compressed) {
+  const __m128i *in = (const __m128i *)pin;
+  /* we are going to touch  19 128-bit words */
+  __m128i w0, w1;
+  __m128i tmp; /* used to store inputs at word boundary */
+  w0 = _mm_loadu_si128(in + 0);
+  tmp = _mm_loadu_si128(in + 1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 38));
+  w1 = _mm_srli_epi64(tmp, 26);
+  _mm_storeu_si128(compressed + 0, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 2), 12));
+  tmp = _mm_loadu_si128(in + 3);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 50));
+  w0 = _mm_srli_epi64(tmp, 14);
+  _mm_storeu_si128(compressed + 1, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 4), 24));
+  tmp = _mm_loadu_si128(in + 5);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 62));
+  w1 = _mm_srli_epi64(tmp, 2);
+  _mm_storeu_si128(compressed + 2, w0);
+  tmp = _mm_loadu_si128(in + 6);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 36));
+  w0 = _mm_srli_epi64(tmp, 28);
+  _mm_storeu_si128(compressed + 3, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 7), 10));
+  tmp = _mm_loadu_si128(in + 8);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 48));
+  w1 = _mm_srli_epi64(tmp, 16);
+  _mm_storeu_si128(compressed + 4, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 9), 22));
+  tmp = _mm_loadu_si128(in + 10);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 60));
+  w0 = _mm_srli_epi64(tmp, 4);
+  _mm_storeu_si128(compressed + 5, w1);
+  tmp = _mm_loadu_si128(in + 11);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 34));
+  w1 = _mm_srli_epi64(tmp, 30);
+  _mm_storeu_si128(compressed + 6, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 12), 8));
+  tmp = _mm_loadu_si128(in + 13);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 46));
+  w0 = _mm_srli_epi64(tmp, 18);
+  _mm_storeu_si128(compressed + 7, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 14), 20));
+  tmp = _mm_loadu_si128(in + 15);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 58));
+  w1 = _mm_srli_epi64(tmp, 6);
+  _mm_storeu_si128(compressed + 8, w0);
+  tmp = _mm_loadu_si128(in + 16);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 32));
+  w0 = _mm_srli_epi64(tmp, 32);
+  _mm_storeu_si128(compressed + 9, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 17), 6));
+  tmp = _mm_loadu_si128(in + 18);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 44));
+  w1 = _mm_srli_epi64(tmp, 20);
+  _mm_storeu_si128(compressed + 10, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 19), 18));
+  tmp = _mm_loadu_si128(in + 20);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 56));
+  w0 = _mm_srli_epi64(tmp, 8);
+  _mm_storeu_si128(compressed + 11, w1);
+  tmp = _mm_loadu_si128(in + 21);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 30));
+  w1 = _mm_srli_epi64(tmp, 34);
+  _mm_storeu_si128(compressed + 12, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 22), 4));
+  tmp = _mm_loadu_si128(in + 23);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 42));
+  w0 = _mm_srli_epi64(tmp, 22);
+  _mm_storeu_si128(compressed + 13, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 24), 16));
+  tmp = _mm_loadu_si128(in + 25);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 54));
+  w1 = _mm_srli_epi64(tmp, 10);
+  _mm_storeu_si128(compressed + 14, w0);
+  tmp = _mm_loadu_si128(in + 26);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 28));
+  w0 = _mm_srli_epi64(tmp, 36);
+  _mm_storeu_si128(compressed + 15, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 27), 2));
+  tmp = _mm_loadu_si128(in + 28);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 40));
+  w1 = _mm_srli_epi64(tmp, 24);
+  _mm_storeu_si128(compressed + 16, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 29), 14));
+  tmp = _mm_loadu_si128(in + 30);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 52));
+  w0 = _mm_srli_epi64(tmp, 12);
+  _mm_storeu_si128(compressed + 17, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 31), 26));
+  _mm_storeu_si128(compressed + 18, w0);
+}
+
+/* we are going to pack 64 39-bit values, touching 20 128-bit words, using 320
+ * bytes */
+static void simdpackblock39(const u64 *pin, __m128i *compressed) {
+  const __m128i *in = (const __m128i *)pin;
+  /* we are going to touch  20 128-bit words */
+  __m128i w0, w1;
+  __m128i tmp; /* used to store inputs at word boundary */
+  w0 = _mm_loadu_si128(in + 0);
+  tmp = _mm_loadu_si128(in + 1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 39));
+  w1 = _mm_srli_epi64(tmp, 25);
+  _mm_storeu_si128(compressed + 0, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 2), 14));
+  tmp = _mm_loadu_si128(in + 3);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 53));
+  w0 = _mm_srli_epi64(tmp, 11);
+  _mm_storeu_si128(compressed + 1, w1);
+  tmp = _mm_loadu_si128(in + 4);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 28));
+  w1 = _mm_srli_epi64(tmp, 36);
+  _mm_storeu_si128(compressed + 2, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 5), 3));
+  tmp = _mm_loadu_si128(in + 6);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 42));
+  w0 = _mm_srli_epi64(tmp, 22);
+  _mm_storeu_si128(compressed + 3, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 7), 17));
+  tmp = _mm_loadu_si128(in + 8);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 56));
+  w1 = _mm_srli_epi64(tmp, 8);
+  _mm_storeu_si128(compressed + 4, w0);
+  tmp = _mm_loadu_si128(in + 9);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 31));
+  w0 = _mm_srli_epi64(tmp, 33);
+  _mm_storeu_si128(compressed + 5, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 10), 6));
+  tmp = _mm_loadu_si128(in + 11);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 45));
+  w1 = _mm_srli_epi64(tmp, 19);
+  _mm_storeu_si128(compressed + 6, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 12), 20));
+  tmp = _mm_loadu_si128(in + 13);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 59));
+  w0 = _mm_srli_epi64(tmp, 5);
+  _mm_storeu_si128(compressed + 7, w1);
+  tmp = _mm_loadu_si128(in + 14);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 34));
+  w1 = _mm_srli_epi64(tmp, 30);
+  _mm_storeu_si128(compressed + 8, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 15), 9));
+  tmp = _mm_loadu_si128(in + 16);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 48));
+  w0 = _mm_srli_epi64(tmp, 16);
+  _mm_storeu_si128(compressed + 9, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 17), 23));
+  tmp = _mm_loadu_si128(in + 18);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 62));
+  w1 = _mm_srli_epi64(tmp, 2);
+  _mm_storeu_si128(compressed + 10, w0);
+  tmp = _mm_loadu_si128(in + 19);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 37));
+  w0 = _mm_srli_epi64(tmp, 27);
+  _mm_storeu_si128(compressed + 11, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 20), 12));
+  tmp = _mm_loadu_si128(in + 21);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 51));
+  w1 = _mm_srli_epi64(tmp, 13);
+  _mm_storeu_si128(compressed + 12, w0);
+  tmp = _mm_loadu_si128(in + 22);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 26));
+  w0 = _mm_srli_epi64(tmp, 38);
+  _mm_storeu_si128(compressed + 13, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 23), 1));
+  tmp = _mm_loadu_si128(in + 24);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 40));
+  w1 = _mm_srli_epi64(tmp, 24);
+  _mm_storeu_si128(compressed + 14, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 25), 15));
+  tmp = _mm_loadu_si128(in + 26);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 54));
+  w0 = _mm_srli_epi64(tmp, 10);
+  _mm_storeu_si128(compressed + 15, w1);
+  tmp = _mm_loadu_si128(in + 27);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 29));
+  w1 = _mm_srli_epi64(tmp, 35);
+  _mm_storeu_si128(compressed + 16, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 28), 4));
+  tmp = _mm_loadu_si128(in + 29);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 43));
+  w0 = _mm_srli_epi64(tmp, 21);
+  _mm_storeu_si128(compressed + 17, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 30), 18));
+  tmp = _mm_loadu_si128(in + 31);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 57));
+  w1 = _mm_srli_epi64(tmp, 7);
+  _mm_storeu_si128(compressed + 19, w1);
+}
+
+/* we are going to pack 64 40-bit values, touching 20 128-bit words, using 320
+ * bytes */
+static void simdpackblock40(const u64 *pin, __m128i *compressed) {
+  const __m128i *in = (const __m128i *)pin;
+  /* we are going to touch  20 128-bit words */
+  __m128i w0, w1;
+  __m128i tmp; /* used to store inputs at word boundary */
+  w0 = _mm_loadu_si128(in + 0);
+  tmp = _mm_loadu_si128(in + 1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 40));
+  w1 = _mm_srli_epi64(tmp, 24);
+  _mm_storeu_si128(compressed + 0, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 2), 16));
+  tmp = _mm_loadu_si128(in + 3);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 56));
+  w0 = _mm_srli_epi64(tmp, 8);
+  _mm_storeu_si128(compressed + 1, w1);
+  tmp = _mm_loadu_si128(in + 4);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 32));
+  w1 = _mm_srli_epi64(tmp, 32);
+  _mm_storeu_si128(compressed + 2, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 5), 8));
+  tmp = _mm_loadu_si128(in + 6);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 48));
+  w0 = _mm_srli_epi64(tmp, 16);
+  _mm_storeu_si128(compressed + 3, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 7), 24));
+  _mm_storeu_si128(compressed + 4, w0);
+  w1 = _mm_loadu_si128(in + 8);
+  tmp = _mm_loadu_si128(in + 9);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 40));
+  w0 = _mm_srli_epi64(tmp, 24);
+  _mm_storeu_si128(compressed + 5, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 10), 16));
+  tmp = _mm_loadu_si128(in + 11);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 56));
+  w1 = _mm_srli_epi64(tmp, 8);
+  _mm_storeu_si128(compressed + 6, w0);
+  tmp = _mm_loadu_si128(in + 12);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 32));
+  w0 = _mm_srli_epi64(tmp, 32);
+  _mm_storeu_si128(compressed + 7, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 13), 8));
+  tmp = _mm_loadu_si128(in + 14);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 48));
+  w1 = _mm_srli_epi64(tmp, 16);
+  _mm_storeu_si128(compressed + 8, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 15), 24));
+  _mm_storeu_si128(compressed + 9, w1);
+  w0 = _mm_loadu_si128(in + 16);
+  tmp = _mm_loadu_si128(in + 17);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 40));
+  w1 = _mm_srli_epi64(tmp, 24);
+  _mm_storeu_si128(compressed + 10, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 18), 16));
+  tmp = _mm_loadu_si128(in + 19);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 56));
+  w0 = _mm_srli_epi64(tmp, 8);
+  _mm_storeu_si128(compressed + 11, w1);
+  tmp = _mm_loadu_si128(in + 20);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 32));
+  w1 = _mm_srli_epi64(tmp, 32);
+  _mm_storeu_si128(compressed + 12, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 21), 8));
+  tmp = _mm_loadu_si128(in + 22);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 48));
+  w0 = _mm_srli_epi64(tmp, 16);
+  _mm_storeu_si128(compressed + 13, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 23), 24));
+  _mm_storeu_si128(compressed + 14, w0);
+  w1 = _mm_loadu_si128(in + 24);
+  tmp = _mm_loadu_si128(in + 25);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 40));
+  w0 = _mm_srli_epi64(tmp, 24);
+  _mm_storeu_si128(compressed + 15, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 26), 16));
+  tmp = _mm_loadu_si128(in + 27);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 56));
+  w1 = _mm_srli_epi64(tmp, 8);
+  _mm_storeu_si128(compressed + 16, w0);
+  tmp = _mm_loadu_si128(in + 28);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 32));
+  w0 = _mm_srli_epi64(tmp, 32);
+  _mm_storeu_si128(compressed + 17, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 29), 8));
+  tmp = _mm_loadu_si128(in + 30);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 48));
+  w1 = _mm_srli_epi64(tmp, 16);
+  _mm_storeu_si128(compressed + 18, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 31), 24));
+  _mm_storeu_si128(compressed + 19, w1);
+}
+
+/* we are going to pack 64 41-bit values, touching 21 128-bit words, using 336
+ * bytes */
+static void simdpackblock41(const u64 *pin, __m128i *compressed) {
+  const __m128i *in = (const __m128i *)pin;
+  /* we are going to touch  21 128-bit words */
+  __m128i w0, w1;
+  __m128i tmp; /* used to store inputs at word boundary */
+  w0 = _mm_loadu_si128(in + 0);
+  tmp = _mm_loadu_si128(in + 1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 41));
+  w1 = _mm_srli_epi64(tmp, 23);
+  _mm_storeu_si128(compressed + 0, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 2), 18));
+  tmp = _mm_loadu_si128(in + 3);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 59));
+  w0 = _mm_srli_epi64(tmp, 5);
+  _mm_storeu_si128(compressed + 1, w1);
+  tmp = _mm_loadu_si128(in + 4);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 36));
+  w1 = _mm_srli_epi64(tmp, 28);
+  _mm_storeu_si128(compressed + 2, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 5), 13));
+  tmp = _mm_loadu_si128(in + 6);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 54));
+  w0 = _mm_srli_epi64(tmp, 10);
+  _mm_storeu_si128(compressed + 3, w1);
+  tmp = _mm_loadu_si128(in + 7);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 31));
+  w1 = _mm_srli_epi64(tmp, 33);
+  _mm_storeu_si128(compressed + 4, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 8), 8));
+  tmp = _mm_loadu_si128(in + 9);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 49));
+  w0 = _mm_srli_epi64(tmp, 15);
+  _mm_storeu_si128(compressed + 5, w1);
+  tmp = _mm_loadu_si128(in + 10);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 26));
+  w1 = _mm_srli_epi64(tmp, 38);
+  _mm_storeu_si128(compressed + 6, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 11), 3));
+  tmp = _mm_loadu_si128(in + 12);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 44));
+  w0 = _mm_srli_epi64(tmp, 20);
+  _mm_storeu_si128(compressed + 7, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 13), 21));
+  tmp = _mm_loadu_si128(in + 14);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 62));
+  w1 = _mm_srli_epi64(tmp, 2);
+  _mm_storeu_si128(compressed + 8, w0);
+  tmp = _mm_loadu_si128(in + 15);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 39));
+  w0 = _mm_srli_epi64(tmp, 25);
+  _mm_storeu_si128(compressed + 9, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 16), 16));
+  tmp = _mm_loadu_si128(in + 17);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 57));
+  w1 = _mm_srli_epi64(tmp, 7);
+  _mm_storeu_si128(compressed + 10, w0);
+  tmp = _mm_loadu_si128(in + 18);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 34));
+  w0 = _mm_srli_epi64(tmp, 30);
+  _mm_storeu_si128(compressed + 11, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 19), 11));
+  tmp = _mm_loadu_si128(in + 20);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 52));
+  w1 = _mm_srli_epi64(tmp, 12);
+  _mm_storeu_si128(compressed + 12, w0);
+  tmp = _mm_loadu_si128(in + 21);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 29));
+  w0 = _mm_srli_epi64(tmp, 35);
+  _mm_storeu_si128(compressed + 13, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 22), 6));
+  tmp = _mm_loadu_si128(in + 23);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 47));
+  w1 = _mm_srli_epi64(tmp, 17);
+  _mm_storeu_si128(compressed + 14, w0);
+  tmp = _mm_loadu_si128(in + 24);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 24));
+  w0 = _mm_srli_epi64(tmp, 40);
+  _mm_storeu_si128(compressed + 15, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 25), 1));
+  tmp = _mm_loadu_si128(in + 26);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 42));
+  w1 = _mm_srli_epi64(tmp, 22);
+  _mm_storeu_si128(compressed + 16, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 27), 19));
+  tmp = _mm_loadu_si128(in + 28);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 60));
+  w0 = _mm_srli_epi64(tmp, 4);
+  _mm_storeu_si128(compressed + 17, w1);
+  tmp = _mm_loadu_si128(in + 29);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 37));
+  w1 = _mm_srli_epi64(tmp, 27);
+  _mm_storeu_si128(compressed + 18, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 30), 14));
+  tmp = _mm_loadu_si128(in + 31);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 55));
+  w0 = _mm_srli_epi64(tmp, 9);
+  _mm_storeu_si128(compressed + 20, w0);
+}
+
+/* we are going to pack 64 42-bit values, touching 21 128-bit words, using 336
+ * bytes */
+static void simdpackblock42(const u64 *pin, __m128i *compressed) {
+  const __m128i *in = (const __m128i *)pin;
+  /* we are going to touch  21 128-bit words */
+  __m128i w0, w1;
+  __m128i tmp; /* used to store inputs at word boundary */
+  w0 = _mm_loadu_si128(in + 0);
+  tmp = _mm_loadu_si128(in + 1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 42));
+  w1 = _mm_srli_epi64(tmp, 22);
+  _mm_storeu_si128(compressed + 0, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 2), 20));
+  tmp = _mm_loadu_si128(in + 3);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 62));
+  w0 = _mm_srli_epi64(tmp, 2);
+  _mm_storeu_si128(compressed + 1, w1);
+  tmp = _mm_loadu_si128(in + 4);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 40));
+  w1 = _mm_srli_epi64(tmp, 24);
+  _mm_storeu_si128(compressed + 2, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 5), 18));
+  tmp = _mm_loadu_si128(in + 6);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 60));
+  w0 = _mm_srli_epi64(tmp, 4);
+  _mm_storeu_si128(compressed + 3, w1);
+  tmp = _mm_loadu_si128(in + 7);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 38));
+  w1 = _mm_srli_epi64(tmp, 26);
+  _mm_storeu_si128(compressed + 4, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 8), 16));
+  tmp = _mm_loadu_si128(in + 9);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 58));
+  w0 = _mm_srli_epi64(tmp, 6);
+  _mm_storeu_si128(compressed + 5, w1);
+  tmp = _mm_loadu_si128(in + 10);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 36));
+  w1 = _mm_srli_epi64(tmp, 28);
+  _mm_storeu_si128(compressed + 6, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 11), 14));
+  tmp = _mm_loadu_si128(in + 12);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 56));
+  w0 = _mm_srli_epi64(tmp, 8);
+  _mm_storeu_si128(compressed + 7, w1);
+  tmp = _mm_loadu_si128(in + 13);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 34));
+  w1 = _mm_srli_epi64(tmp, 30);
+  _mm_storeu_si128(compressed + 8, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 14), 12));
+  tmp = _mm_loadu_si128(in + 15);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 54));
+  w0 = _mm_srli_epi64(tmp, 10);
+  _mm_storeu_si128(compressed + 9, w1);
+  tmp = _mm_loadu_si128(in + 16);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 32));
+  w1 = _mm_srli_epi64(tmp, 32);
+  _mm_storeu_si128(compressed + 10, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 17), 10));
+  tmp = _mm_loadu_si128(in + 18);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 52));
+  w0 = _mm_srli_epi64(tmp, 12);
+  _mm_storeu_si128(compressed + 11, w1);
+  tmp = _mm_loadu_si128(in + 19);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 30));
+  w1 = _mm_srli_epi64(tmp, 34);
+  _mm_storeu_si128(compressed + 12, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 20), 8));
+  tmp = _mm_loadu_si128(in + 21);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 50));
+  w0 = _mm_srli_epi64(tmp, 14);
+  _mm_storeu_si128(compressed + 13, w1);
+  tmp = _mm_loadu_si128(in + 22);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 28));
+  w1 = _mm_srli_epi64(tmp, 36);
+  _mm_storeu_si128(compressed + 14, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 23), 6));
+  tmp = _mm_loadu_si128(in + 24);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 48));
+  w0 = _mm_srli_epi64(tmp, 16);
+  _mm_storeu_si128(compressed + 15, w1);
+  tmp = _mm_loadu_si128(in + 25);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 26));
+  w1 = _mm_srli_epi64(tmp, 38);
+  _mm_storeu_si128(compressed + 16, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 26), 4));
+  tmp = _mm_loadu_si128(in + 27);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 46));
+  w0 = _mm_srli_epi64(tmp, 18);
+  _mm_storeu_si128(compressed + 17, w1);
+  tmp = _mm_loadu_si128(in + 28);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 24));
+  w1 = _mm_srli_epi64(tmp, 40);
+  _mm_storeu_si128(compressed + 18, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 29), 2));
+  tmp = _mm_loadu_si128(in + 30);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 44));
+  w0 = _mm_srli_epi64(tmp, 20);
+  _mm_storeu_si128(compressed + 19, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 31), 22));
+  _mm_storeu_si128(compressed + 20, w0);
+}
+
+/* we are going to pack 64 43-bit values, touching 22 128-bit words, using 352
+ * bytes */
+static void simdpackblock43(const u64 *pin, __m128i *compressed) {
+  const __m128i *in = (const __m128i *)pin;
+  /* we are going to touch  22 128-bit words */
+  __m128i w0, w1;
+  __m128i tmp; /* used to store inputs at word boundary */
+  w0 = _mm_loadu_si128(in + 0);
+  tmp = _mm_loadu_si128(in + 1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 43));
+  w1 = _mm_srli_epi64(tmp, 21);
+  _mm_storeu_si128(compressed + 0, w0);
+  tmp = _mm_loadu_si128(in + 2);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 22));
+  w0 = _mm_srli_epi64(tmp, 42);
+  _mm_storeu_si128(compressed + 1, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 3), 1));
+  tmp = _mm_loadu_si128(in + 4);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 44));
+  w1 = _mm_srli_epi64(tmp, 20);
+  _mm_storeu_si128(compressed + 2, w0);
+  tmp = _mm_loadu_si128(in + 5);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 23));
+  w0 = _mm_srli_epi64(tmp, 41);
+  _mm_storeu_si128(compressed + 3, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 6), 2));
+  tmp = _mm_loadu_si128(in + 7);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 45));
+  w1 = _mm_srli_epi64(tmp, 19);
+  _mm_storeu_si128(compressed + 4, w0);
+  tmp = _mm_loadu_si128(in + 8);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 24));
+  w0 = _mm_srli_epi64(tmp, 40);
+  _mm_storeu_si128(compressed + 5, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 9), 3));
+  tmp = _mm_loadu_si128(in + 10);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 46));
+  w1 = _mm_srli_epi64(tmp, 18);
+  _mm_storeu_si128(compressed + 6, w0);
+  tmp = _mm_loadu_si128(in + 11);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 25));
+  w0 = _mm_srli_epi64(tmp, 39);
+  _mm_storeu_si128(compressed + 7, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 12), 4));
+  tmp = _mm_loadu_si128(in + 13);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 47));
+  w1 = _mm_srli_epi64(tmp, 17);
+  _mm_storeu_si128(compressed + 8, w0);
+  tmp = _mm_loadu_si128(in + 14);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 26));
+  w0 = _mm_srli_epi64(tmp, 38);
+  _mm_storeu_si128(compressed + 9, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 15), 5));
+  tmp = _mm_loadu_si128(in + 16);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 48));
+  w1 = _mm_srli_epi64(tmp, 16);
+  _mm_storeu_si128(compressed + 10, w0);
+  tmp = _mm_loadu_si128(in + 17);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 27));
+  w0 = _mm_srli_epi64(tmp, 37);
+  _mm_storeu_si128(compressed + 11, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 18), 6));
+  tmp = _mm_loadu_si128(in + 19);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 49));
+  w1 = _mm_srli_epi64(tmp, 15);
+  _mm_storeu_si128(compressed + 12, w0);
+  tmp = _mm_loadu_si128(in + 20);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 28));
+  w0 = _mm_srli_epi64(tmp, 36);
+  _mm_storeu_si128(compressed + 13, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 21), 7));
+  tmp = _mm_loadu_si128(in + 22);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 50));
+  w1 = _mm_srli_epi64(tmp, 14);
+  _mm_storeu_si128(compressed + 14, w0);
+  tmp = _mm_loadu_si128(in + 23);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 29));
+  w0 = _mm_srli_epi64(tmp, 35);
+  _mm_storeu_si128(compressed + 15, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 24), 8));
+  tmp = _mm_loadu_si128(in + 25);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 51));
+  w1 = _mm_srli_epi64(tmp, 13);
+  _mm_storeu_si128(compressed + 16, w0);
+  tmp = _mm_loadu_si128(in + 26);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 30));
+  w0 = _mm_srli_epi64(tmp, 34);
+  _mm_storeu_si128(compressed + 17, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 27), 9));
+  tmp = _mm_loadu_si128(in + 28);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 52));
+  w1 = _mm_srli_epi64(tmp, 12);
+  _mm_storeu_si128(compressed + 18, w0);
+  tmp = _mm_loadu_si128(in + 29);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 31));
+  w0 = _mm_srli_epi64(tmp, 33);
+  _mm_storeu_si128(compressed + 19, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 30), 10));
+  tmp = _mm_loadu_si128(in + 31);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 53));
+  w1 = _mm_srli_epi64(tmp, 11);
+  _mm_storeu_si128(compressed + 21, w1);
+}
+
+/* we are going to pack 64 44-bit values, touching 22 128-bit words, using 352
+ * bytes */
+static void simdpackblock44(const u64 *pin, __m128i *compressed) {
+  const __m128i *in = (const __m128i *)pin;
+  /* we are going to touch  22 128-bit words */
+  __m128i w0, w1;
+  __m128i tmp; /* used to store inputs at word boundary */
+  w0 = _mm_loadu_si128(in + 0);
+  tmp = _mm_loadu_si128(in + 1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 44));
+  w1 = _mm_srli_epi64(tmp, 20);
+  _mm_storeu_si128(compressed + 0, w0);
+  tmp = _mm_loadu_si128(in + 2);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 24));
+  w0 = _mm_srli_epi64(tmp, 40);
+  _mm_storeu_si128(compressed + 1, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 3), 4));
+  tmp = _mm_loadu_si128(in + 4);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 48));
+  w1 = _mm_srli_epi64(tmp, 16);
+  _mm_storeu_si128(compressed + 2, w0);
+  tmp = _mm_loadu_si128(in + 5);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 28));
+  w0 = _mm_srli_epi64(tmp, 36);
+  _mm_storeu_si128(compressed + 3, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 6), 8));
+  tmp = _mm_loadu_si128(in + 7);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 52));
+  w1 = _mm_srli_epi64(tmp, 12);
+  _mm_storeu_si128(compressed + 4, w0);
+  tmp = _mm_loadu_si128(in + 8);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 32));
+  w0 = _mm_srli_epi64(tmp, 32);
+  _mm_storeu_si128(compressed + 5, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 9), 12));
+  tmp = _mm_loadu_si128(in + 10);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 56));
+  w1 = _mm_srli_epi64(tmp, 8);
+  _mm_storeu_si128(compressed + 6, w0);
+  tmp = _mm_loadu_si128(in + 11);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 36));
+  w0 = _mm_srli_epi64(tmp, 28);
+  _mm_storeu_si128(compressed + 7, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 12), 16));
+  tmp = _mm_loadu_si128(in + 13);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 60));
+  w1 = _mm_srli_epi64(tmp, 4);
+  _mm_storeu_si128(compressed + 8, w0);
+  tmp = _mm_loadu_si128(in + 14);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 40));
+  w0 = _mm_srli_epi64(tmp, 24);
+  _mm_storeu_si128(compressed + 9, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 15), 20));
+  _mm_storeu_si128(compressed + 10, w0);
+  w1 = _mm_loadu_si128(in + 16);
+  tmp = _mm_loadu_si128(in + 17);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 44));
+  w0 = _mm_srli_epi64(tmp, 20);
+  _mm_storeu_si128(compressed + 11, w1);
+  tmp = _mm_loadu_si128(in + 18);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 24));
+  w1 = _mm_srli_epi64(tmp, 40);
+  _mm_storeu_si128(compressed + 12, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 19), 4));
+  tmp = _mm_loadu_si128(in + 20);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 48));
+  w0 = _mm_srli_epi64(tmp, 16);
+  _mm_storeu_si128(compressed + 13, w1);
+  tmp = _mm_loadu_si128(in + 21);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 28));
+  w1 = _mm_srli_epi64(tmp, 36);
+  _mm_storeu_si128(compressed + 14, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 22), 8));
+  tmp = _mm_loadu_si128(in + 23);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 52));
+  w0 = _mm_srli_epi64(tmp, 12);
+  _mm_storeu_si128(compressed + 15, w1);
+  tmp = _mm_loadu_si128(in + 24);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 32));
+  w1 = _mm_srli_epi64(tmp, 32);
+  _mm_storeu_si128(compressed + 16, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 25), 12));
+  tmp = _mm_loadu_si128(in + 26);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 56));
+  w0 = _mm_srli_epi64(tmp, 8);
+  _mm_storeu_si128(compressed + 17, w1);
+  tmp = _mm_loadu_si128(in + 27);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 36));
+  w1 = _mm_srli_epi64(tmp, 28);
+  _mm_storeu_si128(compressed + 18, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 28), 16));
+  tmp = _mm_loadu_si128(in + 29);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 60));
+  w0 = _mm_srli_epi64(tmp, 4);
+  _mm_storeu_si128(compressed + 19, w1);
+  tmp = _mm_loadu_si128(in + 30);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 40));
+  w1 = _mm_srli_epi64(tmp, 24);
+  _mm_storeu_si128(compressed + 20, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 31), 20));
+  _mm_storeu_si128(compressed + 21, w1);
+}
+
+/* we are going to pack 64 45-bit values, touching 23 128-bit words, using 368
+ * bytes */
+static void simdpackblock45(const u64 *pin, __m128i *compressed) {
+  const __m128i *in = (const __m128i *)pin;
+  /* we are going to touch  23 128-bit words */
+  __m128i w0, w1;
+  __m128i tmp; /* used to store inputs at word boundary */
+  w0 = _mm_loadu_si128(in + 0);
+  tmp = _mm_loadu_si128(in + 1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 45));
+  w1 = _mm_srli_epi64(tmp, 19);
+  _mm_storeu_si128(compressed + 0, w0);
+  tmp = _mm_loadu_si128(in + 2);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 26));
+  w0 = _mm_srli_epi64(tmp, 38);
+  _mm_storeu_si128(compressed + 1, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 3), 7));
+  tmp = _mm_loadu_si128(in + 4);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 52));
+  w1 = _mm_srli_epi64(tmp, 12);
+  _mm_storeu_si128(compressed + 2, w0);
+  tmp = _mm_loadu_si128(in + 5);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 33));
+  w0 = _mm_srli_epi64(tmp, 31);
+  _mm_storeu_si128(compressed + 3, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 6), 14));
+  tmp = _mm_loadu_si128(in + 7);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 59));
+  w1 = _mm_srli_epi64(tmp, 5);
+  _mm_storeu_si128(compressed + 4, w0);
+  tmp = _mm_loadu_si128(in + 8);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 40));
+  w0 = _mm_srli_epi64(tmp, 24);
+  _mm_storeu_si128(compressed + 5, w1);
+  tmp = _mm_loadu_si128(in + 9);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 21));
+  w1 = _mm_srli_epi64(tmp, 43);
+  _mm_storeu_si128(compressed + 6, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 10), 2));
+  tmp = _mm_loadu_si128(in + 11);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 47));
+  w0 = _mm_srli_epi64(tmp, 17);
+  _mm_storeu_si128(compressed + 7, w1);
+  tmp = _mm_loadu_si128(in + 12);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 28));
+  w1 = _mm_srli_epi64(tmp, 36);
+  _mm_storeu_si128(compressed + 8, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 13), 9));
+  tmp = _mm_loadu_si128(in + 14);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 54));
+  w0 = _mm_srli_epi64(tmp, 10);
+  _mm_storeu_si128(compressed + 9, w1);
+  tmp = _mm_loadu_si128(in + 15);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 35));
+  w1 = _mm_srli_epi64(tmp, 29);
+  _mm_storeu_si128(compressed + 10, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 16), 16));
+  tmp = _mm_loadu_si128(in + 17);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 61));
+  w0 = _mm_srli_epi64(tmp, 3);
+  _mm_storeu_si128(compressed + 11, w1);
+  tmp = _mm_loadu_si128(in + 18);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 42));
+  w1 = _mm_srli_epi64(tmp, 22);
+  _mm_storeu_si128(compressed + 12, w0);
+  tmp = _mm_loadu_si128(in + 19);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 23));
+  w0 = _mm_srli_epi64(tmp, 41);
+  _mm_storeu_si128(compressed + 13, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 20), 4));
+  tmp = _mm_loadu_si128(in + 21);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 49));
+  w1 = _mm_srli_epi64(tmp, 15);
+  _mm_storeu_si128(compressed + 14, w0);
+  tmp = _mm_loadu_si128(in + 22);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 30));
+  w0 = _mm_srli_epi64(tmp, 34);
+  _mm_storeu_si128(compressed + 15, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 23), 11));
+  tmp = _mm_loadu_si128(in + 24);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 56));
+  w1 = _mm_srli_epi64(tmp, 8);
+  _mm_storeu_si128(compressed + 16, w0);
+  tmp = _mm_loadu_si128(in + 25);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 37));
+  w0 = _mm_srli_epi64(tmp, 27);
+  _mm_storeu_si128(compressed + 17, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 26), 18));
+  tmp = _mm_loadu_si128(in + 27);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 63));
+  w1 = _mm_srli_epi64(tmp, 1);
+  _mm_storeu_si128(compressed + 18, w0);
+  tmp = _mm_loadu_si128(in + 28);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 44));
+  w0 = _mm_srli_epi64(tmp, 20);
+  _mm_storeu_si128(compressed + 19, w1);
+  tmp = _mm_loadu_si128(in + 29);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 25));
+  w1 = _mm_srli_epi64(tmp, 39);
+  _mm_storeu_si128(compressed + 20, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 30), 6));
+  tmp = _mm_loadu_si128(in + 31);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 51));
+  w0 = _mm_srli_epi64(tmp, 13);
+  _mm_storeu_si128(compressed + 22, w0);
+}
+
+/* we are going to pack 64 46-bit values, touching 23 128-bit words, using 368
+ * bytes */
+static void simdpackblock46(const u64 *pin, __m128i *compressed) {
+  const __m128i *in = (const __m128i *)pin;
+  /* we are going to touch  23 128-bit words */
+  __m128i w0, w1;
+  __m128i tmp; /* used to store inputs at word boundary */
+  w0 = _mm_loadu_si128(in + 0);
+  tmp = _mm_loadu_si128(in + 1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 46));
+  w1 = _mm_srli_epi64(tmp, 18);
+  _mm_storeu_si128(compressed + 0, w0);
+  tmp = _mm_loadu_si128(in + 2);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 28));
+  w0 = _mm_srli_epi64(tmp, 36);
+  _mm_storeu_si128(compressed + 1, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 3), 10));
+  tmp = _mm_loadu_si128(in + 4);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 56));
+  w1 = _mm_srli_epi64(tmp, 8);
+  _mm_storeu_si128(compressed + 2, w0);
+  tmp = _mm_loadu_si128(in + 5);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 38));
+  w0 = _mm_srli_epi64(tmp, 26);
+  _mm_storeu_si128(compressed + 3, w1);
+  tmp = _mm_loadu_si128(in + 6);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 20));
+  w1 = _mm_srli_epi64(tmp, 44);
+  _mm_storeu_si128(compressed + 4, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 7), 2));
+  tmp = _mm_loadu_si128(in + 8);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 48));
+  w0 = _mm_srli_epi64(tmp, 16);
+  _mm_storeu_si128(compressed + 5, w1);
+  tmp = _mm_loadu_si128(in + 9);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 30));
+  w1 = _mm_srli_epi64(tmp, 34);
+  _mm_storeu_si128(compressed + 6, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 10), 12));
+  tmp = _mm_loadu_si128(in + 11);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 58));
+  w0 = _mm_srli_epi64(tmp, 6);
+  _mm_storeu_si128(compressed + 7, w1);
+  tmp = _mm_loadu_si128(in + 12);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 40));
+  w1 = _mm_srli_epi64(tmp, 24);
+  _mm_storeu_si128(compressed + 8, w0);
+  tmp = _mm_loadu_si128(in + 13);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 22));
+  w0 = _mm_srli_epi64(tmp, 42);
+  _mm_storeu_si128(compressed + 9, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 14), 4));
+  tmp = _mm_loadu_si128(in + 15);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 50));
+  w1 = _mm_srli_epi64(tmp, 14);
+  _mm_storeu_si128(compressed + 10, w0);
+  tmp = _mm_loadu_si128(in + 16);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 32));
+  w0 = _mm_srli_epi64(tmp, 32);
+  _mm_storeu_si128(compressed + 11, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 17), 14));
+  tmp = _mm_loadu_si128(in + 18);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 60));
+  w1 = _mm_srli_epi64(tmp, 4);
+  _mm_storeu_si128(compressed + 12, w0);
+  tmp = _mm_loadu_si128(in + 19);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 42));
+  w0 = _mm_srli_epi64(tmp, 22);
+  _mm_storeu_si128(compressed + 13, w1);
+  tmp = _mm_loadu_si128(in + 20);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 24));
+  w1 = _mm_srli_epi64(tmp, 40);
+  _mm_storeu_si128(compressed + 14, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 21), 6));
+  tmp = _mm_loadu_si128(in + 22);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 52));
+  w0 = _mm_srli_epi64(tmp, 12);
+  _mm_storeu_si128(compressed + 15, w1);
+  tmp = _mm_loadu_si128(in + 23);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 34));
+  w1 = _mm_srli_epi64(tmp, 30);
+  _mm_storeu_si128(compressed + 16, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 24), 16));
+  tmp = _mm_loadu_si128(in + 25);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 62));
+  w0 = _mm_srli_epi64(tmp, 2);
+  _mm_storeu_si128(compressed + 17, w1);
+  tmp = _mm_loadu_si128(in + 26);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 44));
+  w1 = _mm_srli_epi64(tmp, 20);
+  _mm_storeu_si128(compressed + 18, w0);
+  tmp = _mm_loadu_si128(in + 27);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 26));
+  w0 = _mm_srli_epi64(tmp, 38);
+  _mm_storeu_si128(compressed + 19, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 28), 8));
+  tmp = _mm_loadu_si128(in + 29);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 54));
+  w1 = _mm_srli_epi64(tmp, 10);
+  _mm_storeu_si128(compressed + 20, w0);
+  tmp = _mm_loadu_si128(in + 30);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 36));
+  w0 = _mm_srli_epi64(tmp, 28);
+  _mm_storeu_si128(compressed + 21, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 31), 18));
+  _mm_storeu_si128(compressed + 22, w0);
+}
+
+/* we are going to pack 64 47-bit values, touching 24 128-bit words, using 384
+ * bytes */
+static void simdpackblock47(const u64 *pin, __m128i *compressed) {
+  const __m128i *in = (const __m128i *)pin;
+  /* we are going to touch  24 128-bit words */
+  __m128i w0, w1;
+  __m128i tmp; /* used to store inputs at word boundary */
+  w0 = _mm_loadu_si128(in + 0);
+  tmp = _mm_loadu_si128(in + 1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 47));
+  w1 = _mm_srli_epi64(tmp, 17);
+  _mm_storeu_si128(compressed + 0, w0);
+  tmp = _mm_loadu_si128(in + 2);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 30));
+  w0 = _mm_srli_epi64(tmp, 34);
+  _mm_storeu_si128(compressed + 1, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 3), 13));
+  tmp = _mm_loadu_si128(in + 4);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 60));
+  w1 = _mm_srli_epi64(tmp, 4);
+  _mm_storeu_si128(compressed + 2, w0);
+  tmp = _mm_loadu_si128(in + 5);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 43));
+  w0 = _mm_srli_epi64(tmp, 21);
+  _mm_storeu_si128(compressed + 3, w1);
+  tmp = _mm_loadu_si128(in + 6);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 26));
+  w1 = _mm_srli_epi64(tmp, 38);
+  _mm_storeu_si128(compressed + 4, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 7), 9));
+  tmp = _mm_loadu_si128(in + 8);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 56));
+  w0 = _mm_srli_epi64(tmp, 8);
+  _mm_storeu_si128(compressed + 5, w1);
+  tmp = _mm_loadu_si128(in + 9);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 39));
+  w1 = _mm_srli_epi64(tmp, 25);
+  _mm_storeu_si128(compressed + 6, w0);
+  tmp = _mm_loadu_si128(in + 10);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 22));
+  w0 = _mm_srli_epi64(tmp, 42);
+  _mm_storeu_si128(compressed + 7, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 11), 5));
+  tmp = _mm_loadu_si128(in + 12);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 52));
+  w1 = _mm_srli_epi64(tmp, 12);
+  _mm_storeu_si128(compressed + 8, w0);
+  tmp = _mm_loadu_si128(in + 13);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 35));
+  w0 = _mm_srli_epi64(tmp, 29);
+  _mm_storeu_si128(compressed + 9, w1);
+  tmp = _mm_loadu_si128(in + 14);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 18));
+  w1 = _mm_srli_epi64(tmp, 46);
+  _mm_storeu_si128(compressed + 10, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 15), 1));
+  tmp = _mm_loadu_si128(in + 16);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 48));
+  w0 = _mm_srli_epi64(tmp, 16);
+  _mm_storeu_si128(compressed + 11, w1);
+  tmp = _mm_loadu_si128(in + 17);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 31));
+  w1 = _mm_srli_epi64(tmp, 33);
+  _mm_storeu_si128(compressed + 12, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 18), 14));
+  tmp = _mm_loadu_si128(in + 19);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 61));
+  w0 = _mm_srli_epi64(tmp, 3);
+  _mm_storeu_si128(compressed + 13, w1);
+  tmp = _mm_loadu_si128(in + 20);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 44));
+  w1 = _mm_srli_epi64(tmp, 20);
+  _mm_storeu_si128(compressed + 14, w0);
+  tmp = _mm_loadu_si128(in + 21);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 27));
+  w0 = _mm_srli_epi64(tmp, 37);
+  _mm_storeu_si128(compressed + 15, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 22), 10));
+  tmp = _mm_loadu_si128(in + 23);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 57));
+  w1 = _mm_srli_epi64(tmp, 7);
+  _mm_storeu_si128(compressed + 16, w0);
+  tmp = _mm_loadu_si128(in + 24);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 40));
+  w0 = _mm_srli_epi64(tmp, 24);
+  _mm_storeu_si128(compressed + 17, w1);
+  tmp = _mm_loadu_si128(in + 25);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 23));
+  w1 = _mm_srli_epi64(tmp, 41);
+  _mm_storeu_si128(compressed + 18, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 26), 6));
+  tmp = _mm_loadu_si128(in + 27);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 53));
+  w0 = _mm_srli_epi64(tmp, 11);
+  _mm_storeu_si128(compressed + 19, w1);
+  tmp = _mm_loadu_si128(in + 28);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 36));
+  w1 = _mm_srli_epi64(tmp, 28);
+  _mm_storeu_si128(compressed + 20, w0);
+  tmp = _mm_loadu_si128(in + 29);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 19));
+  w0 = _mm_srli_epi64(tmp, 45);
+  _mm_storeu_si128(compressed + 21, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 30), 2));
+  tmp = _mm_loadu_si128(in + 31);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 49));
+  w1 = _mm_srli_epi64(tmp, 15);
+  _mm_storeu_si128(compressed + 23, w1);
+}
+
+/* we are going to pack 64 48-bit values, touching 24 128-bit words, using 384
+ * bytes */
+static void simdpackblock48(const u64 *pin, __m128i *compressed) {
+  const __m128i *in = (const __m128i *)pin;
+  /* we are going to touch  24 128-bit words */
+  __m128i w0, w1;
+  __m128i tmp; /* used to store inputs at word boundary */
+  w0 = _mm_loadu_si128(in + 0);
+  tmp = _mm_loadu_si128(in + 1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 48));
+  w1 = _mm_srli_epi64(tmp, 16);
+  _mm_storeu_si128(compressed + 0, w0);
+  tmp = _mm_loadu_si128(in + 2);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 32));
+  w0 = _mm_srli_epi64(tmp, 32);
+  _mm_storeu_si128(compressed + 1, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 3), 16));
+  _mm_storeu_si128(compressed + 2, w0);
+  w1 = _mm_loadu_si128(in + 4);
+  tmp = _mm_loadu_si128(in + 5);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 48));
+  w0 = _mm_srli_epi64(tmp, 16);
+  _mm_storeu_si128(compressed + 3, w1);
+  tmp = _mm_loadu_si128(in + 6);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 32));
+  w1 = _mm_srli_epi64(tmp, 32);
+  _mm_storeu_si128(compressed + 4, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 7), 16));
+  _mm_storeu_si128(compressed + 5, w1);
+  w0 = _mm_loadu_si128(in + 8);
+  tmp = _mm_loadu_si128(in + 9);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 48));
+  w1 = _mm_srli_epi64(tmp, 16);
+  _mm_storeu_si128(compressed + 6, w0);
+  tmp = _mm_loadu_si128(in + 10);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 32));
+  w0 = _mm_srli_epi64(tmp, 32);
+  _mm_storeu_si128(compressed + 7, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 11), 16));
+  _mm_storeu_si128(compressed + 8, w0);
+  w1 = _mm_loadu_si128(in + 12);
+  tmp = _mm_loadu_si128(in + 13);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 48));
+  w0 = _mm_srli_epi64(tmp, 16);
+  _mm_storeu_si128(compressed + 9, w1);
+  tmp = _mm_loadu_si128(in + 14);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 32));
+  w1 = _mm_srli_epi64(tmp, 32);
+  _mm_storeu_si128(compressed + 10, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 15), 16));
+  _mm_storeu_si128(compressed + 11, w1);
+  w0 = _mm_loadu_si128(in + 16);
+  tmp = _mm_loadu_si128(in + 17);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 48));
+  w1 = _mm_srli_epi64(tmp, 16);
+  _mm_storeu_si128(compressed + 12, w0);
+  tmp = _mm_loadu_si128(in + 18);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 32));
+  w0 = _mm_srli_epi64(tmp, 32);
+  _mm_storeu_si128(compressed + 13, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 19), 16));
+  _mm_storeu_si128(compressed + 14, w0);
+  w1 = _mm_loadu_si128(in + 20);
+  tmp = _mm_loadu_si128(in + 21);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 48));
+  w0 = _mm_srli_epi64(tmp, 16);
+  _mm_storeu_si128(compressed + 15, w1);
+  tmp = _mm_loadu_si128(in + 22);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 32));
+  w1 = _mm_srli_epi64(tmp, 32);
+  _mm_storeu_si128(compressed + 16, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 23), 16));
+  _mm_storeu_si128(compressed + 17, w1);
+  w0 = _mm_loadu_si128(in + 24);
+  tmp = _mm_loadu_si128(in + 25);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 48));
+  w1 = _mm_srli_epi64(tmp, 16);
+  _mm_storeu_si128(compressed + 18, w0);
+  tmp = _mm_loadu_si128(in + 26);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 32));
+  w0 = _mm_srli_epi64(tmp, 32);
+  _mm_storeu_si128(compressed + 19, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 27), 16));
+  _mm_storeu_si128(compressed + 20, w0);
+  w1 = _mm_loadu_si128(in + 28);
+  tmp = _mm_loadu_si128(in + 29);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 48));
+  w0 = _mm_srli_epi64(tmp, 16);
+  _mm_storeu_si128(compressed + 21, w1);
+  tmp = _mm_loadu_si128(in + 30);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 32));
+  w1 = _mm_srli_epi64(tmp, 32);
+  _mm_storeu_si128(compressed + 22, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 31), 16));
+  _mm_storeu_si128(compressed + 23, w1);
+}
+
+/* we are going to pack 64 49-bit values, touching 25 128-bit words, using 400
+ * bytes */
+static void simdpackblock49(const u64 *pin, __m128i *compressed) {
+  const __m128i *in = (const __m128i *)pin;
+  /* we are going to touch  25 128-bit words */
+  __m128i w0, w1;
+  __m128i tmp; /* used to store inputs at word boundary */
+  w0 = _mm_loadu_si128(in + 0);
+  tmp = _mm_loadu_si128(in + 1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 49));
+  w1 = _mm_srli_epi64(tmp, 15);
+  _mm_storeu_si128(compressed + 0, w0);
+  tmp = _mm_loadu_si128(in + 2);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 34));
+  w0 = _mm_srli_epi64(tmp, 30);
+  _mm_storeu_si128(compressed + 1, w1);
+  tmp = _mm_loadu_si128(in + 3);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 19));
+  w1 = _mm_srli_epi64(tmp, 45);
+  _mm_storeu_si128(compressed + 2, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 4), 4));
+  tmp = _mm_loadu_si128(in + 5);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 53));
+  w0 = _mm_srli_epi64(tmp, 11);
+  _mm_storeu_si128(compressed + 3, w1);
+  tmp = _mm_loadu_si128(in + 6);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 38));
+  w1 = _mm_srli_epi64(tmp, 26);
+  _mm_storeu_si128(compressed + 4, w0);
+  tmp = _mm_loadu_si128(in + 7);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 23));
+  w0 = _mm_srli_epi64(tmp, 41);
+  _mm_storeu_si128(compressed + 5, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 8), 8));
+  tmp = _mm_loadu_si128(in + 9);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 57));
+  w1 = _mm_srli_epi64(tmp, 7);
+  _mm_storeu_si128(compressed + 6, w0);
+  tmp = _mm_loadu_si128(in + 10);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 42));
+  w0 = _mm_srli_epi64(tmp, 22);
+  _mm_storeu_si128(compressed + 7, w1);
+  tmp = _mm_loadu_si128(in + 11);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 27));
+  w1 = _mm_srli_epi64(tmp, 37);
+  _mm_storeu_si128(compressed + 8, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 12), 12));
+  tmp = _mm_loadu_si128(in + 13);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 61));
+  w0 = _mm_srli_epi64(tmp, 3);
+  _mm_storeu_si128(compressed + 9, w1);
+  tmp = _mm_loadu_si128(in + 14);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 46));
+  w1 = _mm_srli_epi64(tmp, 18);
+  _mm_storeu_si128(compressed + 10, w0);
+  tmp = _mm_loadu_si128(in + 15);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 31));
+  w0 = _mm_srli_epi64(tmp, 33);
+  _mm_storeu_si128(compressed + 11, w1);
+  tmp = _mm_loadu_si128(in + 16);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 16));
+  w1 = _mm_srli_epi64(tmp, 48);
+  _mm_storeu_si128(compressed + 12, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 17), 1));
+  tmp = _mm_loadu_si128(in + 18);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 50));
+  w0 = _mm_srli_epi64(tmp, 14);
+  _mm_storeu_si128(compressed + 13, w1);
+  tmp = _mm_loadu_si128(in + 19);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 35));
+  w1 = _mm_srli_epi64(tmp, 29);
+  _mm_storeu_si128(compressed + 14, w0);
+  tmp = _mm_loadu_si128(in + 20);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 20));
+  w0 = _mm_srli_epi64(tmp, 44);
+  _mm_storeu_si128(compressed + 15, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 21), 5));
+  tmp = _mm_loadu_si128(in + 22);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 54));
+  w1 = _mm_srli_epi64(tmp, 10);
+  _mm_storeu_si128(compressed + 16, w0);
+  tmp = _mm_loadu_si128(in + 23);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 39));
+  w0 = _mm_srli_epi64(tmp, 25);
+  _mm_storeu_si128(compressed + 17, w1);
+  tmp = _mm_loadu_si128(in + 24);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 24));
+  w1 = _mm_srli_epi64(tmp, 40);
+  _mm_storeu_si128(compressed + 18, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 25), 9));
+  tmp = _mm_loadu_si128(in + 26);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 58));
+  w0 = _mm_srli_epi64(tmp, 6);
+  _mm_storeu_si128(compressed + 19, w1);
+  tmp = _mm_loadu_si128(in + 27);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 43));
+  w1 = _mm_srli_epi64(tmp, 21);
+  _mm_storeu_si128(compressed + 20, w0);
+  tmp = _mm_loadu_si128(in + 28);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 28));
+  w0 = _mm_srli_epi64(tmp, 36);
+  _mm_storeu_si128(compressed + 21, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 29), 13));
+  tmp = _mm_loadu_si128(in + 30);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 62));
+  w1 = _mm_srli_epi64(tmp, 2);
+  _mm_storeu_si128(compressed + 22, w0);
+  tmp = _mm_loadu_si128(in + 31);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 47));
+  w0 = _mm_srli_epi64(tmp, 17);
+  _mm_storeu_si128(compressed + 24, w0);
+}
+
+/* we are going to pack 64 50-bit values, touching 25 128-bit words, using 400
+ * bytes */
+static void simdpackblock50(const u64 *pin, __m128i *compressed) {
+  const __m128i *in = (const __m128i *)pin;
+  /* we are going to touch  25 128-bit words */
+  __m128i w0, w1;
+  __m128i tmp; /* used to store inputs at word boundary */
+  w0 = _mm_loadu_si128(in + 0);
+  tmp = _mm_loadu_si128(in + 1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 50));
+  w1 = _mm_srli_epi64(tmp, 14);
+  _mm_storeu_si128(compressed + 0, w0);
+  tmp = _mm_loadu_si128(in + 2);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 36));
+  w0 = _mm_srli_epi64(tmp, 28);
+  _mm_storeu_si128(compressed + 1, w1);
+  tmp = _mm_loadu_si128(in + 3);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 22));
+  w1 = _mm_srli_epi64(tmp, 42);
+  _mm_storeu_si128(compressed + 2, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 4), 8));
+  tmp = _mm_loadu_si128(in + 5);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 58));
+  w0 = _mm_srli_epi64(tmp, 6);
+  _mm_storeu_si128(compressed + 3, w1);
+  tmp = _mm_loadu_si128(in + 6);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 44));
+  w1 = _mm_srli_epi64(tmp, 20);
+  _mm_storeu_si128(compressed + 4, w0);
+  tmp = _mm_loadu_si128(in + 7);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 30));
+  w0 = _mm_srli_epi64(tmp, 34);
+  _mm_storeu_si128(compressed + 5, w1);
+  tmp = _mm_loadu_si128(in + 8);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 16));
+  w1 = _mm_srli_epi64(tmp, 48);
+  _mm_storeu_si128(compressed + 6, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 9), 2));
+  tmp = _mm_loadu_si128(in + 10);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 52));
+  w0 = _mm_srli_epi64(tmp, 12);
+  _mm_storeu_si128(compressed + 7, w1);
+  tmp = _mm_loadu_si128(in + 11);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 38));
+  w1 = _mm_srli_epi64(tmp, 26);
+  _mm_storeu_si128(compressed + 8, w0);
+  tmp = _mm_loadu_si128(in + 12);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 24));
+  w0 = _mm_srli_epi64(tmp, 40);
+  _mm_storeu_si128(compressed + 9, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 13), 10));
+  tmp = _mm_loadu_si128(in + 14);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 60));
+  w1 = _mm_srli_epi64(tmp, 4);
+  _mm_storeu_si128(compressed + 10, w0);
+  tmp = _mm_loadu_si128(in + 15);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 46));
+  w0 = _mm_srli_epi64(tmp, 18);
+  _mm_storeu_si128(compressed + 11, w1);
+  tmp = _mm_loadu_si128(in + 16);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 32));
+  w1 = _mm_srli_epi64(tmp, 32);
+  _mm_storeu_si128(compressed + 12, w0);
+  tmp = _mm_loadu_si128(in + 17);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 18));
+  w0 = _mm_srli_epi64(tmp, 46);
+  _mm_storeu_si128(compressed + 13, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 18), 4));
+  tmp = _mm_loadu_si128(in + 19);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 54));
+  w1 = _mm_srli_epi64(tmp, 10);
+  _mm_storeu_si128(compressed + 14, w0);
+  tmp = _mm_loadu_si128(in + 20);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 40));
+  w0 = _mm_srli_epi64(tmp, 24);
+  _mm_storeu_si128(compressed + 15, w1);
+  tmp = _mm_loadu_si128(in + 21);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 26));
+  w1 = _mm_srli_epi64(tmp, 38);
+  _mm_storeu_si128(compressed + 16, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 22), 12));
+  tmp = _mm_loadu_si128(in + 23);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 62));
+  w0 = _mm_srli_epi64(tmp, 2);
+  _mm_storeu_si128(compressed + 17, w1);
+  tmp = _mm_loadu_si128(in + 24);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 48));
+  w1 = _mm_srli_epi64(tmp, 16);
+  _mm_storeu_si128(compressed + 18, w0);
+  tmp = _mm_loadu_si128(in + 25);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 34));
+  w0 = _mm_srli_epi64(tmp, 30);
+  _mm_storeu_si128(compressed + 19, w1);
+  tmp = _mm_loadu_si128(in + 26);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 20));
+  w1 = _mm_srli_epi64(tmp, 44);
+  _mm_storeu_si128(compressed + 20, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 27), 6));
+  tmp = _mm_loadu_si128(in + 28);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 56));
+  w0 = _mm_srli_epi64(tmp, 8);
+  _mm_storeu_si128(compressed + 21, w1);
+  tmp = _mm_loadu_si128(in + 29);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 42));
+  w1 = _mm_srli_epi64(tmp, 22);
+  _mm_storeu_si128(compressed + 22, w0);
+  tmp = _mm_loadu_si128(in + 30);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 28));
+  w0 = _mm_srli_epi64(tmp, 36);
+  _mm_storeu_si128(compressed + 23, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 31), 14));
+  _mm_storeu_si128(compressed + 24, w0);
+}
+
+/* we are going to pack 64 51-bit values, touching 26 128-bit words, using 416
+ * bytes */
+static void simdpackblock51(const u64 *pin, __m128i *compressed) {
+  const __m128i *in = (const __m128i *)pin;
+  /* we are going to touch  26 128-bit words */
+  __m128i w0, w1;
+  __m128i tmp; /* used to store inputs at word boundary */
+  w0 = _mm_loadu_si128(in + 0);
+  tmp = _mm_loadu_si128(in + 1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 51));
+  w1 = _mm_srli_epi64(tmp, 13);
+  _mm_storeu_si128(compressed + 0, w0);
+  tmp = _mm_loadu_si128(in + 2);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 38));
+  w0 = _mm_srli_epi64(tmp, 26);
+  _mm_storeu_si128(compressed + 1, w1);
+  tmp = _mm_loadu_si128(in + 3);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 25));
+  w1 = _mm_srli_epi64(tmp, 39);
+  _mm_storeu_si128(compressed + 2, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 4), 12));
+  tmp = _mm_loadu_si128(in + 5);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 63));
+  w0 = _mm_srli_epi64(tmp, 1);
+  _mm_storeu_si128(compressed + 3, w1);
+  tmp = _mm_loadu_si128(in + 6);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 50));
+  w1 = _mm_srli_epi64(tmp, 14);
+  _mm_storeu_si128(compressed + 4, w0);
+  tmp = _mm_loadu_si128(in + 7);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 37));
+  w0 = _mm_srli_epi64(tmp, 27);
+  _mm_storeu_si128(compressed + 5, w1);
+  tmp = _mm_loadu_si128(in + 8);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 24));
+  w1 = _mm_srli_epi64(tmp, 40);
+  _mm_storeu_si128(compressed + 6, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 9), 11));
+  tmp = _mm_loadu_si128(in + 10);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 62));
+  w0 = _mm_srli_epi64(tmp, 2);
+  _mm_storeu_si128(compressed + 7, w1);
+  tmp = _mm_loadu_si128(in + 11);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 49));
+  w1 = _mm_srli_epi64(tmp, 15);
+  _mm_storeu_si128(compressed + 8, w0);
+  tmp = _mm_loadu_si128(in + 12);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 36));
+  w0 = _mm_srli_epi64(tmp, 28);
+  _mm_storeu_si128(compressed + 9, w1);
+  tmp = _mm_loadu_si128(in + 13);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 23));
+  w1 = _mm_srli_epi64(tmp, 41);
+  _mm_storeu_si128(compressed + 10, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 14), 10));
+  tmp = _mm_loadu_si128(in + 15);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 61));
+  w0 = _mm_srli_epi64(tmp, 3);
+  _mm_storeu_si128(compressed + 11, w1);
+  tmp = _mm_loadu_si128(in + 16);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 48));
+  w1 = _mm_srli_epi64(tmp, 16);
+  _mm_storeu_si128(compressed + 12, w0);
+  tmp = _mm_loadu_si128(in + 17);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 35));
+  w0 = _mm_srli_epi64(tmp, 29);
+  _mm_storeu_si128(compressed + 13, w1);
+  tmp = _mm_loadu_si128(in + 18);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 22));
+  w1 = _mm_srli_epi64(tmp, 42);
+  _mm_storeu_si128(compressed + 14, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 19), 9));
+  tmp = _mm_loadu_si128(in + 20);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 60));
+  w0 = _mm_srli_epi64(tmp, 4);
+  _mm_storeu_si128(compressed + 15, w1);
+  tmp = _mm_loadu_si128(in + 21);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 47));
+  w1 = _mm_srli_epi64(tmp, 17);
+  _mm_storeu_si128(compressed + 16, w0);
+  tmp = _mm_loadu_si128(in + 22);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 34));
+  w0 = _mm_srli_epi64(tmp, 30);
+  _mm_storeu_si128(compressed + 17, w1);
+  tmp = _mm_loadu_si128(in + 23);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 21));
+  w1 = _mm_srli_epi64(tmp, 43);
+  _mm_storeu_si128(compressed + 18, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 24), 8));
+  tmp = _mm_loadu_si128(in + 25);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 59));
+  w0 = _mm_srli_epi64(tmp, 5);
+  _mm_storeu_si128(compressed + 19, w1);
+  tmp = _mm_loadu_si128(in + 26);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 46));
+  w1 = _mm_srli_epi64(tmp, 18);
+  _mm_storeu_si128(compressed + 20, w0);
+  tmp = _mm_loadu_si128(in + 27);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 33));
+  w0 = _mm_srli_epi64(tmp, 31);
+  _mm_storeu_si128(compressed + 21, w1);
+  tmp = _mm_loadu_si128(in + 28);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 20));
+  w1 = _mm_srli_epi64(tmp, 44);
+  _mm_storeu_si128(compressed + 22, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 29), 7));
+  tmp = _mm_loadu_si128(in + 30);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 58));
+  w0 = _mm_srli_epi64(tmp, 6);
+  _mm_storeu_si128(compressed + 23, w1);
+  tmp = _mm_loadu_si128(in + 31);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 45));
+  w1 = _mm_srli_epi64(tmp, 19);
+  _mm_storeu_si128(compressed + 25, w1);
+}
+
+/* we are going to pack 64 52-bit values, touching 26 128-bit words, using 416
+ * bytes */
+static void simdpackblock52(const u64 *pin, __m128i *compressed) {
+  const __m128i *in = (const __m128i *)pin;
+  /* we are going to touch  26 128-bit words */
+  __m128i w0, w1;
+  __m128i tmp; /* used to store inputs at word boundary */
+  w0 = _mm_loadu_si128(in + 0);
+  tmp = _mm_loadu_si128(in + 1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 52));
+  w1 = _mm_srli_epi64(tmp, 12);
+  _mm_storeu_si128(compressed + 0, w0);
+  tmp = _mm_loadu_si128(in + 2);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 40));
+  w0 = _mm_srli_epi64(tmp, 24);
+  _mm_storeu_si128(compressed + 1, w1);
+  tmp = _mm_loadu_si128(in + 3);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 28));
+  w1 = _mm_srli_epi64(tmp, 36);
+  _mm_storeu_si128(compressed + 2, w0);
+  tmp = _mm_loadu_si128(in + 4);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 16));
+  w0 = _mm_srli_epi64(tmp, 48);
+  _mm_storeu_si128(compressed + 3, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 5), 4));
+  tmp = _mm_loadu_si128(in + 6);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 56));
+  w1 = _mm_srli_epi64(tmp, 8);
+  _mm_storeu_si128(compressed + 4, w0);
+  tmp = _mm_loadu_si128(in + 7);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 44));
+  w0 = _mm_srli_epi64(tmp, 20);
+  _mm_storeu_si128(compressed + 5, w1);
+  tmp = _mm_loadu_si128(in + 8);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 32));
+  w1 = _mm_srli_epi64(tmp, 32);
+  _mm_storeu_si128(compressed + 6, w0);
+  tmp = _mm_loadu_si128(in + 9);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 20));
+  w0 = _mm_srli_epi64(tmp, 44);
+  _mm_storeu_si128(compressed + 7, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 10), 8));
+  tmp = _mm_loadu_si128(in + 11);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 60));
+  w1 = _mm_srli_epi64(tmp, 4);
+  _mm_storeu_si128(compressed + 8, w0);
+  tmp = _mm_loadu_si128(in + 12);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 48));
+  w0 = _mm_srli_epi64(tmp, 16);
+  _mm_storeu_si128(compressed + 9, w1);
+  tmp = _mm_loadu_si128(in + 13);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 36));
+  w1 = _mm_srli_epi64(tmp, 28);
+  _mm_storeu_si128(compressed + 10, w0);
+  tmp = _mm_loadu_si128(in + 14);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 24));
+  w0 = _mm_srli_epi64(tmp, 40);
+  _mm_storeu_si128(compressed + 11, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 15), 12));
+  _mm_storeu_si128(compressed + 12, w0);
+  w1 = _mm_loadu_si128(in + 16);
+  tmp = _mm_loadu_si128(in + 17);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 52));
+  w0 = _mm_srli_epi64(tmp, 12);
+  _mm_storeu_si128(compressed + 13, w1);
+  tmp = _mm_loadu_si128(in + 18);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 40));
+  w1 = _mm_srli_epi64(tmp, 24);
+  _mm_storeu_si128(compressed + 14, w0);
+  tmp = _mm_loadu_si128(in + 19);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 28));
+  w0 = _mm_srli_epi64(tmp, 36);
+  _mm_storeu_si128(compressed + 15, w1);
+  tmp = _mm_loadu_si128(in + 20);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 16));
+  w1 = _mm_srli_epi64(tmp, 48);
+  _mm_storeu_si128(compressed + 16, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 21), 4));
+  tmp = _mm_loadu_si128(in + 22);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 56));
+  w0 = _mm_srli_epi64(tmp, 8);
+  _mm_storeu_si128(compressed + 17, w1);
+  tmp = _mm_loadu_si128(in + 23);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 44));
+  w1 = _mm_srli_epi64(tmp, 20);
+  _mm_storeu_si128(compressed + 18, w0);
+  tmp = _mm_loadu_si128(in + 24);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 32));
+  w0 = _mm_srli_epi64(tmp, 32);
+  _mm_storeu_si128(compressed + 19, w1);
+  tmp = _mm_loadu_si128(in + 25);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 20));
+  w1 = _mm_srli_epi64(tmp, 44);
+  _mm_storeu_si128(compressed + 20, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 26), 8));
+  tmp = _mm_loadu_si128(in + 27);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 60));
+  w0 = _mm_srli_epi64(tmp, 4);
+  _mm_storeu_si128(compressed + 21, w1);
+  tmp = _mm_loadu_si128(in + 28);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 48));
+  w1 = _mm_srli_epi64(tmp, 16);
+  _mm_storeu_si128(compressed + 22, w0);
+  tmp = _mm_loadu_si128(in + 29);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 36));
+  w0 = _mm_srli_epi64(tmp, 28);
+  _mm_storeu_si128(compressed + 23, w1);
+  tmp = _mm_loadu_si128(in + 30);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 24));
+  w1 = _mm_srli_epi64(tmp, 40);
+  _mm_storeu_si128(compressed + 24, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 31), 12));
+  _mm_storeu_si128(compressed + 25, w1);
+}
+
+/* we are going to pack 64 53-bit values, touching 27 128-bit words, using 432
+ * bytes */
+static void simdpackblock53(const u64 *pin, __m128i *compressed) {
+  const __m128i *in = (const __m128i *)pin;
+  /* we are going to touch  27 128-bit words */
+  __m128i w0, w1;
+  __m128i tmp; /* used to store inputs at word boundary */
+  w0 = _mm_loadu_si128(in + 0);
+  tmp = _mm_loadu_si128(in + 1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 53));
+  w1 = _mm_srli_epi64(tmp, 11);
+  _mm_storeu_si128(compressed + 0, w0);
+  tmp = _mm_loadu_si128(in + 2);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 42));
+  w0 = _mm_srli_epi64(tmp, 22);
+  _mm_storeu_si128(compressed + 1, w1);
+  tmp = _mm_loadu_si128(in + 3);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 31));
+  w1 = _mm_srli_epi64(tmp, 33);
+  _mm_storeu_si128(compressed + 2, w0);
+  tmp = _mm_loadu_si128(in + 4);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 20));
+  w0 = _mm_srli_epi64(tmp, 44);
+  _mm_storeu_si128(compressed + 3, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 5), 9));
+  tmp = _mm_loadu_si128(in + 6);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 62));
+  w1 = _mm_srli_epi64(tmp, 2);
+  _mm_storeu_si128(compressed + 4, w0);
+  tmp = _mm_loadu_si128(in + 7);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 51));
+  w0 = _mm_srli_epi64(tmp, 13);
+  _mm_storeu_si128(compressed + 5, w1);
+  tmp = _mm_loadu_si128(in + 8);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 40));
+  w1 = _mm_srli_epi64(tmp, 24);
+  _mm_storeu_si128(compressed + 6, w0);
+  tmp = _mm_loadu_si128(in + 9);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 29));
+  w0 = _mm_srli_epi64(tmp, 35);
+  _mm_storeu_si128(compressed + 7, w1);
+  tmp = _mm_loadu_si128(in + 10);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 18));
+  w1 = _mm_srli_epi64(tmp, 46);
+  _mm_storeu_si128(compressed + 8, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 11), 7));
+  tmp = _mm_loadu_si128(in + 12);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 60));
+  w0 = _mm_srli_epi64(tmp, 4);
+  _mm_storeu_si128(compressed + 9, w1);
+  tmp = _mm_loadu_si128(in + 13);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 49));
+  w1 = _mm_srli_epi64(tmp, 15);
+  _mm_storeu_si128(compressed + 10, w0);
+  tmp = _mm_loadu_si128(in + 14);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 38));
+  w0 = _mm_srli_epi64(tmp, 26);
+  _mm_storeu_si128(compressed + 11, w1);
+  tmp = _mm_loadu_si128(in + 15);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 27));
+  w1 = _mm_srli_epi64(tmp, 37);
+  _mm_storeu_si128(compressed + 12, w0);
+  tmp = _mm_loadu_si128(in + 16);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 16));
+  w0 = _mm_srli_epi64(tmp, 48);
+  _mm_storeu_si128(compressed + 13, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 17), 5));
+  tmp = _mm_loadu_si128(in + 18);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 58));
+  w1 = _mm_srli_epi64(tmp, 6);
+  _mm_storeu_si128(compressed + 14, w0);
+  tmp = _mm_loadu_si128(in + 19);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 47));
+  w0 = _mm_srli_epi64(tmp, 17);
+  _mm_storeu_si128(compressed + 15, w1);
+  tmp = _mm_loadu_si128(in + 20);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 36));
+  w1 = _mm_srli_epi64(tmp, 28);
+  _mm_storeu_si128(compressed + 16, w0);
+  tmp = _mm_loadu_si128(in + 21);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 25));
+  w0 = _mm_srli_epi64(tmp, 39);
+  _mm_storeu_si128(compressed + 17, w1);
+  tmp = _mm_loadu_si128(in + 22);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 14));
+  w1 = _mm_srli_epi64(tmp, 50);
+  _mm_storeu_si128(compressed + 18, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 23), 3));
+  tmp = _mm_loadu_si128(in + 24);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 56));
+  w0 = _mm_srli_epi64(tmp, 8);
+  _mm_storeu_si128(compressed + 19, w1);
+  tmp = _mm_loadu_si128(in + 25);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 45));
+  w1 = _mm_srli_epi64(tmp, 19);
+  _mm_storeu_si128(compressed + 20, w0);
+  tmp = _mm_loadu_si128(in + 26);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 34));
+  w0 = _mm_srli_epi64(tmp, 30);
+  _mm_storeu_si128(compressed + 21, w1);
+  tmp = _mm_loadu_si128(in + 27);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 23));
+  w1 = _mm_srli_epi64(tmp, 41);
+  _mm_storeu_si128(compressed + 22, w0);
+  tmp = _mm_loadu_si128(in + 28);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 12));
+  w0 = _mm_srli_epi64(tmp, 52);
+  _mm_storeu_si128(compressed + 23, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 29), 1));
+  tmp = _mm_loadu_si128(in + 30);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 54));
+  w1 = _mm_srli_epi64(tmp, 10);
+  _mm_storeu_si128(compressed + 24, w0);
+  tmp = _mm_loadu_si128(in + 31);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 43));
+  w0 = _mm_srli_epi64(tmp, 21);
+  _mm_storeu_si128(compressed + 26, w0);
+}
+
+/* we are going to pack 64 54-bit values, touching 27 128-bit words, using 432
+ * bytes */
+static void simdpackblock54(const u64 *pin, __m128i *compressed) {
+  const __m128i *in = (const __m128i *)pin;
+  /* we are going to touch  27 128-bit words */
+  __m128i w0, w1;
+  __m128i tmp; /* used to store inputs at word boundary */
+  w0 = _mm_loadu_si128(in + 0);
+  tmp = _mm_loadu_si128(in + 1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 54));
+  w1 = _mm_srli_epi64(tmp, 10);
+  _mm_storeu_si128(compressed + 0, w0);
+  tmp = _mm_loadu_si128(in + 2);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 44));
+  w0 = _mm_srli_epi64(tmp, 20);
+  _mm_storeu_si128(compressed + 1, w1);
+  tmp = _mm_loadu_si128(in + 3);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 34));
+  w1 = _mm_srli_epi64(tmp, 30);
+  _mm_storeu_si128(compressed + 2, w0);
+  tmp = _mm_loadu_si128(in + 4);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 24));
+  w0 = _mm_srli_epi64(tmp, 40);
+  _mm_storeu_si128(compressed + 3, w1);
+  tmp = _mm_loadu_si128(in + 5);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 14));
+  w1 = _mm_srli_epi64(tmp, 50);
+  _mm_storeu_si128(compressed + 4, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 6), 4));
+  tmp = _mm_loadu_si128(in + 7);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 58));
+  w0 = _mm_srli_epi64(tmp, 6);
+  _mm_storeu_si128(compressed + 5, w1);
+  tmp = _mm_loadu_si128(in + 8);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 48));
+  w1 = _mm_srli_epi64(tmp, 16);
+  _mm_storeu_si128(compressed + 6, w0);
+  tmp = _mm_loadu_si128(in + 9);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 38));
+  w0 = _mm_srli_epi64(tmp, 26);
+  _mm_storeu_si128(compressed + 7, w1);
+  tmp = _mm_loadu_si128(in + 10);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 28));
+  w1 = _mm_srli_epi64(tmp, 36);
+  _mm_storeu_si128(compressed + 8, w0);
+  tmp = _mm_loadu_si128(in + 11);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 18));
+  w0 = _mm_srli_epi64(tmp, 46);
+  _mm_storeu_si128(compressed + 9, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 12), 8));
+  tmp = _mm_loadu_si128(in + 13);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 62));
+  w1 = _mm_srli_epi64(tmp, 2);
+  _mm_storeu_si128(compressed + 10, w0);
+  tmp = _mm_loadu_si128(in + 14);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 52));
+  w0 = _mm_srli_epi64(tmp, 12);
+  _mm_storeu_si128(compressed + 11, w1);
+  tmp = _mm_loadu_si128(in + 15);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 42));
+  w1 = _mm_srli_epi64(tmp, 22);
+  _mm_storeu_si128(compressed + 12, w0);
+  tmp = _mm_loadu_si128(in + 16);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 32));
+  w0 = _mm_srli_epi64(tmp, 32);
+  _mm_storeu_si128(compressed + 13, w1);
+  tmp = _mm_loadu_si128(in + 17);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 22));
+  w1 = _mm_srli_epi64(tmp, 42);
+  _mm_storeu_si128(compressed + 14, w0);
+  tmp = _mm_loadu_si128(in + 18);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 12));
+  w0 = _mm_srli_epi64(tmp, 52);
+  _mm_storeu_si128(compressed + 15, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 19), 2));
+  tmp = _mm_loadu_si128(in + 20);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 56));
+  w1 = _mm_srli_epi64(tmp, 8);
+  _mm_storeu_si128(compressed + 16, w0);
+  tmp = _mm_loadu_si128(in + 21);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 46));
+  w0 = _mm_srli_epi64(tmp, 18);
+  _mm_storeu_si128(compressed + 17, w1);
+  tmp = _mm_loadu_si128(in + 22);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 36));
+  w1 = _mm_srli_epi64(tmp, 28);
+  _mm_storeu_si128(compressed + 18, w0);
+  tmp = _mm_loadu_si128(in + 23);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 26));
+  w0 = _mm_srli_epi64(tmp, 38);
+  _mm_storeu_si128(compressed + 19, w1);
+  tmp = _mm_loadu_si128(in + 24);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 16));
+  w1 = _mm_srli_epi64(tmp, 48);
+  _mm_storeu_si128(compressed + 20, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 25), 6));
+  tmp = _mm_loadu_si128(in + 26);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 60));
+  w0 = _mm_srli_epi64(tmp, 4);
+  _mm_storeu_si128(compressed + 21, w1);
+  tmp = _mm_loadu_si128(in + 27);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 50));
+  w1 = _mm_srli_epi64(tmp, 14);
+  _mm_storeu_si128(compressed + 22, w0);
+  tmp = _mm_loadu_si128(in + 28);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 40));
+  w0 = _mm_srli_epi64(tmp, 24);
+  _mm_storeu_si128(compressed + 23, w1);
+  tmp = _mm_loadu_si128(in + 29);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 30));
+  w1 = _mm_srli_epi64(tmp, 34);
+  _mm_storeu_si128(compressed + 24, w0);
+  tmp = _mm_loadu_si128(in + 30);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 20));
+  w0 = _mm_srli_epi64(tmp, 44);
+  _mm_storeu_si128(compressed + 25, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 31), 10));
+  _mm_storeu_si128(compressed + 26, w0);
+}
+
+/* we are going to pack 64 55-bit values, touching 28 128-bit words, using 448
+ * bytes */
+static void simdpackblock55(const u64 *pin, __m128i *compressed) {
+  const __m128i *in = (const __m128i *)pin;
+  /* we are going to touch  28 128-bit words */
+  __m128i w0, w1;
+  __m128i tmp; /* used to store inputs at word boundary */
+  w0 = _mm_loadu_si128(in + 0);
+  tmp = _mm_loadu_si128(in + 1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 55));
+  w1 = _mm_srli_epi64(tmp, 9);
+  _mm_storeu_si128(compressed + 0, w0);
+  tmp = _mm_loadu_si128(in + 2);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 46));
+  w0 = _mm_srli_epi64(tmp, 18);
+  _mm_storeu_si128(compressed + 1, w1);
+  tmp = _mm_loadu_si128(in + 3);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 37));
+  w1 = _mm_srli_epi64(tmp, 27);
+  _mm_storeu_si128(compressed + 2, w0);
+  tmp = _mm_loadu_si128(in + 4);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 28));
+  w0 = _mm_srli_epi64(tmp, 36);
+  _mm_storeu_si128(compressed + 3, w1);
+  tmp = _mm_loadu_si128(in + 5);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 19));
+  w1 = _mm_srli_epi64(tmp, 45);
+  _mm_storeu_si128(compressed + 4, w0);
+  tmp = _mm_loadu_si128(in + 6);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 10));
+  w0 = _mm_srli_epi64(tmp, 54);
+  _mm_storeu_si128(compressed + 5, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 7), 1));
+  tmp = _mm_loadu_si128(in + 8);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 56));
+  w1 = _mm_srli_epi64(tmp, 8);
+  _mm_storeu_si128(compressed + 6, w0);
+  tmp = _mm_loadu_si128(in + 9);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 47));
+  w0 = _mm_srli_epi64(tmp, 17);
+  _mm_storeu_si128(compressed + 7, w1);
+  tmp = _mm_loadu_si128(in + 10);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 38));
+  w1 = _mm_srli_epi64(tmp, 26);
+  _mm_storeu_si128(compressed + 8, w0);
+  tmp = _mm_loadu_si128(in + 11);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 29));
+  w0 = _mm_srli_epi64(tmp, 35);
+  _mm_storeu_si128(compressed + 9, w1);
+  tmp = _mm_loadu_si128(in + 12);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 20));
+  w1 = _mm_srli_epi64(tmp, 44);
+  _mm_storeu_si128(compressed + 10, w0);
+  tmp = _mm_loadu_si128(in + 13);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 11));
+  w0 = _mm_srli_epi64(tmp, 53);
+  _mm_storeu_si128(compressed + 11, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 14), 2));
+  tmp = _mm_loadu_si128(in + 15);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 57));
+  w1 = _mm_srli_epi64(tmp, 7);
+  _mm_storeu_si128(compressed + 12, w0);
+  tmp = _mm_loadu_si128(in + 16);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 48));
+  w0 = _mm_srli_epi64(tmp, 16);
+  _mm_storeu_si128(compressed + 13, w1);
+  tmp = _mm_loadu_si128(in + 17);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 39));
+  w1 = _mm_srli_epi64(tmp, 25);
+  _mm_storeu_si128(compressed + 14, w0);
+  tmp = _mm_loadu_si128(in + 18);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 30));
+  w0 = _mm_srli_epi64(tmp, 34);
+  _mm_storeu_si128(compressed + 15, w1);
+  tmp = _mm_loadu_si128(in + 19);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 21));
+  w1 = _mm_srli_epi64(tmp, 43);
+  _mm_storeu_si128(compressed + 16, w0);
+  tmp = _mm_loadu_si128(in + 20);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 12));
+  w0 = _mm_srli_epi64(tmp, 52);
+  _mm_storeu_si128(compressed + 17, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 21), 3));
+  tmp = _mm_loadu_si128(in + 22);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 58));
+  w1 = _mm_srli_epi64(tmp, 6);
+  _mm_storeu_si128(compressed + 18, w0);
+  tmp = _mm_loadu_si128(in + 23);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 49));
+  w0 = _mm_srli_epi64(tmp, 15);
+  _mm_storeu_si128(compressed + 19, w1);
+  tmp = _mm_loadu_si128(in + 24);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 40));
+  w1 = _mm_srli_epi64(tmp, 24);
+  _mm_storeu_si128(compressed + 20, w0);
+  tmp = _mm_loadu_si128(in + 25);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 31));
+  w0 = _mm_srli_epi64(tmp, 33);
+  _mm_storeu_si128(compressed + 21, w1);
+  tmp = _mm_loadu_si128(in + 26);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 22));
+  w1 = _mm_srli_epi64(tmp, 42);
+  _mm_storeu_si128(compressed + 22, w0);
+  tmp = _mm_loadu_si128(in + 27);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 13));
+  w0 = _mm_srli_epi64(tmp, 51);
+  _mm_storeu_si128(compressed + 23, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 28), 4));
+  tmp = _mm_loadu_si128(in + 29);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 59));
+  w1 = _mm_srli_epi64(tmp, 5);
+  _mm_storeu_si128(compressed + 24, w0);
+  tmp = _mm_loadu_si128(in + 30);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 50));
+  w0 = _mm_srli_epi64(tmp, 14);
+  _mm_storeu_si128(compressed + 25, w1);
+  tmp = _mm_loadu_si128(in + 31);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 41));
+  w1 = _mm_srli_epi64(tmp, 23);
+  _mm_storeu_si128(compressed + 27, w1);
+}
+
+/* we are going to pack 64 56-bit values, touching 28 128-bit words, using 448
+ * bytes */
+static void simdpackblock56(const u64 *pin, __m128i *compressed) {
+  const __m128i *in = (const __m128i *)pin;
+  /* we are going to touch  28 128-bit words */
+  __m128i w0, w1;
+  __m128i tmp; /* used to store inputs at word boundary */
+  w0 = _mm_loadu_si128(in + 0);
+  tmp = _mm_loadu_si128(in + 1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 56));
+  w1 = _mm_srli_epi64(tmp, 8);
+  _mm_storeu_si128(compressed + 0, w0);
+  tmp = _mm_loadu_si128(in + 2);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 48));
+  w0 = _mm_srli_epi64(tmp, 16);
+  _mm_storeu_si128(compressed + 1, w1);
+  tmp = _mm_loadu_si128(in + 3);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 40));
+  w1 = _mm_srli_epi64(tmp, 24);
+  _mm_storeu_si128(compressed + 2, w0);
+  tmp = _mm_loadu_si128(in + 4);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 32));
+  w0 = _mm_srli_epi64(tmp, 32);
+  _mm_storeu_si128(compressed + 3, w1);
+  tmp = _mm_loadu_si128(in + 5);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 24));
+  w1 = _mm_srli_epi64(tmp, 40);
+  _mm_storeu_si128(compressed + 4, w0);
+  tmp = _mm_loadu_si128(in + 6);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 16));
+  w0 = _mm_srli_epi64(tmp, 48);
+  _mm_storeu_si128(compressed + 5, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 7), 8));
+  _mm_storeu_si128(compressed + 6, w0);
+  w1 = _mm_loadu_si128(in + 8);
+  tmp = _mm_loadu_si128(in + 9);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 56));
+  w0 = _mm_srli_epi64(tmp, 8);
+  _mm_storeu_si128(compressed + 7, w1);
+  tmp = _mm_loadu_si128(in + 10);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 48));
+  w1 = _mm_srli_epi64(tmp, 16);
+  _mm_storeu_si128(compressed + 8, w0);
+  tmp = _mm_loadu_si128(in + 11);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 40));
+  w0 = _mm_srli_epi64(tmp, 24);
+  _mm_storeu_si128(compressed + 9, w1);
+  tmp = _mm_loadu_si128(in + 12);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 32));
+  w1 = _mm_srli_epi64(tmp, 32);
+  _mm_storeu_si128(compressed + 10, w0);
+  tmp = _mm_loadu_si128(in + 13);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 24));
+  w0 = _mm_srli_epi64(tmp, 40);
+  _mm_storeu_si128(compressed + 11, w1);
+  tmp = _mm_loadu_si128(in + 14);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 16));
+  w1 = _mm_srli_epi64(tmp, 48);
+  _mm_storeu_si128(compressed + 12, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 15), 8));
+  _mm_storeu_si128(compressed + 13, w1);
+  w0 = _mm_loadu_si128(in + 16);
+  tmp = _mm_loadu_si128(in + 17);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 56));
+  w1 = _mm_srli_epi64(tmp, 8);
+  _mm_storeu_si128(compressed + 14, w0);
+  tmp = _mm_loadu_si128(in + 18);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 48));
+  w0 = _mm_srli_epi64(tmp, 16);
+  _mm_storeu_si128(compressed + 15, w1);
+  tmp = _mm_loadu_si128(in + 19);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 40));
+  w1 = _mm_srli_epi64(tmp, 24);
+  _mm_storeu_si128(compressed + 16, w0);
+  tmp = _mm_loadu_si128(in + 20);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 32));
+  w0 = _mm_srli_epi64(tmp, 32);
+  _mm_storeu_si128(compressed + 17, w1);
+  tmp = _mm_loadu_si128(in + 21);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 24));
+  w1 = _mm_srli_epi64(tmp, 40);
+  _mm_storeu_si128(compressed + 18, w0);
+  tmp = _mm_loadu_si128(in + 22);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 16));
+  w0 = _mm_srli_epi64(tmp, 48);
+  _mm_storeu_si128(compressed + 19, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 23), 8));
+  _mm_storeu_si128(compressed + 20, w0);
+  w1 = _mm_loadu_si128(in + 24);
+  tmp = _mm_loadu_si128(in + 25);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 56));
+  w0 = _mm_srli_epi64(tmp, 8);
+  _mm_storeu_si128(compressed + 21, w1);
+  tmp = _mm_loadu_si128(in + 26);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 48));
+  w1 = _mm_srli_epi64(tmp, 16);
+  _mm_storeu_si128(compressed + 22, w0);
+  tmp = _mm_loadu_si128(in + 27);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 40));
+  w0 = _mm_srli_epi64(tmp, 24);
+  _mm_storeu_si128(compressed + 23, w1);
+  tmp = _mm_loadu_si128(in + 28);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 32));
+  w1 = _mm_srli_epi64(tmp, 32);
+  _mm_storeu_si128(compressed + 24, w0);
+  tmp = _mm_loadu_si128(in + 29);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 24));
+  w0 = _mm_srli_epi64(tmp, 40);
+  _mm_storeu_si128(compressed + 25, w1);
+  tmp = _mm_loadu_si128(in + 30);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 16));
+  w1 = _mm_srli_epi64(tmp, 48);
+  _mm_storeu_si128(compressed + 26, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 31), 8));
+  _mm_storeu_si128(compressed + 27, w1);
+}
+
+/* we are going to pack 64 57-bit values, touching 29 128-bit words, using 464
+ * bytes */
+static void simdpackblock57(const u64 *pin, __m128i *compressed) {
+  const __m128i *in = (const __m128i *)pin;
+  /* we are going to touch  29 128-bit words */
+  __m128i w0, w1;
+  __m128i tmp; /* used to store inputs at word boundary */
+  w0 = _mm_loadu_si128(in + 0);
+  tmp = _mm_loadu_si128(in + 1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 57));
+  w1 = _mm_srli_epi64(tmp, 7);
+  _mm_storeu_si128(compressed + 0, w0);
+  tmp = _mm_loadu_si128(in + 2);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 50));
+  w0 = _mm_srli_epi64(tmp, 14);
+  _mm_storeu_si128(compressed + 1, w1);
+  tmp = _mm_loadu_si128(in + 3);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 43));
+  w1 = _mm_srli_epi64(tmp, 21);
+  _mm_storeu_si128(compressed + 2, w0);
+  tmp = _mm_loadu_si128(in + 4);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 36));
+  w0 = _mm_srli_epi64(tmp, 28);
+  _mm_storeu_si128(compressed + 3, w1);
+  tmp = _mm_loadu_si128(in + 5);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 29));
+  w1 = _mm_srli_epi64(tmp, 35);
+  _mm_storeu_si128(compressed + 4, w0);
+  tmp = _mm_loadu_si128(in + 6);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 22));
+  w0 = _mm_srli_epi64(tmp, 42);
+  _mm_storeu_si128(compressed + 5, w1);
+  tmp = _mm_loadu_si128(in + 7);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 15));
+  w1 = _mm_srli_epi64(tmp, 49);
+  _mm_storeu_si128(compressed + 6, w0);
+  tmp = _mm_loadu_si128(in + 8);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 8));
+  w0 = _mm_srli_epi64(tmp, 56);
+  _mm_storeu_si128(compressed + 7, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 9), 1));
+  tmp = _mm_loadu_si128(in + 10);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 58));
+  w1 = _mm_srli_epi64(tmp, 6);
+  _mm_storeu_si128(compressed + 8, w0);
+  tmp = _mm_loadu_si128(in + 11);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 51));
+  w0 = _mm_srli_epi64(tmp, 13);
+  _mm_storeu_si128(compressed + 9, w1);
+  tmp = _mm_loadu_si128(in + 12);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 44));
+  w1 = _mm_srli_epi64(tmp, 20);
+  _mm_storeu_si128(compressed + 10, w0);
+  tmp = _mm_loadu_si128(in + 13);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 37));
+  w0 = _mm_srli_epi64(tmp, 27);
+  _mm_storeu_si128(compressed + 11, w1);
+  tmp = _mm_loadu_si128(in + 14);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 30));
+  w1 = _mm_srli_epi64(tmp, 34);
+  _mm_storeu_si128(compressed + 12, w0);
+  tmp = _mm_loadu_si128(in + 15);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 23));
+  w0 = _mm_srli_epi64(tmp, 41);
+  _mm_storeu_si128(compressed + 13, w1);
+  tmp = _mm_loadu_si128(in + 16);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 16));
+  w1 = _mm_srli_epi64(tmp, 48);
+  _mm_storeu_si128(compressed + 14, w0);
+  tmp = _mm_loadu_si128(in + 17);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 9));
+  w0 = _mm_srli_epi64(tmp, 55);
+  _mm_storeu_si128(compressed + 15, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 18), 2));
+  tmp = _mm_loadu_si128(in + 19);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 59));
+  w1 = _mm_srli_epi64(tmp, 5);
+  _mm_storeu_si128(compressed + 16, w0);
+  tmp = _mm_loadu_si128(in + 20);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 52));
+  w0 = _mm_srli_epi64(tmp, 12);
+  _mm_storeu_si128(compressed + 17, w1);
+  tmp = _mm_loadu_si128(in + 21);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 45));
+  w1 = _mm_srli_epi64(tmp, 19);
+  _mm_storeu_si128(compressed + 18, w0);
+  tmp = _mm_loadu_si128(in + 22);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 38));
+  w0 = _mm_srli_epi64(tmp, 26);
+  _mm_storeu_si128(compressed + 19, w1);
+  tmp = _mm_loadu_si128(in + 23);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 31));
+  w1 = _mm_srli_epi64(tmp, 33);
+  _mm_storeu_si128(compressed + 20, w0);
+  tmp = _mm_loadu_si128(in + 24);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 24));
+  w0 = _mm_srli_epi64(tmp, 40);
+  _mm_storeu_si128(compressed + 21, w1);
+  tmp = _mm_loadu_si128(in + 25);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 17));
+  w1 = _mm_srli_epi64(tmp, 47);
+  _mm_storeu_si128(compressed + 22, w0);
+  tmp = _mm_loadu_si128(in + 26);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 10));
+  w0 = _mm_srli_epi64(tmp, 54);
+  _mm_storeu_si128(compressed + 23, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 27), 3));
+  tmp = _mm_loadu_si128(in + 28);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 60));
+  w1 = _mm_srli_epi64(tmp, 4);
+  _mm_storeu_si128(compressed + 24, w0);
+  tmp = _mm_loadu_si128(in + 29);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 53));
+  w0 = _mm_srli_epi64(tmp, 11);
+  _mm_storeu_si128(compressed + 25, w1);
+  tmp = _mm_loadu_si128(in + 30);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 46));
+  w1 = _mm_srli_epi64(tmp, 18);
+  _mm_storeu_si128(compressed + 26, w0);
+  tmp = _mm_loadu_si128(in + 31);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 39));
+  w0 = _mm_srli_epi64(tmp, 25);
+  _mm_storeu_si128(compressed + 28, w0);
+}
+
+/* we are going to pack 64 58-bit values, touching 29 128-bit words, using 464
+ * bytes */
+static void simdpackblock58(const u64 *pin, __m128i *compressed) {
+  const __m128i *in = (const __m128i *)pin;
+  /* we are going to touch  29 128-bit words */
+  __m128i w0, w1;
+  __m128i tmp; /* used to store inputs at word boundary */
+  w0 = _mm_loadu_si128(in + 0);
+  tmp = _mm_loadu_si128(in + 1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 58));
+  w1 = _mm_srli_epi64(tmp, 6);
+  _mm_storeu_si128(compressed + 0, w0);
+  tmp = _mm_loadu_si128(in + 2);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 52));
+  w0 = _mm_srli_epi64(tmp, 12);
+  _mm_storeu_si128(compressed + 1, w1);
+  tmp = _mm_loadu_si128(in + 3);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 46));
+  w1 = _mm_srli_epi64(tmp, 18);
+  _mm_storeu_si128(compressed + 2, w0);
+  tmp = _mm_loadu_si128(in + 4);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 40));
+  w0 = _mm_srli_epi64(tmp, 24);
+  _mm_storeu_si128(compressed + 3, w1);
+  tmp = _mm_loadu_si128(in + 5);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 34));
+  w1 = _mm_srli_epi64(tmp, 30);
+  _mm_storeu_si128(compressed + 4, w0);
+  tmp = _mm_loadu_si128(in + 6);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 28));
+  w0 = _mm_srli_epi64(tmp, 36);
+  _mm_storeu_si128(compressed + 5, w1);
+  tmp = _mm_loadu_si128(in + 7);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 22));
+  w1 = _mm_srli_epi64(tmp, 42);
+  _mm_storeu_si128(compressed + 6, w0);
+  tmp = _mm_loadu_si128(in + 8);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 16));
+  w0 = _mm_srli_epi64(tmp, 48);
+  _mm_storeu_si128(compressed + 7, w1);
+  tmp = _mm_loadu_si128(in + 9);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 10));
+  w1 = _mm_srli_epi64(tmp, 54);
+  _mm_storeu_si128(compressed + 8, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 10), 4));
+  tmp = _mm_loadu_si128(in + 11);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 62));
+  w0 = _mm_srli_epi64(tmp, 2);
+  _mm_storeu_si128(compressed + 9, w1);
+  tmp = _mm_loadu_si128(in + 12);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 56));
+  w1 = _mm_srli_epi64(tmp, 8);
+  _mm_storeu_si128(compressed + 10, w0);
+  tmp = _mm_loadu_si128(in + 13);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 50));
+  w0 = _mm_srli_epi64(tmp, 14);
+  _mm_storeu_si128(compressed + 11, w1);
+  tmp = _mm_loadu_si128(in + 14);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 44));
+  w1 = _mm_srli_epi64(tmp, 20);
+  _mm_storeu_si128(compressed + 12, w0);
+  tmp = _mm_loadu_si128(in + 15);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 38));
+  w0 = _mm_srli_epi64(tmp, 26);
+  _mm_storeu_si128(compressed + 13, w1);
+  tmp = _mm_loadu_si128(in + 16);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 32));
+  w1 = _mm_srli_epi64(tmp, 32);
+  _mm_storeu_si128(compressed + 14, w0);
+  tmp = _mm_loadu_si128(in + 17);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 26));
+  w0 = _mm_srli_epi64(tmp, 38);
+  _mm_storeu_si128(compressed + 15, w1);
+  tmp = _mm_loadu_si128(in + 18);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 20));
+  w1 = _mm_srli_epi64(tmp, 44);
+  _mm_storeu_si128(compressed + 16, w0);
+  tmp = _mm_loadu_si128(in + 19);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 14));
+  w0 = _mm_srli_epi64(tmp, 50);
+  _mm_storeu_si128(compressed + 17, w1);
+  tmp = _mm_loadu_si128(in + 20);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 8));
+  w1 = _mm_srli_epi64(tmp, 56);
+  _mm_storeu_si128(compressed + 18, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 21), 2));
+  tmp = _mm_loadu_si128(in + 22);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 60));
+  w0 = _mm_srli_epi64(tmp, 4);
+  _mm_storeu_si128(compressed + 19, w1);
+  tmp = _mm_loadu_si128(in + 23);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 54));
+  w1 = _mm_srli_epi64(tmp, 10);
+  _mm_storeu_si128(compressed + 20, w0);
+  tmp = _mm_loadu_si128(in + 24);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 48));
+  w0 = _mm_srli_epi64(tmp, 16);
+  _mm_storeu_si128(compressed + 21, w1);
+  tmp = _mm_loadu_si128(in + 25);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 42));
+  w1 = _mm_srli_epi64(tmp, 22);
+  _mm_storeu_si128(compressed + 22, w0);
+  tmp = _mm_loadu_si128(in + 26);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 36));
+  w0 = _mm_srli_epi64(tmp, 28);
+  _mm_storeu_si128(compressed + 23, w1);
+  tmp = _mm_loadu_si128(in + 27);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 30));
+  w1 = _mm_srli_epi64(tmp, 34);
+  _mm_storeu_si128(compressed + 24, w0);
+  tmp = _mm_loadu_si128(in + 28);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 24));
+  w0 = _mm_srli_epi64(tmp, 40);
+  _mm_storeu_si128(compressed + 25, w1);
+  tmp = _mm_loadu_si128(in + 29);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 18));
+  w1 = _mm_srli_epi64(tmp, 46);
+  _mm_storeu_si128(compressed + 26, w0);
+  tmp = _mm_loadu_si128(in + 30);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 12));
+  w0 = _mm_srli_epi64(tmp, 52);
+  _mm_storeu_si128(compressed + 27, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 31), 6));
+  _mm_storeu_si128(compressed + 28, w0);
+}
+
+/* we are going to pack 64 59-bit values, touching 30 128-bit words, using 480
+ * bytes */
+static void simdpackblock59(const u64 *pin, __m128i *compressed) {
+  const __m128i *in = (const __m128i *)pin;
+  /* we are going to touch  30 128-bit words */
+  __m128i w0, w1;
+  __m128i tmp; /* used to store inputs at word boundary */
+  w0 = _mm_loadu_si128(in + 0);
+  tmp = _mm_loadu_si128(in + 1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 59));
+  w1 = _mm_srli_epi64(tmp, 5);
+  _mm_storeu_si128(compressed + 0, w0);
+  tmp = _mm_loadu_si128(in + 2);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 54));
+  w0 = _mm_srli_epi64(tmp, 10);
+  _mm_storeu_si128(compressed + 1, w1);
+  tmp = _mm_loadu_si128(in + 3);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 49));
+  w1 = _mm_srli_epi64(tmp, 15);
+  _mm_storeu_si128(compressed + 2, w0);
+  tmp = _mm_loadu_si128(in + 4);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 44));
+  w0 = _mm_srli_epi64(tmp, 20);
+  _mm_storeu_si128(compressed + 3, w1);
+  tmp = _mm_loadu_si128(in + 5);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 39));
+  w1 = _mm_srli_epi64(tmp, 25);
+  _mm_storeu_si128(compressed + 4, w0);
+  tmp = _mm_loadu_si128(in + 6);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 34));
+  w0 = _mm_srli_epi64(tmp, 30);
+  _mm_storeu_si128(compressed + 5, w1);
+  tmp = _mm_loadu_si128(in + 7);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 29));
+  w1 = _mm_srli_epi64(tmp, 35);
+  _mm_storeu_si128(compressed + 6, w0);
+  tmp = _mm_loadu_si128(in + 8);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 24));
+  w0 = _mm_srli_epi64(tmp, 40);
+  _mm_storeu_si128(compressed + 7, w1);
+  tmp = _mm_loadu_si128(in + 9);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 19));
+  w1 = _mm_srli_epi64(tmp, 45);
+  _mm_storeu_si128(compressed + 8, w0);
+  tmp = _mm_loadu_si128(in + 10);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 14));
+  w0 = _mm_srli_epi64(tmp, 50);
+  _mm_storeu_si128(compressed + 9, w1);
+  tmp = _mm_loadu_si128(in + 11);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 9));
+  w1 = _mm_srli_epi64(tmp, 55);
+  _mm_storeu_si128(compressed + 10, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 12), 4));
+  tmp = _mm_loadu_si128(in + 13);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 63));
+  w0 = _mm_srli_epi64(tmp, 1);
+  _mm_storeu_si128(compressed + 11, w1);
+  tmp = _mm_loadu_si128(in + 14);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 58));
+  w1 = _mm_srli_epi64(tmp, 6);
+  _mm_storeu_si128(compressed + 12, w0);
+  tmp = _mm_loadu_si128(in + 15);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 53));
+  w0 = _mm_srli_epi64(tmp, 11);
+  _mm_storeu_si128(compressed + 13, w1);
+  tmp = _mm_loadu_si128(in + 16);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 48));
+  w1 = _mm_srli_epi64(tmp, 16);
+  _mm_storeu_si128(compressed + 14, w0);
+  tmp = _mm_loadu_si128(in + 17);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 43));
+  w0 = _mm_srli_epi64(tmp, 21);
+  _mm_storeu_si128(compressed + 15, w1);
+  tmp = _mm_loadu_si128(in + 18);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 38));
+  w1 = _mm_srli_epi64(tmp, 26);
+  _mm_storeu_si128(compressed + 16, w0);
+  tmp = _mm_loadu_si128(in + 19);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 33));
+  w0 = _mm_srli_epi64(tmp, 31);
+  _mm_storeu_si128(compressed + 17, w1);
+  tmp = _mm_loadu_si128(in + 20);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 28));
+  w1 = _mm_srli_epi64(tmp, 36);
+  _mm_storeu_si128(compressed + 18, w0);
+  tmp = _mm_loadu_si128(in + 21);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 23));
+  w0 = _mm_srli_epi64(tmp, 41);
+  _mm_storeu_si128(compressed + 19, w1);
+  tmp = _mm_loadu_si128(in + 22);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 18));
+  w1 = _mm_srli_epi64(tmp, 46);
+  _mm_storeu_si128(compressed + 20, w0);
+  tmp = _mm_loadu_si128(in + 23);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 13));
+  w0 = _mm_srli_epi64(tmp, 51);
+  _mm_storeu_si128(compressed + 21, w1);
+  tmp = _mm_loadu_si128(in + 24);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 8));
+  w1 = _mm_srli_epi64(tmp, 56);
+  _mm_storeu_si128(compressed + 22, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 25), 3));
+  tmp = _mm_loadu_si128(in + 26);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 62));
+  w0 = _mm_srli_epi64(tmp, 2);
+  _mm_storeu_si128(compressed + 23, w1);
+  tmp = _mm_loadu_si128(in + 27);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 57));
+  w1 = _mm_srli_epi64(tmp, 7);
+  _mm_storeu_si128(compressed + 24, w0);
+  tmp = _mm_loadu_si128(in + 28);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 52));
+  w0 = _mm_srli_epi64(tmp, 12);
+  _mm_storeu_si128(compressed + 25, w1);
+  tmp = _mm_loadu_si128(in + 29);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 47));
+  w1 = _mm_srli_epi64(tmp, 17);
+  _mm_storeu_si128(compressed + 26, w0);
+  tmp = _mm_loadu_si128(in + 30);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 42));
+  w0 = _mm_srli_epi64(tmp, 22);
+  _mm_storeu_si128(compressed + 27, w1);
+  tmp = _mm_loadu_si128(in + 31);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 37));
+  w1 = _mm_srli_epi64(tmp, 27);
+  _mm_storeu_si128(compressed + 29, w1);
+}
+
+/* we are going to pack 64 60-bit values, touching 30 128-bit words, using 480
+ * bytes */
+static void simdpackblock60(const u64 *pin, __m128i *compressed) {
+  const __m128i *in = (const __m128i *)pin;
+  /* we are going to touch  30 128-bit words */
+  __m128i w0, w1;
+  __m128i tmp; /* used to store inputs at word boundary */
+  w0 = _mm_loadu_si128(in + 0);
+  tmp = _mm_loadu_si128(in + 1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 60));
+  w1 = _mm_srli_epi64(tmp, 4);
+  _mm_storeu_si128(compressed + 0, w0);
+  tmp = _mm_loadu_si128(in + 2);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 56));
+  w0 = _mm_srli_epi64(tmp, 8);
+  _mm_storeu_si128(compressed + 1, w1);
+  tmp = _mm_loadu_si128(in + 3);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 52));
+  w1 = _mm_srli_epi64(tmp, 12);
+  _mm_storeu_si128(compressed + 2, w0);
+  tmp = _mm_loadu_si128(in + 4);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 48));
+  w0 = _mm_srli_epi64(tmp, 16);
+  _mm_storeu_si128(compressed + 3, w1);
+  tmp = _mm_loadu_si128(in + 5);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 44));
+  w1 = _mm_srli_epi64(tmp, 20);
+  _mm_storeu_si128(compressed + 4, w0);
+  tmp = _mm_loadu_si128(in + 6);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 40));
+  w0 = _mm_srli_epi64(tmp, 24);
+  _mm_storeu_si128(compressed + 5, w1);
+  tmp = _mm_loadu_si128(in + 7);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 36));
+  w1 = _mm_srli_epi64(tmp, 28);
+  _mm_storeu_si128(compressed + 6, w0);
+  tmp = _mm_loadu_si128(in + 8);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 32));
+  w0 = _mm_srli_epi64(tmp, 32);
+  _mm_storeu_si128(compressed + 7, w1);
+  tmp = _mm_loadu_si128(in + 9);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 28));
+  w1 = _mm_srli_epi64(tmp, 36);
+  _mm_storeu_si128(compressed + 8, w0);
+  tmp = _mm_loadu_si128(in + 10);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 24));
+  w0 = _mm_srli_epi64(tmp, 40);
+  _mm_storeu_si128(compressed + 9, w1);
+  tmp = _mm_loadu_si128(in + 11);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 20));
+  w1 = _mm_srli_epi64(tmp, 44);
+  _mm_storeu_si128(compressed + 10, w0);
+  tmp = _mm_loadu_si128(in + 12);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 16));
+  w0 = _mm_srli_epi64(tmp, 48);
+  _mm_storeu_si128(compressed + 11, w1);
+  tmp = _mm_loadu_si128(in + 13);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 12));
+  w1 = _mm_srli_epi64(tmp, 52);
+  _mm_storeu_si128(compressed + 12, w0);
+  tmp = _mm_loadu_si128(in + 14);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 8));
+  w0 = _mm_srli_epi64(tmp, 56);
+  _mm_storeu_si128(compressed + 13, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 15), 4));
+  _mm_storeu_si128(compressed + 14, w0);
+  w1 = _mm_loadu_si128(in + 16);
+  tmp = _mm_loadu_si128(in + 17);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 60));
+  w0 = _mm_srli_epi64(tmp, 4);
+  _mm_storeu_si128(compressed + 15, w1);
+  tmp = _mm_loadu_si128(in + 18);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 56));
+  w1 = _mm_srli_epi64(tmp, 8);
+  _mm_storeu_si128(compressed + 16, w0);
+  tmp = _mm_loadu_si128(in + 19);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 52));
+  w0 = _mm_srli_epi64(tmp, 12);
+  _mm_storeu_si128(compressed + 17, w1);
+  tmp = _mm_loadu_si128(in + 20);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 48));
+  w1 = _mm_srli_epi64(tmp, 16);
+  _mm_storeu_si128(compressed + 18, w0);
+  tmp = _mm_loadu_si128(in + 21);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 44));
+  w0 = _mm_srli_epi64(tmp, 20);
+  _mm_storeu_si128(compressed + 19, w1);
+  tmp = _mm_loadu_si128(in + 22);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 40));
+  w1 = _mm_srli_epi64(tmp, 24);
+  _mm_storeu_si128(compressed + 20, w0);
+  tmp = _mm_loadu_si128(in + 23);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 36));
+  w0 = _mm_srli_epi64(tmp, 28);
+  _mm_storeu_si128(compressed + 21, w1);
+  tmp = _mm_loadu_si128(in + 24);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 32));
+  w1 = _mm_srli_epi64(tmp, 32);
+  _mm_storeu_si128(compressed + 22, w0);
+  tmp = _mm_loadu_si128(in + 25);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 28));
+  w0 = _mm_srli_epi64(tmp, 36);
+  _mm_storeu_si128(compressed + 23, w1);
+  tmp = _mm_loadu_si128(in + 26);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 24));
+  w1 = _mm_srli_epi64(tmp, 40);
+  _mm_storeu_si128(compressed + 24, w0);
+  tmp = _mm_loadu_si128(in + 27);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 20));
+  w0 = _mm_srli_epi64(tmp, 44);
+  _mm_storeu_si128(compressed + 25, w1);
+  tmp = _mm_loadu_si128(in + 28);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 16));
+  w1 = _mm_srli_epi64(tmp, 48);
+  _mm_storeu_si128(compressed + 26, w0);
+  tmp = _mm_loadu_si128(in + 29);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 12));
+  w0 = _mm_srli_epi64(tmp, 52);
+  _mm_storeu_si128(compressed + 27, w1);
+  tmp = _mm_loadu_si128(in + 30);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 8));
+  w1 = _mm_srli_epi64(tmp, 56);
+  _mm_storeu_si128(compressed + 28, w0);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(_mm_loadu_si128(in + 31), 4));
+  _mm_storeu_si128(compressed + 29, w1);
+}
+
+/* we are going to pack 64 61-bit values, touching 31 128-bit words, using 496
+ * bytes */
+static void simdpackblock61(const u64 *pin, __m128i *compressed) {
+  const __m128i *in = (const __m128i *)pin;
+  /* we are going to touch  31 128-bit words */
+  __m128i w0, w1;
+  __m128i tmp; /* used to store inputs at word boundary */
+  w0 = _mm_loadu_si128(in + 0);
+  tmp = _mm_loadu_si128(in + 1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 61));
+  w1 = _mm_srli_epi64(tmp, 3);
+  _mm_storeu_si128(compressed + 0, w0);
+  tmp = _mm_loadu_si128(in + 2);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 58));
+  w0 = _mm_srli_epi64(tmp, 6);
+  _mm_storeu_si128(compressed + 1, w1);
+  tmp = _mm_loadu_si128(in + 3);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 55));
+  w1 = _mm_srli_epi64(tmp, 9);
+  _mm_storeu_si128(compressed + 2, w0);
+  tmp = _mm_loadu_si128(in + 4);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 52));
+  w0 = _mm_srli_epi64(tmp, 12);
+  _mm_storeu_si128(compressed + 3, w1);
+  tmp = _mm_loadu_si128(in + 5);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 49));
+  w1 = _mm_srli_epi64(tmp, 15);
+  _mm_storeu_si128(compressed + 4, w0);
+  tmp = _mm_loadu_si128(in + 6);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 46));
+  w0 = _mm_srli_epi64(tmp, 18);
+  _mm_storeu_si128(compressed + 5, w1);
+  tmp = _mm_loadu_si128(in + 7);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 43));
+  w1 = _mm_srli_epi64(tmp, 21);
+  _mm_storeu_si128(compressed + 6, w0);
+  tmp = _mm_loadu_si128(in + 8);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 40));
+  w0 = _mm_srli_epi64(tmp, 24);
+  _mm_storeu_si128(compressed + 7, w1);
+  tmp = _mm_loadu_si128(in + 9);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 37));
+  w1 = _mm_srli_epi64(tmp, 27);
+  _mm_storeu_si128(compressed + 8, w0);
+  tmp = _mm_loadu_si128(in + 10);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 34));
+  w0 = _mm_srli_epi64(tmp, 30);
+  _mm_storeu_si128(compressed + 9, w1);
+  tmp = _mm_loadu_si128(in + 11);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 31));
+  w1 = _mm_srli_epi64(tmp, 33);
+  _mm_storeu_si128(compressed + 10, w0);
+  tmp = _mm_loadu_si128(in + 12);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 28));
+  w0 = _mm_srli_epi64(tmp, 36);
+  _mm_storeu_si128(compressed + 11, w1);
+  tmp = _mm_loadu_si128(in + 13);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 25));
+  w1 = _mm_srli_epi64(tmp, 39);
+  _mm_storeu_si128(compressed + 12, w0);
+  tmp = _mm_loadu_si128(in + 14);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 22));
+  w0 = _mm_srli_epi64(tmp, 42);
+  _mm_storeu_si128(compressed + 13, w1);
+  tmp = _mm_loadu_si128(in + 15);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 19));
+  w1 = _mm_srli_epi64(tmp, 45);
+  _mm_storeu_si128(compressed + 14, w0);
+  tmp = _mm_loadu_si128(in + 16);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 16));
+  w0 = _mm_srli_epi64(tmp, 48);
+  _mm_storeu_si128(compressed + 15, w1);
+  tmp = _mm_loadu_si128(in + 17);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 13));
+  w1 = _mm_srli_epi64(tmp, 51);
+  _mm_storeu_si128(compressed + 16, w0);
+  tmp = _mm_loadu_si128(in + 18);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 10));
+  w0 = _mm_srli_epi64(tmp, 54);
+  _mm_storeu_si128(compressed + 17, w1);
+  tmp = _mm_loadu_si128(in + 19);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 7));
+  w1 = _mm_srli_epi64(tmp, 57);
+  _mm_storeu_si128(compressed + 18, w0);
+  tmp = _mm_loadu_si128(in + 20);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 4));
+  w0 = _mm_srli_epi64(tmp, 60);
+  _mm_storeu_si128(compressed + 19, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 21), 1));
+  tmp = _mm_loadu_si128(in + 22);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 62));
+  w1 = _mm_srli_epi64(tmp, 2);
+  _mm_storeu_si128(compressed + 20, w0);
+  tmp = _mm_loadu_si128(in + 23);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 59));
+  w0 = _mm_srli_epi64(tmp, 5);
+  _mm_storeu_si128(compressed + 21, w1);
+  tmp = _mm_loadu_si128(in + 24);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 56));
+  w1 = _mm_srli_epi64(tmp, 8);
+  _mm_storeu_si128(compressed + 22, w0);
+  tmp = _mm_loadu_si128(in + 25);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 53));
+  w0 = _mm_srli_epi64(tmp, 11);
+  _mm_storeu_si128(compressed + 23, w1);
+  tmp = _mm_loadu_si128(in + 26);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 50));
+  w1 = _mm_srli_epi64(tmp, 14);
+  _mm_storeu_si128(compressed + 24, w0);
+  tmp = _mm_loadu_si128(in + 27);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 47));
+  w0 = _mm_srli_epi64(tmp, 17);
+  _mm_storeu_si128(compressed + 25, w1);
+  tmp = _mm_loadu_si128(in + 28);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 44));
+  w1 = _mm_srli_epi64(tmp, 20);
+  _mm_storeu_si128(compressed + 26, w0);
+  tmp = _mm_loadu_si128(in + 29);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 41));
+  w0 = _mm_srli_epi64(tmp, 23);
+  _mm_storeu_si128(compressed + 27, w1);
+  tmp = _mm_loadu_si128(in + 30);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 38));
+  w1 = _mm_srli_epi64(tmp, 26);
+  _mm_storeu_si128(compressed + 28, w0);
+  tmp = _mm_loadu_si128(in + 31);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 35));
+  w0 = _mm_srli_epi64(tmp, 29);
+  _mm_storeu_si128(compressed + 30, w0);
+}
+
+/* we are going to pack 64 62-bit values, touching 31 128-bit words, using 496
+ * bytes */
+static void simdpackblock62(const u64 *pin, __m128i *compressed) {
+  const __m128i *in = (const __m128i *)pin;
+  /* we are going to touch  31 128-bit words */
+  __m128i w0, w1;
+  __m128i tmp; /* used to store inputs at word boundary */
+  w0 = _mm_loadu_si128(in + 0);
+  tmp = _mm_loadu_si128(in + 1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 62));
+  w1 = _mm_srli_epi64(tmp, 2);
+  _mm_storeu_si128(compressed + 0, w0);
+  tmp = _mm_loadu_si128(in + 2);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 60));
+  w0 = _mm_srli_epi64(tmp, 4);
+  _mm_storeu_si128(compressed + 1, w1);
+  tmp = _mm_loadu_si128(in + 3);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 58));
+  w1 = _mm_srli_epi64(tmp, 6);
+  _mm_storeu_si128(compressed + 2, w0);
+  tmp = _mm_loadu_si128(in + 4);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 56));
+  w0 = _mm_srli_epi64(tmp, 8);
+  _mm_storeu_si128(compressed + 3, w1);
+  tmp = _mm_loadu_si128(in + 5);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 54));
+  w1 = _mm_srli_epi64(tmp, 10);
+  _mm_storeu_si128(compressed + 4, w0);
+  tmp = _mm_loadu_si128(in + 6);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 52));
+  w0 = _mm_srli_epi64(tmp, 12);
+  _mm_storeu_si128(compressed + 5, w1);
+  tmp = _mm_loadu_si128(in + 7);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 50));
+  w1 = _mm_srli_epi64(tmp, 14);
+  _mm_storeu_si128(compressed + 6, w0);
+  tmp = _mm_loadu_si128(in + 8);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 48));
+  w0 = _mm_srli_epi64(tmp, 16);
+  _mm_storeu_si128(compressed + 7, w1);
+  tmp = _mm_loadu_si128(in + 9);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 46));
+  w1 = _mm_srli_epi64(tmp, 18);
+  _mm_storeu_si128(compressed + 8, w0);
+  tmp = _mm_loadu_si128(in + 10);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 44));
+  w0 = _mm_srli_epi64(tmp, 20);
+  _mm_storeu_si128(compressed + 9, w1);
+  tmp = _mm_loadu_si128(in + 11);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 42));
+  w1 = _mm_srli_epi64(tmp, 22);
+  _mm_storeu_si128(compressed + 10, w0);
+  tmp = _mm_loadu_si128(in + 12);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 40));
+  w0 = _mm_srli_epi64(tmp, 24);
+  _mm_storeu_si128(compressed + 11, w1);
+  tmp = _mm_loadu_si128(in + 13);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 38));
+  w1 = _mm_srli_epi64(tmp, 26);
+  _mm_storeu_si128(compressed + 12, w0);
+  tmp = _mm_loadu_si128(in + 14);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 36));
+  w0 = _mm_srli_epi64(tmp, 28);
+  _mm_storeu_si128(compressed + 13, w1);
+  tmp = _mm_loadu_si128(in + 15);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 34));
+  w1 = _mm_srli_epi64(tmp, 30);
+  _mm_storeu_si128(compressed + 14, w0);
+  tmp = _mm_loadu_si128(in + 16);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 32));
+  w0 = _mm_srli_epi64(tmp, 32);
+  _mm_storeu_si128(compressed + 15, w1);
+  tmp = _mm_loadu_si128(in + 17);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 30));
+  w1 = _mm_srli_epi64(tmp, 34);
+  _mm_storeu_si128(compressed + 16, w0);
+  tmp = _mm_loadu_si128(in + 18);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 28));
+  w0 = _mm_srli_epi64(tmp, 36);
+  _mm_storeu_si128(compressed + 17, w1);
+  tmp = _mm_loadu_si128(in + 19);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 26));
+  w1 = _mm_srli_epi64(tmp, 38);
+  _mm_storeu_si128(compressed + 18, w0);
+  tmp = _mm_loadu_si128(in + 20);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 24));
+  w0 = _mm_srli_epi64(tmp, 40);
+  _mm_storeu_si128(compressed + 19, w1);
+  tmp = _mm_loadu_si128(in + 21);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 22));
+  w1 = _mm_srli_epi64(tmp, 42);
+  _mm_storeu_si128(compressed + 20, w0);
+  tmp = _mm_loadu_si128(in + 22);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 20));
+  w0 = _mm_srli_epi64(tmp, 44);
+  _mm_storeu_si128(compressed + 21, w1);
+  tmp = _mm_loadu_si128(in + 23);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 18));
+  w1 = _mm_srli_epi64(tmp, 46);
+  _mm_storeu_si128(compressed + 22, w0);
+  tmp = _mm_loadu_si128(in + 24);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 16));
+  w0 = _mm_srli_epi64(tmp, 48);
+  _mm_storeu_si128(compressed + 23, w1);
+  tmp = _mm_loadu_si128(in + 25);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 14));
+  w1 = _mm_srli_epi64(tmp, 50);
+  _mm_storeu_si128(compressed + 24, w0);
+  tmp = _mm_loadu_si128(in + 26);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 12));
+  w0 = _mm_srli_epi64(tmp, 52);
+  _mm_storeu_si128(compressed + 25, w1);
+  tmp = _mm_loadu_si128(in + 27);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 10));
+  w1 = _mm_srli_epi64(tmp, 54);
+  _mm_storeu_si128(compressed + 26, w0);
+  tmp = _mm_loadu_si128(in + 28);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 8));
+  w0 = _mm_srli_epi64(tmp, 56);
+  _mm_storeu_si128(compressed + 27, w1);
+  tmp = _mm_loadu_si128(in + 29);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 6));
+  w1 = _mm_srli_epi64(tmp, 58);
+  _mm_storeu_si128(compressed + 28, w0);
+  tmp = _mm_loadu_si128(in + 30);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 4));
+  w0 = _mm_srli_epi64(tmp, 60);
+  _mm_storeu_si128(compressed + 29, w1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(_mm_loadu_si128(in + 31), 2));
+  _mm_storeu_si128(compressed + 30, w0);
+}
+
+/* we are going to pack 64 63-bit values, touching 32 128-bit words, using 512
+ * bytes */
+static void simdpackblock63(const u64 *pin, __m128i *compressed) {
+  const __m128i *in = (const __m128i *)pin;
+  /* we are going to touch  32 128-bit words */
+  __m128i w0, w1;
+  __m128i tmp; /* used to store inputs at word boundary */
+  w0 = _mm_loadu_si128(in + 0);
+  tmp = _mm_loadu_si128(in + 1);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 63));
+  w1 = _mm_srli_epi64(tmp, 1);
+  _mm_storeu_si128(compressed + 0, w0);
+  tmp = _mm_loadu_si128(in + 2);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 62));
+  w0 = _mm_srli_epi64(tmp, 2);
+  _mm_storeu_si128(compressed + 1, w1);
+  tmp = _mm_loadu_si128(in + 3);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 61));
+  w1 = _mm_srli_epi64(tmp, 3);
+  _mm_storeu_si128(compressed + 2, w0);
+  tmp = _mm_loadu_si128(in + 4);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 60));
+  w0 = _mm_srli_epi64(tmp, 4);
+  _mm_storeu_si128(compressed + 3, w1);
+  tmp = _mm_loadu_si128(in + 5);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 59));
+  w1 = _mm_srli_epi64(tmp, 5);
+  _mm_storeu_si128(compressed + 4, w0);
+  tmp = _mm_loadu_si128(in + 6);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 58));
+  w0 = _mm_srli_epi64(tmp, 6);
+  _mm_storeu_si128(compressed + 5, w1);
+  tmp = _mm_loadu_si128(in + 7);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 57));
+  w1 = _mm_srli_epi64(tmp, 7);
+  _mm_storeu_si128(compressed + 6, w0);
+  tmp = _mm_loadu_si128(in + 8);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 56));
+  w0 = _mm_srli_epi64(tmp, 8);
+  _mm_storeu_si128(compressed + 7, w1);
+  tmp = _mm_loadu_si128(in + 9);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 55));
+  w1 = _mm_srli_epi64(tmp, 9);
+  _mm_storeu_si128(compressed + 8, w0);
+  tmp = _mm_loadu_si128(in + 10);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 54));
+  w0 = _mm_srli_epi64(tmp, 10);
+  _mm_storeu_si128(compressed + 9, w1);
+  tmp = _mm_loadu_si128(in + 11);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 53));
+  w1 = _mm_srli_epi64(tmp, 11);
+  _mm_storeu_si128(compressed + 10, w0);
+  tmp = _mm_loadu_si128(in + 12);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 52));
+  w0 = _mm_srli_epi64(tmp, 12);
+  _mm_storeu_si128(compressed + 11, w1);
+  tmp = _mm_loadu_si128(in + 13);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 51));
+  w1 = _mm_srli_epi64(tmp, 13);
+  _mm_storeu_si128(compressed + 12, w0);
+  tmp = _mm_loadu_si128(in + 14);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 50));
+  w0 = _mm_srli_epi64(tmp, 14);
+  _mm_storeu_si128(compressed + 13, w1);
+  tmp = _mm_loadu_si128(in + 15);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 49));
+  w1 = _mm_srli_epi64(tmp, 15);
+  _mm_storeu_si128(compressed + 14, w0);
+  tmp = _mm_loadu_si128(in + 16);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 48));
+  w0 = _mm_srli_epi64(tmp, 16);
+  _mm_storeu_si128(compressed + 15, w1);
+  tmp = _mm_loadu_si128(in + 17);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 47));
+  w1 = _mm_srli_epi64(tmp, 17);
+  _mm_storeu_si128(compressed + 16, w0);
+  tmp = _mm_loadu_si128(in + 18);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 46));
+  w0 = _mm_srli_epi64(tmp, 18);
+  _mm_storeu_si128(compressed + 17, w1);
+  tmp = _mm_loadu_si128(in + 19);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 45));
+  w1 = _mm_srli_epi64(tmp, 19);
+  _mm_storeu_si128(compressed + 18, w0);
+  tmp = _mm_loadu_si128(in + 20);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 44));
+  w0 = _mm_srli_epi64(tmp, 20);
+  _mm_storeu_si128(compressed + 19, w1);
+  tmp = _mm_loadu_si128(in + 21);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 43));
+  w1 = _mm_srli_epi64(tmp, 21);
+  _mm_storeu_si128(compressed + 20, w0);
+  tmp = _mm_loadu_si128(in + 22);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 42));
+  w0 = _mm_srli_epi64(tmp, 22);
+  _mm_storeu_si128(compressed + 21, w1);
+  tmp = _mm_loadu_si128(in + 23);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 41));
+  w1 = _mm_srli_epi64(tmp, 23);
+  _mm_storeu_si128(compressed + 22, w0);
+  tmp = _mm_loadu_si128(in + 24);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 40));
+  w0 = _mm_srli_epi64(tmp, 24);
+  _mm_storeu_si128(compressed + 23, w1);
+  tmp = _mm_loadu_si128(in + 25);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 39));
+  w1 = _mm_srli_epi64(tmp, 25);
+  _mm_storeu_si128(compressed + 24, w0);
+  tmp = _mm_loadu_si128(in + 26);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 38));
+  w0 = _mm_srli_epi64(tmp, 26);
+  _mm_storeu_si128(compressed + 25, w1);
+  tmp = _mm_loadu_si128(in + 27);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 37));
+  w1 = _mm_srli_epi64(tmp, 27);
+  _mm_storeu_si128(compressed + 26, w0);
+  tmp = _mm_loadu_si128(in + 28);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 36));
+  w0 = _mm_srli_epi64(tmp, 28);
+  _mm_storeu_si128(compressed + 27, w1);
+  tmp = _mm_loadu_si128(in + 29);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 35));
+  w1 = _mm_srli_epi64(tmp, 29);
+  _mm_storeu_si128(compressed + 28, w0);
+  tmp = _mm_loadu_si128(in + 30);
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 34));
+  w0 = _mm_srli_epi64(tmp, 30);
+  _mm_storeu_si128(compressed + 29, w1);
+  tmp = _mm_loadu_si128(in + 31);
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 33));
+  w1 = _mm_srli_epi64(tmp, 31);
+  _mm_storeu_si128(compressed + 31, w1);
+}
+
+/* we are going to pack 64 64-bit values, touching 32 128-bit words, using 512
+ * bytes */
+static void simdpackblock64(const u64 *pin, __m128i *compressed) {
+  const __m128i *in = (const __m128i *)pin;
+  /* we are going to touch  32 128-bit words */
+  __m128i w0, w1;
+  w0 = _mm_loadu_si128(in + 0);
+  _mm_storeu_si128(compressed + 0, w0);
+  w1 = _mm_loadu_si128(in + 1);
+  _mm_storeu_si128(compressed + 1, w1);
+  w0 = _mm_loadu_si128(in + 2);
+  _mm_storeu_si128(compressed + 2, w0);
+  w1 = _mm_loadu_si128(in + 3);
+  _mm_storeu_si128(compressed + 3, w1);
+  w0 = _mm_loadu_si128(in + 4);
+  _mm_storeu_si128(compressed + 4, w0);
+  w1 = _mm_loadu_si128(in + 5);
+  _mm_storeu_si128(compressed + 5, w1);
+  w0 = _mm_loadu_si128(in + 6);
+  _mm_storeu_si128(compressed + 6, w0);
+  w1 = _mm_loadu_si128(in + 7);
+  _mm_storeu_si128(compressed + 7, w1);
+  w0 = _mm_loadu_si128(in + 8);
+  _mm_storeu_si128(compressed + 8, w0);
+  w1 = _mm_loadu_si128(in + 9);
+  _mm_storeu_si128(compressed + 9, w1);
+  w0 = _mm_loadu_si128(in + 10);
+  _mm_storeu_si128(compressed + 10, w0);
+  w1 = _mm_loadu_si128(in + 11);
+  _mm_storeu_si128(compressed + 11, w1);
+  w0 = _mm_loadu_si128(in + 12);
+  _mm_storeu_si128(compressed + 12, w0);
+  w1 = _mm_loadu_si128(in + 13);
+  _mm_storeu_si128(compressed + 13, w1);
+  w0 = _mm_loadu_si128(in + 14);
+  _mm_storeu_si128(compressed + 14, w0);
+  w1 = _mm_loadu_si128(in + 15);
+  _mm_storeu_si128(compressed + 15, w1);
+  w0 = _mm_loadu_si128(in + 16);
+  _mm_storeu_si128(compressed + 16, w0);
+  w1 = _mm_loadu_si128(in + 17);
+  _mm_storeu_si128(compressed + 17, w1);
+  w0 = _mm_loadu_si128(in + 18);
+  _mm_storeu_si128(compressed + 18, w0);
+  w1 = _mm_loadu_si128(in + 19);
+  _mm_storeu_si128(compressed + 19, w1);
+  w0 = _mm_loadu_si128(in + 20);
+  _mm_storeu_si128(compressed + 20, w0);
+  w1 = _mm_loadu_si128(in + 21);
+  _mm_storeu_si128(compressed + 21, w1);
+  w0 = _mm_loadu_si128(in + 22);
+  _mm_storeu_si128(compressed + 22, w0);
+  w1 = _mm_loadu_si128(in + 23);
+  _mm_storeu_si128(compressed + 23, w1);
+  w0 = _mm_loadu_si128(in + 24);
+  _mm_storeu_si128(compressed + 24, w0);
+  w1 = _mm_loadu_si128(in + 25);
+  _mm_storeu_si128(compressed + 25, w1);
+  w0 = _mm_loadu_si128(in + 26);
+  _mm_storeu_si128(compressed + 26, w0);
+  w1 = _mm_loadu_si128(in + 27);
+  _mm_storeu_si128(compressed + 27, w1);
+  w0 = _mm_loadu_si128(in + 28);
+  _mm_storeu_si128(compressed + 28, w0);
+  w1 = _mm_loadu_si128(in + 29);
+  _mm_storeu_si128(compressed + 29, w1);
+  w0 = _mm_loadu_si128(in + 30);
+  _mm_storeu_si128(compressed + 30, w0);
+  w1 = _mm_loadu_si128(in + 31);
+  _mm_storeu_si128(compressed + 31, w1);
+}
+
+static void simdpackblockmask0(const u64 *pin, __m128i *compressed) {
+  (void)compressed;
+  (void)pin; /* we consumed 64 64-bit integers */
+}
+
+/* we are going to pack 64 1-bit values, touching 1 128-bit words, using 16
+ * bytes */
+static void simdpackblockmask1(const u64 *pin, __m128i *compressed) {
+  /* we are going to touch  1 128-bit word */
+  __m128i w0;
+  const __m128i *in = (const __m128i *)pin;
+  const __m128i mask = _mm_set1_epi64x(1);
+  w0 = _mm_and_si128(mask, _mm_loadu_si128(in + 0));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 1)), 1));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 2)), 2));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 3)), 3));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 4)), 4));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 5)), 5));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 6)), 6));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 7)), 7));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 8)), 8));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 9)), 9));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 10)), 10));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 11)), 11));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 12)), 12));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 13)), 13));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 14)), 14));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 15)), 15));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 16)), 16));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 17)), 17));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 18)), 18));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 19)), 19));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 20)), 20));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 21)), 21));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 22)), 22));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 23)), 23));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 24)), 24));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 25)), 25));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 26)), 26));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 27)), 27));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 28)), 28));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 29)), 29));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 30)), 30));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 31)), 31));
+  _mm_storeu_si128(compressed + 0, w0);
+}
+
+/* we are going to pack 64 2-bit values, touching 1 128-bit words, using 16
+ * bytes */
+static void simdpackblockmask2(const u64 *pin, __m128i *compressed) {
+  /* we are going to touch  1 128-bit word */
+  __m128i w0;
+  const __m128i *in = (const __m128i *)pin;
+  const __m128i mask = _mm_set1_epi64x(3);
+  w0 = _mm_and_si128(mask, _mm_loadu_si128(in + 0));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 1)), 2));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 2)), 4));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 3)), 6));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 4)), 8));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 5)), 10));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 6)), 12));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 7)), 14));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 8)), 16));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 9)), 18));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 10)), 20));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 11)), 22));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 12)), 24));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 13)), 26));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 14)), 28));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 15)), 30));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 16)), 32));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 17)), 34));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 18)), 36));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 19)), 38));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 20)), 40));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 21)), 42));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 22)), 44));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 23)), 46));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 24)), 48));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 25)), 50));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 26)), 52));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 27)), 54));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 28)), 56));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 29)), 58));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 30)), 60));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 31)), 62));
+  _mm_storeu_si128(compressed + 0, w0);
+}
+
+/* we are going to pack 64 3-bit values, touching 2 128-bit words, using 32
+ * bytes */
+static void simdpackblockmask3(const u64 *pin, __m128i *compressed) {
+  /* we are going to touch  2 128-bit words */
+  __m128i w0, w1;
+  const __m128i *in = (const __m128i *)pin;
+  const __m128i mask = _mm_set1_epi64x(7);
+  __m128i tmp; /* used to store inputs at word boundary */
+  w0 = _mm_and_si128(mask, _mm_loadu_si128(in + 0));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 1)), 3));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 2)), 6));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 3)), 9));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 4)), 12));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 5)), 15));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 6)), 18));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 7)), 21));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 8)), 24));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 9)), 27));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 10)), 30));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 11)), 33));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 12)), 36));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 13)), 39));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 14)), 42));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 15)), 45));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 16)), 48));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 17)), 51));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 18)), 54));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 19)), 57));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 20)), 60));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 21));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 63));
+  w1 = _mm_srli_epi64(tmp, 1);
+  _mm_storeu_si128(compressed + 0, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 22)), 2));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 23)), 5));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 24)), 8));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 25)), 11));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 26)), 14));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 27)), 17));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 28)), 20));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 29)), 23));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 30)), 26));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 31)), 29));
+  _mm_storeu_si128(compressed + 1, w1);
+}
+
+/* we are going to pack 64 4-bit values, touching 2 128-bit words, using 32
+ * bytes */
+static void simdpackblockmask4(const u64 *pin, __m128i *compressed) {
+  /* we are going to touch  2 128-bit words */
+  __m128i w0, w1;
+  const __m128i *in = (const __m128i *)pin;
+  const __m128i mask = _mm_set1_epi64x(15);
+  w0 = _mm_and_si128(mask, _mm_loadu_si128(in + 0));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 1)), 4));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 2)), 8));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 3)), 12));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 4)), 16));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 5)), 20));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 6)), 24));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 7)), 28));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 8)), 32));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 9)), 36));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 10)), 40));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 11)), 44));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 12)), 48));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 13)), 52));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 14)), 56));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 15)), 60));
+  _mm_storeu_si128(compressed + 0, w0);
+  w1 = _mm_and_si128(mask, _mm_loadu_si128(in + 16));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 17)), 4));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 18)), 8));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 19)), 12));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 20)), 16));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 21)), 20));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 22)), 24));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 23)), 28));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 24)), 32));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 25)), 36));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 26)), 40));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 27)), 44));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 28)), 48));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 29)), 52));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 30)), 56));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 31)), 60));
+  _mm_storeu_si128(compressed + 1, w1);
+}
+
+/* we are going to pack 64 5-bit values, touching 3 128-bit words, using 48
+ * bytes */
+static void simdpackblockmask5(const u64 *pin, __m128i *compressed) {
+  /* we are going to touch  3 128-bit words */
+  __m128i w0, w1;
+  const __m128i *in = (const __m128i *)pin;
+  const __m128i mask = _mm_set1_epi64x(31);
+  __m128i tmp; /* used to store inputs at word boundary */
+  w0 = _mm_and_si128(mask, _mm_loadu_si128(in + 0));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 1)), 5));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 2)), 10));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 3)), 15));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 4)), 20));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 5)), 25));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 6)), 30));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 7)), 35));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 8)), 40));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 9)), 45));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 10)), 50));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 11)), 55));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 12));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 60));
+  w1 = _mm_srli_epi64(tmp, 4);
+  _mm_storeu_si128(compressed + 0, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 13)), 1));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 14)), 6));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 15)), 11));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 16)), 16));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 17)), 21));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 18)), 26));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 19)), 31));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 20)), 36));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 21)), 41));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 22)), 46));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 23)), 51));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 24)), 56));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 25));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 61));
+  w0 = _mm_srli_epi64(tmp, 3);
+  _mm_storeu_si128(compressed + 1, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 26)), 2));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 27)), 7));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 28)), 12));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 29)), 17));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 30)), 22));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 31)), 27));
+  _mm_storeu_si128(compressed + 2, w0);
+}
+
+/* we are going to pack 64 6-bit values, touching 3 128-bit words, using 48
+ * bytes */
+static void simdpackblockmask6(const u64 *pin, __m128i *compressed) {
+  /* we are going to touch  3 128-bit words */
+  __m128i w0, w1;
+  const __m128i *in = (const __m128i *)pin;
+  const __m128i mask = _mm_set1_epi64x(63);
+  __m128i tmp; /* used to store inputs at word boundary */
+  w0 = _mm_and_si128(mask, _mm_loadu_si128(in + 0));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 1)), 6));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 2)), 12));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 3)), 18));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 4)), 24));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 5)), 30));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 6)), 36));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 7)), 42));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 8)), 48));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 9)), 54));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 10));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 60));
+  w1 = _mm_srli_epi64(tmp, 4);
+  _mm_storeu_si128(compressed + 0, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 11)), 2));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 12)), 8));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 13)), 14));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 14)), 20));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 15)), 26));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 16)), 32));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 17)), 38));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 18)), 44));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 19)), 50));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 20)), 56));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 21));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 62));
+  w0 = _mm_srli_epi64(tmp, 2);
+  _mm_storeu_si128(compressed + 1, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 22)), 4));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 23)), 10));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 24)), 16));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 25)), 22));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 26)), 28));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 27)), 34));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 28)), 40));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 29)), 46));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 30)), 52));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 31)), 58));
+  _mm_storeu_si128(compressed + 2, w0);
+}
+
+/* we are going to pack 64 7-bit values, touching 4 128-bit words, using 64
+ * bytes */
+static void simdpackblockmask7(const u64 *pin, __m128i *compressed) {
+  /* we are going to touch  4 128-bit words */
+  __m128i w0, w1;
+  const __m128i *in = (const __m128i *)pin;
+  const __m128i mask = _mm_set1_epi64x(127);
+  __m128i tmp; /* used to store inputs at word boundary */
+  w0 = _mm_and_si128(mask, _mm_loadu_si128(in + 0));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 1)), 7));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 2)), 14));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 3)), 21));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 4)), 28));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 5)), 35));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 6)), 42));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 7)), 49));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 8)), 56));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 9));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 63));
+  w1 = _mm_srli_epi64(tmp, 1);
+  _mm_storeu_si128(compressed + 0, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 10)), 6));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 11)), 13));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 12)), 20));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 13)), 27));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 14)), 34));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 15)), 41));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 16)), 48));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 17)), 55));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 18));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 62));
+  w0 = _mm_srli_epi64(tmp, 2);
+  _mm_storeu_si128(compressed + 1, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 19)), 5));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 20)), 12));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 21)), 19));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 22)), 26));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 23)), 33));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 24)), 40));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 25)), 47));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 26)), 54));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 27));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 61));
+  w1 = _mm_srli_epi64(tmp, 3);
+  _mm_storeu_si128(compressed + 2, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 28)), 4));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 29)), 11));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 30)), 18));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 31)), 25));
+  _mm_storeu_si128(compressed + 3, w1);
+}
+
+/* we are going to pack 64 8-bit values, touching 4 128-bit words, using 64
+ * bytes */
+static void simdpackblockmask8(const u64 *pin, __m128i *compressed) {
+  /* we are going to touch  4 128-bit words */
+  __m128i w0, w1;
+  const __m128i *in = (const __m128i *)pin;
+  const __m128i mask = _mm_set1_epi64x(255);
+  w0 = _mm_and_si128(mask, _mm_loadu_si128(in + 0));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 1)), 8));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 2)), 16));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 3)), 24));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 4)), 32));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 5)), 40));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 6)), 48));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 7)), 56));
+  _mm_storeu_si128(compressed + 0, w0);
+  w1 = _mm_and_si128(mask, _mm_loadu_si128(in + 8));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 9)), 8));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 10)), 16));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 11)), 24));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 12)), 32));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 13)), 40));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 14)), 48));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 15)), 56));
+  _mm_storeu_si128(compressed + 1, w1);
+  w0 = _mm_and_si128(mask, _mm_loadu_si128(in + 16));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 17)), 8));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 18)), 16));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 19)), 24));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 20)), 32));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 21)), 40));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 22)), 48));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 23)), 56));
+  _mm_storeu_si128(compressed + 2, w0);
+  w1 = _mm_and_si128(mask, _mm_loadu_si128(in + 24));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 25)), 8));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 26)), 16));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 27)), 24));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 28)), 32));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 29)), 40));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 30)), 48));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 31)), 56));
+  _mm_storeu_si128(compressed + 3, w1);
+}
+
+/* we are going to pack 64 9-bit values, touching 5 128-bit words, using 80
+ * bytes */
+static void simdpackblockmask9(const u64 *pin, __m128i *compressed) {
+  /* we are going to touch  5 128-bit words */
+  __m128i w0, w1;
+  const __m128i *in = (const __m128i *)pin;
+  const __m128i mask = _mm_set1_epi64x(511);
+  __m128i tmp; /* used to store inputs at word boundary */
+  w0 = _mm_and_si128(mask, _mm_loadu_si128(in + 0));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 1)), 9));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 2)), 18));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 3)), 27));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 4)), 36));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 5)), 45));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 6)), 54));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 7));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 63));
+  w1 = _mm_srli_epi64(tmp, 1);
+  _mm_storeu_si128(compressed + 0, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 8)), 8));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 9)), 17));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 10)), 26));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 11)), 35));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 12)), 44));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 13)), 53));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 14));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 62));
+  w0 = _mm_srli_epi64(tmp, 2);
+  _mm_storeu_si128(compressed + 1, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 15)), 7));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 16)), 16));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 17)), 25));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 18)), 34));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 19)), 43));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 20)), 52));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 21));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 61));
+  w1 = _mm_srli_epi64(tmp, 3);
+  _mm_storeu_si128(compressed + 2, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 22)), 6));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 23)), 15));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 24)), 24));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 25)), 33));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 26)), 42));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 27)), 51));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 28));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 60));
+  w0 = _mm_srli_epi64(tmp, 4);
+  _mm_storeu_si128(compressed + 3, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 29)), 5));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 30)), 14));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 31)), 23));
+  _mm_storeu_si128(compressed + 4, w0);
+}
+
+/* we are going to pack 64 10-bit values, touching 5 128-bit words, using 80
+ * bytes */
+static void simdpackblockmask10(const u64 *pin, __m128i *compressed) {
+  /* we are going to touch  5 128-bit words */
+  __m128i w0, w1;
+  const __m128i *in = (const __m128i *)pin;
+  const __m128i mask = _mm_set1_epi64x(1023);
+  __m128i tmp; /* used to store inputs at word boundary */
+  w0 = _mm_and_si128(mask, _mm_loadu_si128(in + 0));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 1)), 10));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 2)), 20));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 3)), 30));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 4)), 40));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 5)), 50));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 6));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 60));
+  w1 = _mm_srli_epi64(tmp, 4);
+  _mm_storeu_si128(compressed + 0, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 7)), 6));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 8)), 16));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 9)), 26));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 10)), 36));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 11)), 46));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 12));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 56));
+  w0 = _mm_srli_epi64(tmp, 8);
+  _mm_storeu_si128(compressed + 1, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 13)), 2));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 14)), 12));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 15)), 22));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 16)), 32));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 17)), 42));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 18)), 52));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 19));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 62));
+  w1 = _mm_srli_epi64(tmp, 2);
+  _mm_storeu_si128(compressed + 2, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 20)), 8));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 21)), 18));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 22)), 28));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 23)), 38));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 24)), 48));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 25));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 58));
+  w0 = _mm_srli_epi64(tmp, 6);
+  _mm_storeu_si128(compressed + 3, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 26)), 4));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 27)), 14));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 28)), 24));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 29)), 34));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 30)), 44));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 31)), 54));
+  _mm_storeu_si128(compressed + 4, w0);
+}
+
+/* we are going to pack 64 11-bit values, touching 6 128-bit words, using 96
+ * bytes */
+static void simdpackblockmask11(const u64 *pin, __m128i *compressed) {
+  /* we are going to touch  6 128-bit words */
+  __m128i w0, w1;
+  const __m128i *in = (const __m128i *)pin;
+  const __m128i mask = _mm_set1_epi64x(2047);
+  __m128i tmp; /* used to store inputs at word boundary */
+  w0 = _mm_and_si128(mask, _mm_loadu_si128(in + 0));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 1)), 11));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 2)), 22));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 3)), 33));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 4)), 44));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 5));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 55));
+  w1 = _mm_srli_epi64(tmp, 9);
+  _mm_storeu_si128(compressed + 0, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 6)), 2));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 7)), 13));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 8)), 24));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 9)), 35));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 10)), 46));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 11));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 57));
+  w0 = _mm_srli_epi64(tmp, 7);
+  _mm_storeu_si128(compressed + 1, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 12)), 4));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 13)), 15));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 14)), 26));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 15)), 37));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 16)), 48));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 17));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 59));
+  w1 = _mm_srli_epi64(tmp, 5);
+  _mm_storeu_si128(compressed + 2, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 18)), 6));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 19)), 17));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 20)), 28));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 21)), 39));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 22)), 50));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 23));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 61));
+  w0 = _mm_srli_epi64(tmp, 3);
+  _mm_storeu_si128(compressed + 3, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 24)), 8));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 25)), 19));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 26)), 30));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 27)), 41));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 28)), 52));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 29));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 63));
+  w1 = _mm_srli_epi64(tmp, 1);
+  _mm_storeu_si128(compressed + 4, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 30)), 10));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 31)), 21));
+  _mm_storeu_si128(compressed + 5, w1);
+}
+
+/* we are going to pack 64 12-bit values, touching 6 128-bit words, using 96
+ * bytes */
+static void simdpackblockmask12(const u64 *pin, __m128i *compressed) {
+  /* we are going to touch  6 128-bit words */
+  __m128i w0, w1;
+  const __m128i *in = (const __m128i *)pin;
+  const __m128i mask = _mm_set1_epi64x(4095);
+  __m128i tmp; /* used to store inputs at word boundary */
+  w0 = _mm_and_si128(mask, _mm_loadu_si128(in + 0));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 1)), 12));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 2)), 24));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 3)), 36));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 4)), 48));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 5));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 60));
+  w1 = _mm_srli_epi64(tmp, 4);
+  _mm_storeu_si128(compressed + 0, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 6)), 8));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 7)), 20));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 8)), 32));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 9)), 44));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 10));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 56));
+  w0 = _mm_srli_epi64(tmp, 8);
+  _mm_storeu_si128(compressed + 1, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 11)), 4));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 12)), 16));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 13)), 28));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 14)), 40));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 15)), 52));
+  _mm_storeu_si128(compressed + 2, w0);
+  w1 = _mm_and_si128(mask, _mm_loadu_si128(in + 16));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 17)), 12));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 18)), 24));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 19)), 36));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 20)), 48));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 21));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 60));
+  w0 = _mm_srli_epi64(tmp, 4);
+  _mm_storeu_si128(compressed + 3, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 22)), 8));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 23)), 20));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 24)), 32));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 25)), 44));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 26));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 56));
+  w1 = _mm_srli_epi64(tmp, 8);
+  _mm_storeu_si128(compressed + 4, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 27)), 4));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 28)), 16));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 29)), 28));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 30)), 40));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 31)), 52));
+  _mm_storeu_si128(compressed + 5, w1);
+}
+
+/* we are going to pack 64 13-bit values, touching 7 128-bit words, using 112
+ * bytes */
+static void simdpackblockmask13(const u64 *pin, __m128i *compressed) {
+  /* we are going to touch  7 128-bit words */
+  __m128i w0, w1;
+  const __m128i *in = (const __m128i *)pin;
+  const __m128i mask = _mm_set1_epi64x(8191);
+  __m128i tmp; /* used to store inputs at word boundary */
+  w0 = _mm_and_si128(mask, _mm_loadu_si128(in + 0));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 1)), 13));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 2)), 26));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 3)), 39));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 4));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 52));
+  w1 = _mm_srli_epi64(tmp, 12);
+  _mm_storeu_si128(compressed + 0, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 5)), 1));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 6)), 14));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 7)), 27));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 8)), 40));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 9));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 53));
+  w0 = _mm_srli_epi64(tmp, 11);
+  _mm_storeu_si128(compressed + 1, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 10)), 2));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 11)), 15));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 12)), 28));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 13)), 41));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 14));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 54));
+  w1 = _mm_srli_epi64(tmp, 10);
+  _mm_storeu_si128(compressed + 2, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 15)), 3));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 16)), 16));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 17)), 29));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 18)), 42));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 19));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 55));
+  w0 = _mm_srli_epi64(tmp, 9);
+  _mm_storeu_si128(compressed + 3, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 20)), 4));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 21)), 17));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 22)), 30));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 23)), 43));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 24));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 56));
+  w1 = _mm_srli_epi64(tmp, 8);
+  _mm_storeu_si128(compressed + 4, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 25)), 5));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 26)), 18));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 27)), 31));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 28)), 44));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 29));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 57));
+  w0 = _mm_srli_epi64(tmp, 7);
+  _mm_storeu_si128(compressed + 5, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 30)), 6));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 31)), 19));
+  _mm_storeu_si128(compressed + 6, w0);
+}
+
+/* we are going to pack 64 14-bit values, touching 7 128-bit words, using 112
+ * bytes */
+static void simdpackblockmask14(const u64 *pin, __m128i *compressed) {
+  /* we are going to touch  7 128-bit words */
+  __m128i w0, w1;
+  const __m128i *in = (const __m128i *)pin;
+  const __m128i mask = _mm_set1_epi64x(16383);
+  __m128i tmp; /* used to store inputs at word boundary */
+  w0 = _mm_and_si128(mask, _mm_loadu_si128(in + 0));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 1)), 14));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 2)), 28));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 3)), 42));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 4));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 56));
+  w1 = _mm_srli_epi64(tmp, 8);
+  _mm_storeu_si128(compressed + 0, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 5)), 6));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 6)), 20));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 7)), 34));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 8)), 48));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 9));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 62));
+  w0 = _mm_srli_epi64(tmp, 2);
+  _mm_storeu_si128(compressed + 1, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 10)), 12));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 11)), 26));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 12)), 40));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 13));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 54));
+  w1 = _mm_srli_epi64(tmp, 10);
+  _mm_storeu_si128(compressed + 2, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 14)), 4));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 15)), 18));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 16)), 32));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 17)), 46));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 18));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 60));
+  w0 = _mm_srli_epi64(tmp, 4);
+  _mm_storeu_si128(compressed + 3, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 19)), 10));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 20)), 24));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 21)), 38));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 22));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 52));
+  w1 = _mm_srli_epi64(tmp, 12);
+  _mm_storeu_si128(compressed + 4, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 23)), 2));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 24)), 16));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 25)), 30));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 26)), 44));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 27));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 58));
+  w0 = _mm_srli_epi64(tmp, 6);
+  _mm_storeu_si128(compressed + 5, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 28)), 8));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 29)), 22));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 30)), 36));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 31)), 50));
+  _mm_storeu_si128(compressed + 6, w0);
+}
+
+/* we are going to pack 64 15-bit values, touching 8 128-bit words, using 128
+ * bytes */
+static void simdpackblockmask15(const u64 *pin, __m128i *compressed) {
+  /* we are going to touch  8 128-bit words */
+  __m128i w0, w1;
+  const __m128i *in = (const __m128i *)pin;
+  const __m128i mask = _mm_set1_epi64x(32767);
+  __m128i tmp; /* used to store inputs at word boundary */
+  w0 = _mm_and_si128(mask, _mm_loadu_si128(in + 0));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 1)), 15));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 2)), 30));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 3)), 45));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 4));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 60));
+  w1 = _mm_srli_epi64(tmp, 4);
+  _mm_storeu_si128(compressed + 0, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 5)), 11));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 6)), 26));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 7)), 41));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 8));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 56));
+  w0 = _mm_srli_epi64(tmp, 8);
+  _mm_storeu_si128(compressed + 1, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 9)), 7));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 10)), 22));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 11)), 37));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 12));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 52));
+  w1 = _mm_srli_epi64(tmp, 12);
+  _mm_storeu_si128(compressed + 2, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 13)), 3));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 14)), 18));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 15)), 33));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 16)), 48));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 17));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 63));
+  w0 = _mm_srli_epi64(tmp, 1);
+  _mm_storeu_si128(compressed + 3, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 18)), 14));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 19)), 29));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 20)), 44));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 21));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 59));
+  w1 = _mm_srli_epi64(tmp, 5);
+  _mm_storeu_si128(compressed + 4, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 22)), 10));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 23)), 25));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 24)), 40));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 25));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 55));
+  w0 = _mm_srli_epi64(tmp, 9);
+  _mm_storeu_si128(compressed + 5, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 26)), 6));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 27)), 21));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 28)), 36));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 29));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 51));
+  w1 = _mm_srli_epi64(tmp, 13);
+  _mm_storeu_si128(compressed + 6, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 30)), 2));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 31)), 17));
+  _mm_storeu_si128(compressed + 7, w1);
+}
+
+/* we are going to pack 64 16-bit values, touching 8 128-bit words, using 128
+ * bytes */
+static void simdpackblockmask16(const u64 *pin, __m128i *compressed) {
+  /* we are going to touch  8 128-bit words */
+  __m128i w0, w1;
+  const __m128i *in = (const __m128i *)pin;
+  const __m128i mask = _mm_set1_epi64x(65535);
+  w0 = _mm_and_si128(mask, _mm_loadu_si128(in + 0));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 1)), 16));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 2)), 32));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 3)), 48));
+  _mm_storeu_si128(compressed + 0, w0);
+  w1 = _mm_and_si128(mask, _mm_loadu_si128(in + 4));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 5)), 16));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 6)), 32));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 7)), 48));
+  _mm_storeu_si128(compressed + 1, w1);
+  w0 = _mm_and_si128(mask, _mm_loadu_si128(in + 8));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 9)), 16));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 10)), 32));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 11)), 48));
+  _mm_storeu_si128(compressed + 2, w0);
+  w1 = _mm_and_si128(mask, _mm_loadu_si128(in + 12));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 13)), 16));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 14)), 32));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 15)), 48));
+  _mm_storeu_si128(compressed + 3, w1);
+  w0 = _mm_and_si128(mask, _mm_loadu_si128(in + 16));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 17)), 16));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 18)), 32));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 19)), 48));
+  _mm_storeu_si128(compressed + 4, w0);
+  w1 = _mm_and_si128(mask, _mm_loadu_si128(in + 20));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 21)), 16));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 22)), 32));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 23)), 48));
+  _mm_storeu_si128(compressed + 5, w1);
+  w0 = _mm_and_si128(mask, _mm_loadu_si128(in + 24));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 25)), 16));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 26)), 32));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 27)), 48));
+  _mm_storeu_si128(compressed + 6, w0);
+  w1 = _mm_and_si128(mask, _mm_loadu_si128(in + 28));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 29)), 16));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 30)), 32));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 31)), 48));
+  _mm_storeu_si128(compressed + 7, w1);
+}
+
+/* we are going to pack 64 17-bit values, touching 9 128-bit words, using 144
+ * bytes */
+static void simdpackblockmask17(const u64 *pin, __m128i *compressed) {
+  /* we are going to touch  9 128-bit words */
+  __m128i w0, w1;
+  const __m128i *in = (const __m128i *)pin;
+  const __m128i mask = _mm_set1_epi64x(131071);
+  __m128i tmp; /* used to store inputs at word boundary */
+  w0 = _mm_and_si128(mask, _mm_loadu_si128(in + 0));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 1)), 17));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 2)), 34));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 3));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 51));
+  w1 = _mm_srli_epi64(tmp, 13);
+  _mm_storeu_si128(compressed + 0, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 4)), 4));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 5)), 21));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 6)), 38));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 7));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 55));
+  w0 = _mm_srli_epi64(tmp, 9);
+  _mm_storeu_si128(compressed + 1, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 8)), 8));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 9)), 25));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 10)), 42));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 11));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 59));
+  w1 = _mm_srli_epi64(tmp, 5);
+  _mm_storeu_si128(compressed + 2, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 12)), 12));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 13)), 29));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 14)), 46));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 15));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 63));
+  w0 = _mm_srli_epi64(tmp, 1);
+  _mm_storeu_si128(compressed + 3, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 16)), 16));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 17)), 33));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 18));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 50));
+  w1 = _mm_srli_epi64(tmp, 14);
+  _mm_storeu_si128(compressed + 4, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 19)), 3));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 20)), 20));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 21)), 37));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 22));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 54));
+  w0 = _mm_srli_epi64(tmp, 10);
+  _mm_storeu_si128(compressed + 5, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 23)), 7));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 24)), 24));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 25)), 41));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 26));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 58));
+  w1 = _mm_srli_epi64(tmp, 6);
+  _mm_storeu_si128(compressed + 6, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 27)), 11));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 28)), 28));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 29)), 45));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 30));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 62));
+  w0 = _mm_srli_epi64(tmp, 2);
+  _mm_storeu_si128(compressed + 7, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 31)), 15));
+  _mm_storeu_si128(compressed + 8, w0);
+}
+
+/* we are going to pack 64 18-bit values, touching 9 128-bit words, using 144
+ * bytes */
+static void simdpackblockmask18(const u64 *pin, __m128i *compressed) {
+  /* we are going to touch  9 128-bit words */
+  __m128i w0, w1;
+  const __m128i *in = (const __m128i *)pin;
+  const __m128i mask = _mm_set1_epi64x(262143);
+  __m128i tmp; /* used to store inputs at word boundary */
+  w0 = _mm_and_si128(mask, _mm_loadu_si128(in + 0));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 1)), 18));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 2)), 36));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 3));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 54));
+  w1 = _mm_srli_epi64(tmp, 10);
+  _mm_storeu_si128(compressed + 0, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 4)), 8));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 5)), 26));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 6)), 44));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 7));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 62));
+  w0 = _mm_srli_epi64(tmp, 2);
+  _mm_storeu_si128(compressed + 1, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 8)), 16));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 9)), 34));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 10));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 52));
+  w1 = _mm_srli_epi64(tmp, 12);
+  _mm_storeu_si128(compressed + 2, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 11)), 6));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 12)), 24));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 13)), 42));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 14));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 60));
+  w0 = _mm_srli_epi64(tmp, 4);
+  _mm_storeu_si128(compressed + 3, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 15)), 14));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 16)), 32));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 17));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 50));
+  w1 = _mm_srli_epi64(tmp, 14);
+  _mm_storeu_si128(compressed + 4, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 18)), 4));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 19)), 22));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 20)), 40));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 21));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 58));
+  w0 = _mm_srli_epi64(tmp, 6);
+  _mm_storeu_si128(compressed + 5, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 22)), 12));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 23)), 30));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 24));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 48));
+  w1 = _mm_srli_epi64(tmp, 16);
+  _mm_storeu_si128(compressed + 6, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 25)), 2));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 26)), 20));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 27)), 38));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 28));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 56));
+  w0 = _mm_srli_epi64(tmp, 8);
+  _mm_storeu_si128(compressed + 7, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 29)), 10));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 30)), 28));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 31)), 46));
+  _mm_storeu_si128(compressed + 8, w0);
+}
+
+/* we are going to pack 64 19-bit values, touching 10 128-bit words, using 160
+ * bytes */
+static void simdpackblockmask19(const u64 *pin, __m128i *compressed) {
+  /* we are going to touch  10 128-bit words */
+  __m128i w0, w1;
+  const __m128i *in = (const __m128i *)pin;
+  const __m128i mask = _mm_set1_epi64x(524287);
+  __m128i tmp; /* used to store inputs at word boundary */
+  w0 = _mm_and_si128(mask, _mm_loadu_si128(in + 0));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 1)), 19));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 2)), 38));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 3));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 57));
+  w1 = _mm_srli_epi64(tmp, 7);
+  _mm_storeu_si128(compressed + 0, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 4)), 12));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 5)), 31));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 6));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 50));
+  w0 = _mm_srli_epi64(tmp, 14);
+  _mm_storeu_si128(compressed + 1, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 7)), 5));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 8)), 24));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 9)), 43));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 10));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 62));
+  w1 = _mm_srli_epi64(tmp, 2);
+  _mm_storeu_si128(compressed + 2, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 11)), 17));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 12)), 36));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 13));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 55));
+  w0 = _mm_srli_epi64(tmp, 9);
+  _mm_storeu_si128(compressed + 3, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 14)), 10));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 15)), 29));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 16));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 48));
+  w1 = _mm_srli_epi64(tmp, 16);
+  _mm_storeu_si128(compressed + 4, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 17)), 3));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 18)), 22));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 19)), 41));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 20));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 60));
+  w0 = _mm_srli_epi64(tmp, 4);
+  _mm_storeu_si128(compressed + 5, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 21)), 15));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 22)), 34));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 23));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 53));
+  w1 = _mm_srli_epi64(tmp, 11);
+  _mm_storeu_si128(compressed + 6, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 24)), 8));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 25)), 27));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 26));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 46));
+  w0 = _mm_srli_epi64(tmp, 18);
+  _mm_storeu_si128(compressed + 7, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 27)), 1));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 28)), 20));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 29)), 39));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 30));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 58));
+  w1 = _mm_srli_epi64(tmp, 6);
+  _mm_storeu_si128(compressed + 8, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 31)), 13));
+  _mm_storeu_si128(compressed + 9, w1);
+}
+
+/* we are going to pack 64 20-bit values, touching 10 128-bit words, using 160
+ * bytes */
+static void simdpackblockmask20(const u64 *pin, __m128i *compressed) {
+  /* we are going to touch  10 128-bit words */
+  __m128i w0, w1;
+  const __m128i *in = (const __m128i *)pin;
+  const __m128i mask = _mm_set1_epi64x(1048575);
+  __m128i tmp; /* used to store inputs at word boundary */
+  w0 = _mm_and_si128(mask, _mm_loadu_si128(in + 0));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 1)), 20));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 2)), 40));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 3));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 60));
+  w1 = _mm_srli_epi64(tmp, 4);
+  _mm_storeu_si128(compressed + 0, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 4)), 16));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 5)), 36));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 6));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 56));
+  w0 = _mm_srli_epi64(tmp, 8);
+  _mm_storeu_si128(compressed + 1, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 7)), 12));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 8)), 32));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 9));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 52));
+  w1 = _mm_srli_epi64(tmp, 12);
+  _mm_storeu_si128(compressed + 2, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 10)), 8));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 11)), 28));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 12));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 48));
+  w0 = _mm_srli_epi64(tmp, 16);
+  _mm_storeu_si128(compressed + 3, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 13)), 4));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 14)), 24));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 15)), 44));
+  _mm_storeu_si128(compressed + 4, w0);
+  w1 = _mm_and_si128(mask, _mm_loadu_si128(in + 16));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 17)), 20));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 18)), 40));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 19));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 60));
+  w0 = _mm_srli_epi64(tmp, 4);
+  _mm_storeu_si128(compressed + 5, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 20)), 16));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 21)), 36));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 22));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 56));
+  w1 = _mm_srli_epi64(tmp, 8);
+  _mm_storeu_si128(compressed + 6, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 23)), 12));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 24)), 32));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 25));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 52));
+  w0 = _mm_srli_epi64(tmp, 12);
+  _mm_storeu_si128(compressed + 7, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 26)), 8));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 27)), 28));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 28));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 48));
+  w1 = _mm_srli_epi64(tmp, 16);
+  _mm_storeu_si128(compressed + 8, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 29)), 4));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 30)), 24));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 31)), 44));
+  _mm_storeu_si128(compressed + 9, w1);
+}
+
+/* we are going to pack 64 21-bit values, touching 11 128-bit words, using 176
+ * bytes */
+static void simdpackblockmask21(const u64 *pin, __m128i *compressed) {
+  /* we are going to touch  11 128-bit words */
+  __m128i w0, w1;
+  const __m128i *in = (const __m128i *)pin;
+  const __m128i mask = _mm_set1_epi64x(2097151);
+  __m128i tmp; /* used to store inputs at word boundary */
+  w0 = _mm_and_si128(mask, _mm_loadu_si128(in + 0));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 1)), 21));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 2)), 42));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 3));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 63));
+  w1 = _mm_srli_epi64(tmp, 1);
+  _mm_storeu_si128(compressed + 0, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 4)), 20));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 5)), 41));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 6));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 62));
+  w0 = _mm_srli_epi64(tmp, 2);
+  _mm_storeu_si128(compressed + 1, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 7)), 19));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 8)), 40));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 9));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 61));
+  w1 = _mm_srli_epi64(tmp, 3);
+  _mm_storeu_si128(compressed + 2, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 10)), 18));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 11)), 39));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 12));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 60));
+  w0 = _mm_srli_epi64(tmp, 4);
+  _mm_storeu_si128(compressed + 3, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 13)), 17));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 14)), 38));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 15));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 59));
+  w1 = _mm_srli_epi64(tmp, 5);
+  _mm_storeu_si128(compressed + 4, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 16)), 16));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 17)), 37));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 18));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 58));
+  w0 = _mm_srli_epi64(tmp, 6);
+  _mm_storeu_si128(compressed + 5, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 19)), 15));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 20)), 36));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 21));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 57));
+  w1 = _mm_srli_epi64(tmp, 7);
+  _mm_storeu_si128(compressed + 6, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 22)), 14));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 23)), 35));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 24));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 56));
+  w0 = _mm_srli_epi64(tmp, 8);
+  _mm_storeu_si128(compressed + 7, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 25)), 13));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 26)), 34));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 27));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 55));
+  w1 = _mm_srli_epi64(tmp, 9);
+  _mm_storeu_si128(compressed + 8, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 28)), 12));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 29)), 33));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 30));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 54));
+  w0 = _mm_srli_epi64(tmp, 10);
+  _mm_storeu_si128(compressed + 9, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 31)), 11));
+  _mm_storeu_si128(compressed + 10, w0);
+}
+
+/* we are going to pack 64 22-bit values, touching 11 128-bit words, using 176
+ * bytes */
+static void simdpackblockmask22(const u64 *pin, __m128i *compressed) {
+  /* we are going to touch  11 128-bit words */
+  __m128i w0, w1;
+  const __m128i *in = (const __m128i *)pin;
+  const __m128i mask = _mm_set1_epi64x(4194303);
+  __m128i tmp; /* used to store inputs at word boundary */
+  w0 = _mm_and_si128(mask, _mm_loadu_si128(in + 0));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 1)), 22));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 2));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 44));
+  w1 = _mm_srli_epi64(tmp, 20);
+  _mm_storeu_si128(compressed + 0, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 3)), 2));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 4)), 24));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 5));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 46));
+  w0 = _mm_srli_epi64(tmp, 18);
+  _mm_storeu_si128(compressed + 1, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 6)), 4));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 7)), 26));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 8));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 48));
+  w1 = _mm_srli_epi64(tmp, 16);
+  _mm_storeu_si128(compressed + 2, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 9)), 6));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 10)), 28));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 11));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 50));
+  w0 = _mm_srli_epi64(tmp, 14);
+  _mm_storeu_si128(compressed + 3, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 12)), 8));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 13)), 30));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 14));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 52));
+  w1 = _mm_srli_epi64(tmp, 12);
+  _mm_storeu_si128(compressed + 4, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 15)), 10));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 16)), 32));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 17));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 54));
+  w0 = _mm_srli_epi64(tmp, 10);
+  _mm_storeu_si128(compressed + 5, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 18)), 12));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 19)), 34));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 20));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 56));
+  w1 = _mm_srli_epi64(tmp, 8);
+  _mm_storeu_si128(compressed + 6, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 21)), 14));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 22)), 36));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 23));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 58));
+  w0 = _mm_srli_epi64(tmp, 6);
+  _mm_storeu_si128(compressed + 7, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 24)), 16));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 25)), 38));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 26));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 60));
+  w1 = _mm_srli_epi64(tmp, 4);
+  _mm_storeu_si128(compressed + 8, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 27)), 18));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 28)), 40));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 29));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 62));
+  w0 = _mm_srli_epi64(tmp, 2);
+  _mm_storeu_si128(compressed + 9, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 30)), 20));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 31)), 42));
+  _mm_storeu_si128(compressed + 10, w0);
+}
+
+/* we are going to pack 64 23-bit values, touching 12 128-bit words, using 192
+ * bytes */
+static void simdpackblockmask23(const u64 *pin, __m128i *compressed) {
+  /* we are going to touch  12 128-bit words */
+  __m128i w0, w1;
+  const __m128i *in = (const __m128i *)pin;
+  const __m128i mask = _mm_set1_epi64x(8388607);
+  __m128i tmp; /* used to store inputs at word boundary */
+  w0 = _mm_and_si128(mask, _mm_loadu_si128(in + 0));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 1)), 23));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 2));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 46));
+  w1 = _mm_srli_epi64(tmp, 18);
+  _mm_storeu_si128(compressed + 0, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 3)), 5));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 4)), 28));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 5));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 51));
+  w0 = _mm_srli_epi64(tmp, 13);
+  _mm_storeu_si128(compressed + 1, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 6)), 10));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 7)), 33));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 8));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 56));
+  w1 = _mm_srli_epi64(tmp, 8);
+  _mm_storeu_si128(compressed + 2, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 9)), 15));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 10)), 38));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 11));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 61));
+  w0 = _mm_srli_epi64(tmp, 3);
+  _mm_storeu_si128(compressed + 3, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 12)), 20));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 13));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 43));
+  w1 = _mm_srli_epi64(tmp, 21);
+  _mm_storeu_si128(compressed + 4, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 14)), 2));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 15)), 25));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 16));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 48));
+  w0 = _mm_srli_epi64(tmp, 16);
+  _mm_storeu_si128(compressed + 5, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 17)), 7));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 18)), 30));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 19));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 53));
+  w1 = _mm_srli_epi64(tmp, 11);
+  _mm_storeu_si128(compressed + 6, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 20)), 12));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 21)), 35));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 22));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 58));
+  w0 = _mm_srli_epi64(tmp, 6);
+  _mm_storeu_si128(compressed + 7, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 23)), 17));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 24)), 40));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 25));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 63));
+  w1 = _mm_srli_epi64(tmp, 1);
+  _mm_storeu_si128(compressed + 8, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 26)), 22));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 27));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 45));
+  w0 = _mm_srli_epi64(tmp, 19);
+  _mm_storeu_si128(compressed + 9, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 28)), 4));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 29)), 27));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 30));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 50));
+  w1 = _mm_srli_epi64(tmp, 14);
+  _mm_storeu_si128(compressed + 10, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 31)), 9));
+  _mm_storeu_si128(compressed + 11, w1);
+}
+
+/* we are going to pack 64 24-bit values, touching 12 128-bit words, using 192
+ * bytes */
+static void simdpackblockmask24(const u64 *pin, __m128i *compressed) {
+  /* we are going to touch  12 128-bit words */
+  __m128i w0, w1;
+  const __m128i *in = (const __m128i *)pin;
+  const __m128i mask = _mm_set1_epi64x(16777215);
+  __m128i tmp; /* used to store inputs at word boundary */
+  w0 = _mm_and_si128(mask, _mm_loadu_si128(in + 0));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 1)), 24));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 2));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 48));
+  w1 = _mm_srli_epi64(tmp, 16);
+  _mm_storeu_si128(compressed + 0, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 3)), 8));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 4)), 32));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 5));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 56));
+  w0 = _mm_srli_epi64(tmp, 8);
+  _mm_storeu_si128(compressed + 1, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 6)), 16));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 7)), 40));
+  _mm_storeu_si128(compressed + 2, w0);
+  w1 = _mm_and_si128(mask, _mm_loadu_si128(in + 8));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 9)), 24));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 10));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 48));
+  w0 = _mm_srli_epi64(tmp, 16);
+  _mm_storeu_si128(compressed + 3, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 11)), 8));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 12)), 32));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 13));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 56));
+  w1 = _mm_srli_epi64(tmp, 8);
+  _mm_storeu_si128(compressed + 4, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 14)), 16));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 15)), 40));
+  _mm_storeu_si128(compressed + 5, w1);
+  w0 = _mm_and_si128(mask, _mm_loadu_si128(in + 16));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 17)), 24));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 18));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 48));
+  w1 = _mm_srli_epi64(tmp, 16);
+  _mm_storeu_si128(compressed + 6, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 19)), 8));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 20)), 32));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 21));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 56));
+  w0 = _mm_srli_epi64(tmp, 8);
+  _mm_storeu_si128(compressed + 7, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 22)), 16));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 23)), 40));
+  _mm_storeu_si128(compressed + 8, w0);
+  w1 = _mm_and_si128(mask, _mm_loadu_si128(in + 24));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 25)), 24));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 26));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 48));
+  w0 = _mm_srli_epi64(tmp, 16);
+  _mm_storeu_si128(compressed + 9, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 27)), 8));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 28)), 32));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 29));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 56));
+  w1 = _mm_srli_epi64(tmp, 8);
+  _mm_storeu_si128(compressed + 10, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 30)), 16));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 31)), 40));
+  _mm_storeu_si128(compressed + 11, w1);
+}
+
+/* we are going to pack 64 25-bit values, touching 13 128-bit words, using 208
+ * bytes */
+static void simdpackblockmask25(const u64 *pin, __m128i *compressed) {
+  /* we are going to touch  13 128-bit words */
+  __m128i w0, w1;
+  const __m128i *in = (const __m128i *)pin;
+  const __m128i mask = _mm_set1_epi64x(33554431);
+  __m128i tmp; /* used to store inputs at word boundary */
+  w0 = _mm_and_si128(mask, _mm_loadu_si128(in + 0));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 1)), 25));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 2));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 50));
+  w1 = _mm_srli_epi64(tmp, 14);
+  _mm_storeu_si128(compressed + 0, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 3)), 11));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 4)), 36));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 5));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 61));
+  w0 = _mm_srli_epi64(tmp, 3);
+  _mm_storeu_si128(compressed + 1, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 6)), 22));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 7));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 47));
+  w1 = _mm_srli_epi64(tmp, 17);
+  _mm_storeu_si128(compressed + 2, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 8)), 8));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 9)), 33));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 10));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 58));
+  w0 = _mm_srli_epi64(tmp, 6);
+  _mm_storeu_si128(compressed + 3, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 11)), 19));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 12));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 44));
+  w1 = _mm_srli_epi64(tmp, 20);
+  _mm_storeu_si128(compressed + 4, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 13)), 5));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 14)), 30));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 15));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 55));
+  w0 = _mm_srli_epi64(tmp, 9);
+  _mm_storeu_si128(compressed + 5, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 16)), 16));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 17));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 41));
+  w1 = _mm_srli_epi64(tmp, 23);
+  _mm_storeu_si128(compressed + 6, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 18)), 2));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 19)), 27));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 20));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 52));
+  w0 = _mm_srli_epi64(tmp, 12);
+  _mm_storeu_si128(compressed + 7, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 21)), 13));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 22)), 38));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 23));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 63));
+  w1 = _mm_srli_epi64(tmp, 1);
+  _mm_storeu_si128(compressed + 8, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 24)), 24));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 25));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 49));
+  w0 = _mm_srli_epi64(tmp, 15);
+  _mm_storeu_si128(compressed + 9, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 26)), 10));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 27)), 35));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 28));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 60));
+  w1 = _mm_srli_epi64(tmp, 4);
+  _mm_storeu_si128(compressed + 10, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 29)), 21));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 30));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 46));
+  w0 = _mm_srli_epi64(tmp, 18);
+  _mm_storeu_si128(compressed + 11, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 31)), 7));
+  _mm_storeu_si128(compressed + 12, w0);
+}
+
+/* we are going to pack 64 26-bit values, touching 13 128-bit words, using 208
+ * bytes */
+static void simdpackblockmask26(const u64 *pin, __m128i *compressed) {
+  /* we are going to touch  13 128-bit words */
+  __m128i w0, w1;
+  const __m128i *in = (const __m128i *)pin;
+  const __m128i mask = _mm_set1_epi64x(67108863);
+  __m128i tmp; /* used to store inputs at word boundary */
+  w0 = _mm_and_si128(mask, _mm_loadu_si128(in + 0));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 1)), 26));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 2));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 52));
+  w1 = _mm_srli_epi64(tmp, 12);
+  _mm_storeu_si128(compressed + 0, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 3)), 14));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 4));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 40));
+  w0 = _mm_srli_epi64(tmp, 24);
+  _mm_storeu_si128(compressed + 1, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 5)), 2));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 6)), 28));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 7));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 54));
+  w1 = _mm_srli_epi64(tmp, 10);
+  _mm_storeu_si128(compressed + 2, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 8)), 16));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 9));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 42));
+  w0 = _mm_srli_epi64(tmp, 22);
+  _mm_storeu_si128(compressed + 3, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 10)), 4));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 11)), 30));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 12));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 56));
+  w1 = _mm_srli_epi64(tmp, 8);
+  _mm_storeu_si128(compressed + 4, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 13)), 18));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 14));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 44));
+  w0 = _mm_srli_epi64(tmp, 20);
+  _mm_storeu_si128(compressed + 5, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 15)), 6));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 16)), 32));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 17));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 58));
+  w1 = _mm_srli_epi64(tmp, 6);
+  _mm_storeu_si128(compressed + 6, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 18)), 20));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 19));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 46));
+  w0 = _mm_srli_epi64(tmp, 18);
+  _mm_storeu_si128(compressed + 7, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 20)), 8));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 21)), 34));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 22));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 60));
+  w1 = _mm_srli_epi64(tmp, 4);
+  _mm_storeu_si128(compressed + 8, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 23)), 22));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 24));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 48));
+  w0 = _mm_srli_epi64(tmp, 16);
+  _mm_storeu_si128(compressed + 9, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 25)), 10));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 26)), 36));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 27));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 62));
+  w1 = _mm_srli_epi64(tmp, 2);
+  _mm_storeu_si128(compressed + 10, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 28)), 24));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 29));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 50));
+  w0 = _mm_srli_epi64(tmp, 14);
+  _mm_storeu_si128(compressed + 11, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 30)), 12));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 31)), 38));
+  _mm_storeu_si128(compressed + 12, w0);
+}
+
+/* we are going to pack 64 27-bit values, touching 14 128-bit words, using 224
+ * bytes */
+static void simdpackblockmask27(const u64 *pin, __m128i *compressed) {
+  /* we are going to touch  14 128-bit words */
+  __m128i w0, w1;
+  const __m128i *in = (const __m128i *)pin;
+  const __m128i mask = _mm_set1_epi64x(134217727);
+  __m128i tmp; /* used to store inputs at word boundary */
+  w0 = _mm_and_si128(mask, _mm_loadu_si128(in + 0));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 1)), 27));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 2));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 54));
+  w1 = _mm_srli_epi64(tmp, 10);
+  _mm_storeu_si128(compressed + 0, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 3)), 17));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 4));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 44));
+  w0 = _mm_srli_epi64(tmp, 20);
+  _mm_storeu_si128(compressed + 1, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 5)), 7));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 6)), 34));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 7));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 61));
+  w1 = _mm_srli_epi64(tmp, 3);
+  _mm_storeu_si128(compressed + 2, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 8)), 24));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 9));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 51));
+  w0 = _mm_srli_epi64(tmp, 13);
+  _mm_storeu_si128(compressed + 3, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 10)), 14));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 11));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 41));
+  w1 = _mm_srli_epi64(tmp, 23);
+  _mm_storeu_si128(compressed + 4, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 12)), 4));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 13)), 31));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 14));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 58));
+  w0 = _mm_srli_epi64(tmp, 6);
+  _mm_storeu_si128(compressed + 5, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 15)), 21));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 16));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 48));
+  w1 = _mm_srli_epi64(tmp, 16);
+  _mm_storeu_si128(compressed + 6, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 17)), 11));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 18));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 38));
+  w0 = _mm_srli_epi64(tmp, 26);
+  _mm_storeu_si128(compressed + 7, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 19)), 1));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 20)), 28));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 21));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 55));
+  w1 = _mm_srli_epi64(tmp, 9);
+  _mm_storeu_si128(compressed + 8, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 22)), 18));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 23));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 45));
+  w0 = _mm_srli_epi64(tmp, 19);
+  _mm_storeu_si128(compressed + 9, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 24)), 8));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 25)), 35));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 26));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 62));
+  w1 = _mm_srli_epi64(tmp, 2);
+  _mm_storeu_si128(compressed + 10, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 27)), 25));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 28));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 52));
+  w0 = _mm_srli_epi64(tmp, 12);
+  _mm_storeu_si128(compressed + 11, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 29)), 15));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 30));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 42));
+  w1 = _mm_srli_epi64(tmp, 22);
+  _mm_storeu_si128(compressed + 12, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 31)), 5));
+  _mm_storeu_si128(compressed + 13, w1);
+}
+
+/* we are going to pack 64 28-bit values, touching 14 128-bit words, using 224
+ * bytes */
+static void simdpackblockmask28(const u64 *pin, __m128i *compressed) {
+  /* we are going to touch  14 128-bit words */
+  __m128i w0, w1;
+  const __m128i *in = (const __m128i *)pin;
+  const __m128i mask = _mm_set1_epi64x(268435455);
+  __m128i tmp; /* used to store inputs at word boundary */
+  w0 = _mm_and_si128(mask, _mm_loadu_si128(in + 0));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 1)), 28));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 2));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 56));
+  w1 = _mm_srli_epi64(tmp, 8);
+  _mm_storeu_si128(compressed + 0, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 3)), 20));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 4));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 48));
+  w0 = _mm_srli_epi64(tmp, 16);
+  _mm_storeu_si128(compressed + 1, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 5)), 12));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 6));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 40));
+  w1 = _mm_srli_epi64(tmp, 24);
+  _mm_storeu_si128(compressed + 2, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 7)), 4));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 8)), 32));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 9));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 60));
+  w0 = _mm_srli_epi64(tmp, 4);
+  _mm_storeu_si128(compressed + 3, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 10)), 24));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 11));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 52));
+  w1 = _mm_srli_epi64(tmp, 12);
+  _mm_storeu_si128(compressed + 4, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 12)), 16));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 13));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 44));
+  w0 = _mm_srli_epi64(tmp, 20);
+  _mm_storeu_si128(compressed + 5, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 14)), 8));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 15)), 36));
+  _mm_storeu_si128(compressed + 6, w0);
+  w1 = _mm_and_si128(mask, _mm_loadu_si128(in + 16));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 17)), 28));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 18));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 56));
+  w0 = _mm_srli_epi64(tmp, 8);
+  _mm_storeu_si128(compressed + 7, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 19)), 20));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 20));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 48));
+  w1 = _mm_srli_epi64(tmp, 16);
+  _mm_storeu_si128(compressed + 8, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 21)), 12));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 22));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 40));
+  w0 = _mm_srli_epi64(tmp, 24);
+  _mm_storeu_si128(compressed + 9, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 23)), 4));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 24)), 32));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 25));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 60));
+  w1 = _mm_srli_epi64(tmp, 4);
+  _mm_storeu_si128(compressed + 10, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 26)), 24));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 27));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 52));
+  w0 = _mm_srli_epi64(tmp, 12);
+  _mm_storeu_si128(compressed + 11, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 28)), 16));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 29));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 44));
+  w1 = _mm_srli_epi64(tmp, 20);
+  _mm_storeu_si128(compressed + 12, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 30)), 8));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 31)), 36));
+  _mm_storeu_si128(compressed + 13, w1);
+}
+
+/* we are going to pack 64 29-bit values, touching 15 128-bit words, using 240
+ * bytes */
+static void simdpackblockmask29(const u64 *pin, __m128i *compressed) {
+  /* we are going to touch  15 128-bit words */
+  __m128i w0, w1;
+  const __m128i *in = (const __m128i *)pin;
+  const __m128i mask = _mm_set1_epi64x(536870911);
+  __m128i tmp; /* used to store inputs at word boundary */
+  w0 = _mm_and_si128(mask, _mm_loadu_si128(in + 0));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 1)), 29));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 2));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 58));
+  w1 = _mm_srli_epi64(tmp, 6);
+  _mm_storeu_si128(compressed + 0, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 3)), 23));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 4));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 52));
+  w0 = _mm_srli_epi64(tmp, 12);
+  _mm_storeu_si128(compressed + 1, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 5)), 17));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 6));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 46));
+  w1 = _mm_srli_epi64(tmp, 18);
+  _mm_storeu_si128(compressed + 2, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 7)), 11));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 8));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 40));
+  w0 = _mm_srli_epi64(tmp, 24);
+  _mm_storeu_si128(compressed + 3, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 9)), 5));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 10)), 34));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 11));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 63));
+  w1 = _mm_srli_epi64(tmp, 1);
+  _mm_storeu_si128(compressed + 4, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 12)), 28));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 13));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 57));
+  w0 = _mm_srli_epi64(tmp, 7);
+  _mm_storeu_si128(compressed + 5, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 14)), 22));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 15));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 51));
+  w1 = _mm_srli_epi64(tmp, 13);
+  _mm_storeu_si128(compressed + 6, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 16)), 16));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 17));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 45));
+  w0 = _mm_srli_epi64(tmp, 19);
+  _mm_storeu_si128(compressed + 7, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 18)), 10));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 19));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 39));
+  w1 = _mm_srli_epi64(tmp, 25);
+  _mm_storeu_si128(compressed + 8, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 20)), 4));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 21)), 33));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 22));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 62));
+  w0 = _mm_srli_epi64(tmp, 2);
+  _mm_storeu_si128(compressed + 9, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 23)), 27));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 24));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 56));
+  w1 = _mm_srli_epi64(tmp, 8);
+  _mm_storeu_si128(compressed + 10, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 25)), 21));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 26));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 50));
+  w0 = _mm_srli_epi64(tmp, 14);
+  _mm_storeu_si128(compressed + 11, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 27)), 15));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 28));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 44));
+  w1 = _mm_srli_epi64(tmp, 20);
+  _mm_storeu_si128(compressed + 12, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 29)), 9));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 30));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 38));
+  w0 = _mm_srli_epi64(tmp, 26);
+  _mm_storeu_si128(compressed + 13, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 31)), 3));
+  _mm_storeu_si128(compressed + 14, w0);
+}
+
+/* we are going to pack 64 30-bit values, touching 15 128-bit words, using 240
+ * bytes */
+static void simdpackblockmask30(const u64 *pin, __m128i *compressed) {
+  /* we are going to touch  15 128-bit words */
+  __m128i w0, w1;
+  const __m128i *in = (const __m128i *)pin;
+  const __m128i mask = _mm_set1_epi64x(1073741823);
+  __m128i tmp; /* used to store inputs at word boundary */
+  w0 = _mm_and_si128(mask, _mm_loadu_si128(in + 0));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 1)), 30));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 2));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 60));
+  w1 = _mm_srli_epi64(tmp, 4);
+  _mm_storeu_si128(compressed + 0, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 3)), 26));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 4));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 56));
+  w0 = _mm_srli_epi64(tmp, 8);
+  _mm_storeu_si128(compressed + 1, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 5)), 22));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 6));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 52));
+  w1 = _mm_srli_epi64(tmp, 12);
+  _mm_storeu_si128(compressed + 2, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 7)), 18));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 8));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 48));
+  w0 = _mm_srli_epi64(tmp, 16);
+  _mm_storeu_si128(compressed + 3, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 9)), 14));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 10));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 44));
+  w1 = _mm_srli_epi64(tmp, 20);
+  _mm_storeu_si128(compressed + 4, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 11)), 10));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 12));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 40));
+  w0 = _mm_srli_epi64(tmp, 24);
+  _mm_storeu_si128(compressed + 5, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 13)), 6));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 14));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 36));
+  w1 = _mm_srli_epi64(tmp, 28);
+  _mm_storeu_si128(compressed + 6, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 15)), 2));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 16)), 32));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 17));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 62));
+  w0 = _mm_srli_epi64(tmp, 2);
+  _mm_storeu_si128(compressed + 7, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 18)), 28));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 19));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 58));
+  w1 = _mm_srli_epi64(tmp, 6);
+  _mm_storeu_si128(compressed + 8, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 20)), 24));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 21));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 54));
+  w0 = _mm_srli_epi64(tmp, 10);
+  _mm_storeu_si128(compressed + 9, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 22)), 20));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 23));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 50));
+  w1 = _mm_srli_epi64(tmp, 14);
+  _mm_storeu_si128(compressed + 10, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 24)), 16));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 25));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 46));
+  w0 = _mm_srli_epi64(tmp, 18);
+  _mm_storeu_si128(compressed + 11, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 26)), 12));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 27));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 42));
+  w1 = _mm_srli_epi64(tmp, 22);
+  _mm_storeu_si128(compressed + 12, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 28)), 8));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 29));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 38));
+  w0 = _mm_srli_epi64(tmp, 26);
+  _mm_storeu_si128(compressed + 13, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 30)), 4));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 31)), 34));
+  _mm_storeu_si128(compressed + 14, w0);
+}
+
+/* we are going to pack 64 31-bit values, touching 16 128-bit words, using 256
+ * bytes */
+static void simdpackblockmask31(const u64 *pin, __m128i *compressed) {
+  /* we are going to touch  16 128-bit words */
+  __m128i w0, w1;
+  const __m128i *in = (const __m128i *)pin;
+  const __m128i mask = _mm_set1_epi64x(2147483647);
+  __m128i tmp; /* used to store inputs at word boundary */
+  w0 = _mm_and_si128(mask, _mm_loadu_si128(in + 0));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 1)), 31));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 2));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 62));
+  w1 = _mm_srli_epi64(tmp, 2);
+  _mm_storeu_si128(compressed + 0, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 3)), 29));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 4));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 60));
+  w0 = _mm_srli_epi64(tmp, 4);
+  _mm_storeu_si128(compressed + 1, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 5)), 27));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 6));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 58));
+  w1 = _mm_srli_epi64(tmp, 6);
+  _mm_storeu_si128(compressed + 2, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 7)), 25));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 8));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 56));
+  w0 = _mm_srli_epi64(tmp, 8);
+  _mm_storeu_si128(compressed + 3, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 9)), 23));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 10));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 54));
+  w1 = _mm_srli_epi64(tmp, 10);
+  _mm_storeu_si128(compressed + 4, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 11)), 21));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 12));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 52));
+  w0 = _mm_srli_epi64(tmp, 12);
+  _mm_storeu_si128(compressed + 5, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 13)), 19));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 14));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 50));
+  w1 = _mm_srli_epi64(tmp, 14);
+  _mm_storeu_si128(compressed + 6, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 15)), 17));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 16));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 48));
+  w0 = _mm_srli_epi64(tmp, 16);
+  _mm_storeu_si128(compressed + 7, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 17)), 15));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 18));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 46));
+  w1 = _mm_srli_epi64(tmp, 18);
+  _mm_storeu_si128(compressed + 8, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 19)), 13));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 20));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 44));
+  w0 = _mm_srli_epi64(tmp, 20);
+  _mm_storeu_si128(compressed + 9, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 21)), 11));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 22));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 42));
+  w1 = _mm_srli_epi64(tmp, 22);
+  _mm_storeu_si128(compressed + 10, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 23)), 9));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 24));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 40));
+  w0 = _mm_srli_epi64(tmp, 24);
+  _mm_storeu_si128(compressed + 11, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 25)), 7));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 26));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 38));
+  w1 = _mm_srli_epi64(tmp, 26);
+  _mm_storeu_si128(compressed + 12, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 27)), 5));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 28));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 36));
+  w0 = _mm_srli_epi64(tmp, 28);
+  _mm_storeu_si128(compressed + 13, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 29)), 3));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 30));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 34));
+  w1 = _mm_srli_epi64(tmp, 30);
+  _mm_storeu_si128(compressed + 14, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 31)), 1));
+  _mm_storeu_si128(compressed + 15, w1);
+}
+
+/* we are going to pack 64 32-bit values, touching 16 128-bit words, using 256
+ * bytes */
+static void simdpackblockmask32(const u64 *pin, __m128i *compressed) {
+  /* we are going to touch  16 128-bit words */
+  __m128i w0, w1;
+  const __m128i *in = (const __m128i *)pin;
+  const __m128i mask = _mm_set1_epi64x(4294967295);
+  w0 = _mm_and_si128(mask, _mm_loadu_si128(in + 0));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 1)), 32));
+  _mm_storeu_si128(compressed + 0, w0);
+  w1 = _mm_and_si128(mask, _mm_loadu_si128(in + 2));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 3)), 32));
+  _mm_storeu_si128(compressed + 1, w1);
+  w0 = _mm_and_si128(mask, _mm_loadu_si128(in + 4));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 5)), 32));
+  _mm_storeu_si128(compressed + 2, w0);
+  w1 = _mm_and_si128(mask, _mm_loadu_si128(in + 6));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 7)), 32));
+  _mm_storeu_si128(compressed + 3, w1);
+  w0 = _mm_and_si128(mask, _mm_loadu_si128(in + 8));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 9)), 32));
+  _mm_storeu_si128(compressed + 4, w0);
+  w1 = _mm_and_si128(mask, _mm_loadu_si128(in + 10));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 11)), 32));
+  _mm_storeu_si128(compressed + 5, w1);
+  w0 = _mm_and_si128(mask, _mm_loadu_si128(in + 12));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 13)), 32));
+  _mm_storeu_si128(compressed + 6, w0);
+  w1 = _mm_and_si128(mask, _mm_loadu_si128(in + 14));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 15)), 32));
+  _mm_storeu_si128(compressed + 7, w1);
+  w0 = _mm_and_si128(mask, _mm_loadu_si128(in + 16));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 17)), 32));
+  _mm_storeu_si128(compressed + 8, w0);
+  w1 = _mm_and_si128(mask, _mm_loadu_si128(in + 18));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 19)), 32));
+  _mm_storeu_si128(compressed + 9, w1);
+  w0 = _mm_and_si128(mask, _mm_loadu_si128(in + 20));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 21)), 32));
+  _mm_storeu_si128(compressed + 10, w0);
+  w1 = _mm_and_si128(mask, _mm_loadu_si128(in + 22));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 23)), 32));
+  _mm_storeu_si128(compressed + 11, w1);
+  w0 = _mm_and_si128(mask, _mm_loadu_si128(in + 24));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 25)), 32));
+  _mm_storeu_si128(compressed + 12, w0);
+  w1 = _mm_and_si128(mask, _mm_loadu_si128(in + 26));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 27)), 32));
+  _mm_storeu_si128(compressed + 13, w1);
+  w0 = _mm_and_si128(mask, _mm_loadu_si128(in + 28));
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 29)), 32));
+  _mm_storeu_si128(compressed + 14, w0);
+  w1 = _mm_and_si128(mask, _mm_loadu_si128(in + 30));
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 31)), 32));
+  _mm_storeu_si128(compressed + 15, w1);
+}
+
+/* we are going to pack 64 33-bit values, touching 17 128-bit words, using 272
+ * bytes */
+static void simdpackblockmask33(const u64 *pin, __m128i *compressed) {
+  /* we are going to touch  17 128-bit words */
+  __m128i w0, w1;
+  const __m128i *in = (const __m128i *)pin;
+  const __m128i mask = _mm_set1_epi64x(8589934591);
+  __m128i tmp; /* used to store inputs at word boundary */
+  w0 = _mm_and_si128(mask, _mm_loadu_si128(in + 0));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 1));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 33));
+  w1 = _mm_srli_epi64(tmp, 31);
+  _mm_storeu_si128(compressed + 0, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 2)), 2));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 3));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 35));
+  w0 = _mm_srli_epi64(tmp, 29);
+  _mm_storeu_si128(compressed + 1, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 4)), 4));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 5));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 37));
+  w1 = _mm_srli_epi64(tmp, 27);
+  _mm_storeu_si128(compressed + 2, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 6)), 6));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 7));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 39));
+  w0 = _mm_srli_epi64(tmp, 25);
+  _mm_storeu_si128(compressed + 3, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 8)), 8));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 9));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 41));
+  w1 = _mm_srli_epi64(tmp, 23);
+  _mm_storeu_si128(compressed + 4, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 10)), 10));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 11));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 43));
+  w0 = _mm_srli_epi64(tmp, 21);
+  _mm_storeu_si128(compressed + 5, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 12)), 12));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 13));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 45));
+  w1 = _mm_srli_epi64(tmp, 19);
+  _mm_storeu_si128(compressed + 6, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 14)), 14));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 15));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 47));
+  w0 = _mm_srli_epi64(tmp, 17);
+  _mm_storeu_si128(compressed + 7, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 16)), 16));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 17));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 49));
+  w1 = _mm_srli_epi64(tmp, 15);
+  _mm_storeu_si128(compressed + 8, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 18)), 18));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 19));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 51));
+  w0 = _mm_srli_epi64(tmp, 13);
+  _mm_storeu_si128(compressed + 9, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 20)), 20));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 21));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 53));
+  w1 = _mm_srli_epi64(tmp, 11);
+  _mm_storeu_si128(compressed + 10, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 22)), 22));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 23));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 55));
+  w0 = _mm_srli_epi64(tmp, 9);
+  _mm_storeu_si128(compressed + 11, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 24)), 24));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 25));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 57));
+  w1 = _mm_srli_epi64(tmp, 7);
+  _mm_storeu_si128(compressed + 12, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 26)), 26));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 27));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 59));
+  w0 = _mm_srli_epi64(tmp, 5);
+  _mm_storeu_si128(compressed + 13, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 28)), 28));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 29));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 61));
+  w1 = _mm_srli_epi64(tmp, 3);
+  _mm_storeu_si128(compressed + 14, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 30)), 30));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 31));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 63));
+  w0 = _mm_srli_epi64(tmp, 1);
+  _mm_storeu_si128(compressed + 16, w0);
+}
+
+/* we are going to pack 64 34-bit values, touching 17 128-bit words, using 272
+ * bytes */
+static void simdpackblockmask34(const u64 *pin, __m128i *compressed) {
+  /* we are going to touch  17 128-bit words */
+  __m128i w0, w1;
+  const __m128i *in = (const __m128i *)pin;
+  const __m128i mask = _mm_set1_epi64x(17179869183);
+  __m128i tmp; /* used to store inputs at word boundary */
+  w0 = _mm_and_si128(mask, _mm_loadu_si128(in + 0));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 1));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 34));
+  w1 = _mm_srli_epi64(tmp, 30);
+  _mm_storeu_si128(compressed + 0, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 2)), 4));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 3));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 38));
+  w0 = _mm_srli_epi64(tmp, 26);
+  _mm_storeu_si128(compressed + 1, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 4)), 8));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 5));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 42));
+  w1 = _mm_srli_epi64(tmp, 22);
+  _mm_storeu_si128(compressed + 2, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 6)), 12));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 7));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 46));
+  w0 = _mm_srli_epi64(tmp, 18);
+  _mm_storeu_si128(compressed + 3, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 8)), 16));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 9));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 50));
+  w1 = _mm_srli_epi64(tmp, 14);
+  _mm_storeu_si128(compressed + 4, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 10)), 20));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 11));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 54));
+  w0 = _mm_srli_epi64(tmp, 10);
+  _mm_storeu_si128(compressed + 5, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 12)), 24));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 13));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 58));
+  w1 = _mm_srli_epi64(tmp, 6);
+  _mm_storeu_si128(compressed + 6, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 14)), 28));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 15));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 62));
+  w0 = _mm_srli_epi64(tmp, 2);
+  _mm_storeu_si128(compressed + 7, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 16));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 32));
+  w1 = _mm_srli_epi64(tmp, 32);
+  _mm_storeu_si128(compressed + 8, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 17)), 2));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 18));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 36));
+  w0 = _mm_srli_epi64(tmp, 28);
+  _mm_storeu_si128(compressed + 9, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 19)), 6));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 20));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 40));
+  w1 = _mm_srli_epi64(tmp, 24);
+  _mm_storeu_si128(compressed + 10, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 21)), 10));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 22));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 44));
+  w0 = _mm_srli_epi64(tmp, 20);
+  _mm_storeu_si128(compressed + 11, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 23)), 14));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 24));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 48));
+  w1 = _mm_srli_epi64(tmp, 16);
+  _mm_storeu_si128(compressed + 12, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 25)), 18));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 26));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 52));
+  w0 = _mm_srli_epi64(tmp, 12);
+  _mm_storeu_si128(compressed + 13, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 27)), 22));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 28));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 56));
+  w1 = _mm_srli_epi64(tmp, 8);
+  _mm_storeu_si128(compressed + 14, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 29)), 26));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 30));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 60));
+  w0 = _mm_srli_epi64(tmp, 4);
+  _mm_storeu_si128(compressed + 15, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 31)), 30));
+  _mm_storeu_si128(compressed + 16, w0);
+}
+
+/* we are going to pack 64 35-bit values, touching 18 128-bit words, using 288
+ * bytes */
+static void simdpackblockmask35(const u64 *pin, __m128i *compressed) {
+  /* we are going to touch  18 128-bit words */
+  __m128i w0, w1;
+  const __m128i *in = (const __m128i *)pin;
+  const __m128i mask = _mm_set1_epi64x(34359738367);
+  __m128i tmp; /* used to store inputs at word boundary */
+  w0 = _mm_and_si128(mask, _mm_loadu_si128(in + 0));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 1));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 35));
+  w1 = _mm_srli_epi64(tmp, 29);
+  _mm_storeu_si128(compressed + 0, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 2)), 6));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 3));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 41));
+  w0 = _mm_srli_epi64(tmp, 23);
+  _mm_storeu_si128(compressed + 1, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 4)), 12));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 5));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 47));
+  w1 = _mm_srli_epi64(tmp, 17);
+  _mm_storeu_si128(compressed + 2, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 6)), 18));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 7));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 53));
+  w0 = _mm_srli_epi64(tmp, 11);
+  _mm_storeu_si128(compressed + 3, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 8)), 24));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 9));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 59));
+  w1 = _mm_srli_epi64(tmp, 5);
+  _mm_storeu_si128(compressed + 4, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 10));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 30));
+  w0 = _mm_srli_epi64(tmp, 34);
+  _mm_storeu_si128(compressed + 5, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 11)), 1));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 12));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 36));
+  w1 = _mm_srli_epi64(tmp, 28);
+  _mm_storeu_si128(compressed + 6, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 13)), 7));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 14));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 42));
+  w0 = _mm_srli_epi64(tmp, 22);
+  _mm_storeu_si128(compressed + 7, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 15)), 13));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 16));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 48));
+  w1 = _mm_srli_epi64(tmp, 16);
+  _mm_storeu_si128(compressed + 8, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 17)), 19));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 18));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 54));
+  w0 = _mm_srli_epi64(tmp, 10);
+  _mm_storeu_si128(compressed + 9, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 19)), 25));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 20));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 60));
+  w1 = _mm_srli_epi64(tmp, 4);
+  _mm_storeu_si128(compressed + 10, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 21));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 31));
+  w0 = _mm_srli_epi64(tmp, 33);
+  _mm_storeu_si128(compressed + 11, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 22)), 2));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 23));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 37));
+  w1 = _mm_srli_epi64(tmp, 27);
+  _mm_storeu_si128(compressed + 12, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 24)), 8));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 25));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 43));
+  w0 = _mm_srli_epi64(tmp, 21);
+  _mm_storeu_si128(compressed + 13, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 26)), 14));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 27));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 49));
+  w1 = _mm_srli_epi64(tmp, 15);
+  _mm_storeu_si128(compressed + 14, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 28)), 20));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 29));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 55));
+  w0 = _mm_srli_epi64(tmp, 9);
+  _mm_storeu_si128(compressed + 15, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 30)), 26));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 31));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 61));
+  w1 = _mm_srli_epi64(tmp, 3);
+  _mm_storeu_si128(compressed + 17, w1);
+}
+
+/* we are going to pack 64 36-bit values, touching 18 128-bit words, using 288
+ * bytes */
+static void simdpackblockmask36(const u64 *pin, __m128i *compressed) {
+  /* we are going to touch  18 128-bit words */
+  __m128i w0, w1;
+  const __m128i *in = (const __m128i *)pin;
+  const __m128i mask = _mm_set1_epi64x(68719476735);
+  __m128i tmp; /* used to store inputs at word boundary */
+  w0 = _mm_and_si128(mask, _mm_loadu_si128(in + 0));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 1));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 36));
+  w1 = _mm_srli_epi64(tmp, 28);
+  _mm_storeu_si128(compressed + 0, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 2)), 8));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 3));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 44));
+  w0 = _mm_srli_epi64(tmp, 20);
+  _mm_storeu_si128(compressed + 1, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 4)), 16));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 5));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 52));
+  w1 = _mm_srli_epi64(tmp, 12);
+  _mm_storeu_si128(compressed + 2, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 6)), 24));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 7));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 60));
+  w0 = _mm_srli_epi64(tmp, 4);
+  _mm_storeu_si128(compressed + 3, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 8));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 32));
+  w1 = _mm_srli_epi64(tmp, 32);
+  _mm_storeu_si128(compressed + 4, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 9)), 4));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 10));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 40));
+  w0 = _mm_srli_epi64(tmp, 24);
+  _mm_storeu_si128(compressed + 5, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 11)), 12));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 12));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 48));
+  w1 = _mm_srli_epi64(tmp, 16);
+  _mm_storeu_si128(compressed + 6, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 13)), 20));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 14));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 56));
+  w0 = _mm_srli_epi64(tmp, 8);
+  _mm_storeu_si128(compressed + 7, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 15)), 28));
+  _mm_storeu_si128(compressed + 8, w0);
+  w1 = _mm_and_si128(mask, _mm_loadu_si128(in + 16));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 17));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 36));
+  w0 = _mm_srli_epi64(tmp, 28);
+  _mm_storeu_si128(compressed + 9, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 18)), 8));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 19));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 44));
+  w1 = _mm_srli_epi64(tmp, 20);
+  _mm_storeu_si128(compressed + 10, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 20)), 16));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 21));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 52));
+  w0 = _mm_srli_epi64(tmp, 12);
+  _mm_storeu_si128(compressed + 11, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 22)), 24));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 23));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 60));
+  w1 = _mm_srli_epi64(tmp, 4);
+  _mm_storeu_si128(compressed + 12, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 24));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 32));
+  w0 = _mm_srli_epi64(tmp, 32);
+  _mm_storeu_si128(compressed + 13, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 25)), 4));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 26));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 40));
+  w1 = _mm_srli_epi64(tmp, 24);
+  _mm_storeu_si128(compressed + 14, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 27)), 12));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 28));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 48));
+  w0 = _mm_srli_epi64(tmp, 16);
+  _mm_storeu_si128(compressed + 15, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 29)), 20));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 30));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 56));
+  w1 = _mm_srli_epi64(tmp, 8);
+  _mm_storeu_si128(compressed + 16, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 31)), 28));
+  _mm_storeu_si128(compressed + 17, w1);
+}
+
+/* we are going to pack 64 37-bit values, touching 19 128-bit words, using 304
+ * bytes */
+static void simdpackblockmask37(const u64 *pin, __m128i *compressed) {
+  /* we are going to touch  19 128-bit words */
+  __m128i w0, w1;
+  const __m128i *in = (const __m128i *)pin;
+  const __m128i mask = _mm_set1_epi64x(137438953471);
+  __m128i tmp; /* used to store inputs at word boundary */
+  w0 = _mm_and_si128(mask, _mm_loadu_si128(in + 0));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 1));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 37));
+  w1 = _mm_srli_epi64(tmp, 27);
+  _mm_storeu_si128(compressed + 0, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 2)), 10));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 3));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 47));
+  w0 = _mm_srli_epi64(tmp, 17);
+  _mm_storeu_si128(compressed + 1, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 4)), 20));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 5));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 57));
+  w1 = _mm_srli_epi64(tmp, 7);
+  _mm_storeu_si128(compressed + 2, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 6));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 30));
+  w0 = _mm_srli_epi64(tmp, 34);
+  _mm_storeu_si128(compressed + 3, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 7)), 3));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 8));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 40));
+  w1 = _mm_srli_epi64(tmp, 24);
+  _mm_storeu_si128(compressed + 4, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 9)), 13));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 10));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 50));
+  w0 = _mm_srli_epi64(tmp, 14);
+  _mm_storeu_si128(compressed + 5, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 11)), 23));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 12));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 60));
+  w1 = _mm_srli_epi64(tmp, 4);
+  _mm_storeu_si128(compressed + 6, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 13));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 33));
+  w0 = _mm_srli_epi64(tmp, 31);
+  _mm_storeu_si128(compressed + 7, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 14)), 6));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 15));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 43));
+  w1 = _mm_srli_epi64(tmp, 21);
+  _mm_storeu_si128(compressed + 8, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 16)), 16));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 17));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 53));
+  w0 = _mm_srli_epi64(tmp, 11);
+  _mm_storeu_si128(compressed + 9, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 18)), 26));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 19));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 63));
+  w1 = _mm_srli_epi64(tmp, 1);
+  _mm_storeu_si128(compressed + 10, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 20));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 36));
+  w0 = _mm_srli_epi64(tmp, 28);
+  _mm_storeu_si128(compressed + 11, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 21)), 9));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 22));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 46));
+  w1 = _mm_srli_epi64(tmp, 18);
+  _mm_storeu_si128(compressed + 12, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 23)), 19));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 24));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 56));
+  w0 = _mm_srli_epi64(tmp, 8);
+  _mm_storeu_si128(compressed + 13, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 25));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 29));
+  w1 = _mm_srli_epi64(tmp, 35);
+  _mm_storeu_si128(compressed + 14, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 26)), 2));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 27));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 39));
+  w0 = _mm_srli_epi64(tmp, 25);
+  _mm_storeu_si128(compressed + 15, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 28)), 12));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 29));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 49));
+  w1 = _mm_srli_epi64(tmp, 15);
+  _mm_storeu_si128(compressed + 16, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 30)), 22));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 31));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 59));
+  w0 = _mm_srli_epi64(tmp, 5);
+  _mm_storeu_si128(compressed + 18, w0);
+}
+
+/* we are going to pack 64 38-bit values, touching 19 128-bit words, using 304
+ * bytes */
+static void simdpackblockmask38(const u64 *pin, __m128i *compressed) {
+  /* we are going to touch  19 128-bit words */
+  __m128i w0, w1;
+  const __m128i *in = (const __m128i *)pin;
+  const __m128i mask = _mm_set1_epi64x(274877906943);
+  __m128i tmp; /* used to store inputs at word boundary */
+  w0 = _mm_and_si128(mask, _mm_loadu_si128(in + 0));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 1));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 38));
+  w1 = _mm_srli_epi64(tmp, 26);
+  _mm_storeu_si128(compressed + 0, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 2)), 12));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 3));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 50));
+  w0 = _mm_srli_epi64(tmp, 14);
+  _mm_storeu_si128(compressed + 1, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 4)), 24));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 5));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 62));
+  w1 = _mm_srli_epi64(tmp, 2);
+  _mm_storeu_si128(compressed + 2, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 6));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 36));
+  w0 = _mm_srli_epi64(tmp, 28);
+  _mm_storeu_si128(compressed + 3, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 7)), 10));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 8));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 48));
+  w1 = _mm_srli_epi64(tmp, 16);
+  _mm_storeu_si128(compressed + 4, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 9)), 22));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 10));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 60));
+  w0 = _mm_srli_epi64(tmp, 4);
+  _mm_storeu_si128(compressed + 5, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 11));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 34));
+  w1 = _mm_srli_epi64(tmp, 30);
+  _mm_storeu_si128(compressed + 6, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 12)), 8));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 13));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 46));
+  w0 = _mm_srli_epi64(tmp, 18);
+  _mm_storeu_si128(compressed + 7, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 14)), 20));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 15));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 58));
+  w1 = _mm_srli_epi64(tmp, 6);
+  _mm_storeu_si128(compressed + 8, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 16));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 32));
+  w0 = _mm_srli_epi64(tmp, 32);
+  _mm_storeu_si128(compressed + 9, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 17)), 6));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 18));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 44));
+  w1 = _mm_srli_epi64(tmp, 20);
+  _mm_storeu_si128(compressed + 10, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 19)), 18));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 20));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 56));
+  w0 = _mm_srli_epi64(tmp, 8);
+  _mm_storeu_si128(compressed + 11, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 21));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 30));
+  w1 = _mm_srli_epi64(tmp, 34);
+  _mm_storeu_si128(compressed + 12, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 22)), 4));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 23));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 42));
+  w0 = _mm_srli_epi64(tmp, 22);
+  _mm_storeu_si128(compressed + 13, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 24)), 16));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 25));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 54));
+  w1 = _mm_srli_epi64(tmp, 10);
+  _mm_storeu_si128(compressed + 14, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 26));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 28));
+  w0 = _mm_srli_epi64(tmp, 36);
+  _mm_storeu_si128(compressed + 15, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 27)), 2));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 28));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 40));
+  w1 = _mm_srli_epi64(tmp, 24);
+  _mm_storeu_si128(compressed + 16, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 29)), 14));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 30));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 52));
+  w0 = _mm_srli_epi64(tmp, 12);
+  _mm_storeu_si128(compressed + 17, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 31)), 26));
+  _mm_storeu_si128(compressed + 18, w0);
+}
+
+/* we are going to pack 64 39-bit values, touching 20 128-bit words, using 320
+ * bytes */
+static void simdpackblockmask39(const u64 *pin, __m128i *compressed) {
+  /* we are going to touch  20 128-bit words */
+  __m128i w0, w1;
+  const __m128i *in = (const __m128i *)pin;
+  const __m128i mask = _mm_set1_epi64x(549755813887);
+  __m128i tmp; /* used to store inputs at word boundary */
+  w0 = _mm_and_si128(mask, _mm_loadu_si128(in + 0));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 1));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 39));
+  w1 = _mm_srli_epi64(tmp, 25);
+  _mm_storeu_si128(compressed + 0, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 2)), 14));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 3));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 53));
+  w0 = _mm_srli_epi64(tmp, 11);
+  _mm_storeu_si128(compressed + 1, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 4));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 28));
+  w1 = _mm_srli_epi64(tmp, 36);
+  _mm_storeu_si128(compressed + 2, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 5)), 3));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 6));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 42));
+  w0 = _mm_srli_epi64(tmp, 22);
+  _mm_storeu_si128(compressed + 3, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 7)), 17));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 8));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 56));
+  w1 = _mm_srli_epi64(tmp, 8);
+  _mm_storeu_si128(compressed + 4, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 9));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 31));
+  w0 = _mm_srli_epi64(tmp, 33);
+  _mm_storeu_si128(compressed + 5, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 10)), 6));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 11));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 45));
+  w1 = _mm_srli_epi64(tmp, 19);
+  _mm_storeu_si128(compressed + 6, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 12)), 20));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 13));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 59));
+  w0 = _mm_srli_epi64(tmp, 5);
+  _mm_storeu_si128(compressed + 7, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 14));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 34));
+  w1 = _mm_srli_epi64(tmp, 30);
+  _mm_storeu_si128(compressed + 8, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 15)), 9));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 16));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 48));
+  w0 = _mm_srli_epi64(tmp, 16);
+  _mm_storeu_si128(compressed + 9, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 17)), 23));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 18));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 62));
+  w1 = _mm_srli_epi64(tmp, 2);
+  _mm_storeu_si128(compressed + 10, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 19));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 37));
+  w0 = _mm_srli_epi64(tmp, 27);
+  _mm_storeu_si128(compressed + 11, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 20)), 12));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 21));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 51));
+  w1 = _mm_srli_epi64(tmp, 13);
+  _mm_storeu_si128(compressed + 12, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 22));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 26));
+  w0 = _mm_srli_epi64(tmp, 38);
+  _mm_storeu_si128(compressed + 13, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 23)), 1));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 24));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 40));
+  w1 = _mm_srli_epi64(tmp, 24);
+  _mm_storeu_si128(compressed + 14, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 25)), 15));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 26));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 54));
+  w0 = _mm_srli_epi64(tmp, 10);
+  _mm_storeu_si128(compressed + 15, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 27));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 29));
+  w1 = _mm_srli_epi64(tmp, 35);
+  _mm_storeu_si128(compressed + 16, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 28)), 4));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 29));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 43));
+  w0 = _mm_srli_epi64(tmp, 21);
+  _mm_storeu_si128(compressed + 17, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 30)), 18));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 31));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 57));
+  w1 = _mm_srli_epi64(tmp, 7);
+  _mm_storeu_si128(compressed + 19, w1);
+}
+
+/* we are going to pack 64 40-bit values, touching 20 128-bit words, using 320
+ * bytes */
+static void simdpackblockmask40(const u64 *pin, __m128i *compressed) {
+  /* we are going to touch  20 128-bit words */
+  __m128i w0, w1;
+  const __m128i *in = (const __m128i *)pin;
+  const __m128i mask = _mm_set1_epi64x(1099511627775);
+  __m128i tmp; /* used to store inputs at word boundary */
+  w0 = _mm_and_si128(mask, _mm_loadu_si128(in + 0));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 1));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 40));
+  w1 = _mm_srli_epi64(tmp, 24);
+  _mm_storeu_si128(compressed + 0, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 2)), 16));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 3));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 56));
+  w0 = _mm_srli_epi64(tmp, 8);
+  _mm_storeu_si128(compressed + 1, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 4));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 32));
+  w1 = _mm_srli_epi64(tmp, 32);
+  _mm_storeu_si128(compressed + 2, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 5)), 8));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 6));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 48));
+  w0 = _mm_srli_epi64(tmp, 16);
+  _mm_storeu_si128(compressed + 3, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 7)), 24));
+  _mm_storeu_si128(compressed + 4, w0);
+  w1 = _mm_and_si128(mask, _mm_loadu_si128(in + 8));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 9));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 40));
+  w0 = _mm_srli_epi64(tmp, 24);
+  _mm_storeu_si128(compressed + 5, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 10)), 16));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 11));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 56));
+  w1 = _mm_srli_epi64(tmp, 8);
+  _mm_storeu_si128(compressed + 6, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 12));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 32));
+  w0 = _mm_srli_epi64(tmp, 32);
+  _mm_storeu_si128(compressed + 7, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 13)), 8));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 14));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 48));
+  w1 = _mm_srli_epi64(tmp, 16);
+  _mm_storeu_si128(compressed + 8, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 15)), 24));
+  _mm_storeu_si128(compressed + 9, w1);
+  w0 = _mm_and_si128(mask, _mm_loadu_si128(in + 16));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 17));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 40));
+  w1 = _mm_srli_epi64(tmp, 24);
+  _mm_storeu_si128(compressed + 10, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 18)), 16));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 19));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 56));
+  w0 = _mm_srli_epi64(tmp, 8);
+  _mm_storeu_si128(compressed + 11, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 20));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 32));
+  w1 = _mm_srli_epi64(tmp, 32);
+  _mm_storeu_si128(compressed + 12, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 21)), 8));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 22));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 48));
+  w0 = _mm_srli_epi64(tmp, 16);
+  _mm_storeu_si128(compressed + 13, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 23)), 24));
+  _mm_storeu_si128(compressed + 14, w0);
+  w1 = _mm_and_si128(mask, _mm_loadu_si128(in + 24));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 25));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 40));
+  w0 = _mm_srli_epi64(tmp, 24);
+  _mm_storeu_si128(compressed + 15, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 26)), 16));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 27));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 56));
+  w1 = _mm_srli_epi64(tmp, 8);
+  _mm_storeu_si128(compressed + 16, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 28));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 32));
+  w0 = _mm_srli_epi64(tmp, 32);
+  _mm_storeu_si128(compressed + 17, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 29)), 8));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 30));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 48));
+  w1 = _mm_srli_epi64(tmp, 16);
+  _mm_storeu_si128(compressed + 18, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 31)), 24));
+  _mm_storeu_si128(compressed + 19, w1);
+}
+
+/* we are going to pack 64 41-bit values, touching 21 128-bit words, using 336
+ * bytes */
+static void simdpackblockmask41(const u64 *pin, __m128i *compressed) {
+  /* we are going to touch  21 128-bit words */
+  __m128i w0, w1;
+  const __m128i *in = (const __m128i *)pin;
+  const __m128i mask = _mm_set1_epi64x(2199023255551);
+  __m128i tmp; /* used to store inputs at word boundary */
+  w0 = _mm_and_si128(mask, _mm_loadu_si128(in + 0));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 1));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 41));
+  w1 = _mm_srli_epi64(tmp, 23);
+  _mm_storeu_si128(compressed + 0, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 2)), 18));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 3));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 59));
+  w0 = _mm_srli_epi64(tmp, 5);
+  _mm_storeu_si128(compressed + 1, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 4));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 36));
+  w1 = _mm_srli_epi64(tmp, 28);
+  _mm_storeu_si128(compressed + 2, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 5)), 13));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 6));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 54));
+  w0 = _mm_srli_epi64(tmp, 10);
+  _mm_storeu_si128(compressed + 3, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 7));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 31));
+  w1 = _mm_srli_epi64(tmp, 33);
+  _mm_storeu_si128(compressed + 4, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 8)), 8));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 9));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 49));
+  w0 = _mm_srli_epi64(tmp, 15);
+  _mm_storeu_si128(compressed + 5, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 10));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 26));
+  w1 = _mm_srli_epi64(tmp, 38);
+  _mm_storeu_si128(compressed + 6, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 11)), 3));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 12));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 44));
+  w0 = _mm_srli_epi64(tmp, 20);
+  _mm_storeu_si128(compressed + 7, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 13)), 21));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 14));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 62));
+  w1 = _mm_srli_epi64(tmp, 2);
+  _mm_storeu_si128(compressed + 8, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 15));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 39));
+  w0 = _mm_srli_epi64(tmp, 25);
+  _mm_storeu_si128(compressed + 9, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 16)), 16));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 17));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 57));
+  w1 = _mm_srli_epi64(tmp, 7);
+  _mm_storeu_si128(compressed + 10, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 18));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 34));
+  w0 = _mm_srli_epi64(tmp, 30);
+  _mm_storeu_si128(compressed + 11, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 19)), 11));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 20));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 52));
+  w1 = _mm_srli_epi64(tmp, 12);
+  _mm_storeu_si128(compressed + 12, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 21));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 29));
+  w0 = _mm_srli_epi64(tmp, 35);
+  _mm_storeu_si128(compressed + 13, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 22)), 6));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 23));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 47));
+  w1 = _mm_srli_epi64(tmp, 17);
+  _mm_storeu_si128(compressed + 14, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 24));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 24));
+  w0 = _mm_srli_epi64(tmp, 40);
+  _mm_storeu_si128(compressed + 15, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 25)), 1));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 26));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 42));
+  w1 = _mm_srli_epi64(tmp, 22);
+  _mm_storeu_si128(compressed + 16, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 27)), 19));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 28));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 60));
+  w0 = _mm_srli_epi64(tmp, 4);
+  _mm_storeu_si128(compressed + 17, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 29));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 37));
+  w1 = _mm_srli_epi64(tmp, 27);
+  _mm_storeu_si128(compressed + 18, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 30)), 14));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 31));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 55));
+  w0 = _mm_srli_epi64(tmp, 9);
+  _mm_storeu_si128(compressed + 20, w0);
+}
+
+/* we are going to pack 64 42-bit values, touching 21 128-bit words, using 336
+ * bytes */
+static void simdpackblockmask42(const u64 *pin, __m128i *compressed) {
+  /* we are going to touch  21 128-bit words */
+  __m128i w0, w1;
+  const __m128i *in = (const __m128i *)pin;
+  const __m128i mask = _mm_set1_epi64x(4398046511103);
+  __m128i tmp; /* used to store inputs at word boundary */
+  w0 = _mm_and_si128(mask, _mm_loadu_si128(in + 0));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 1));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 42));
+  w1 = _mm_srli_epi64(tmp, 22);
+  _mm_storeu_si128(compressed + 0, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 2)), 20));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 3));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 62));
+  w0 = _mm_srli_epi64(tmp, 2);
+  _mm_storeu_si128(compressed + 1, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 4));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 40));
+  w1 = _mm_srli_epi64(tmp, 24);
+  _mm_storeu_si128(compressed + 2, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 5)), 18));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 6));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 60));
+  w0 = _mm_srli_epi64(tmp, 4);
+  _mm_storeu_si128(compressed + 3, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 7));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 38));
+  w1 = _mm_srli_epi64(tmp, 26);
+  _mm_storeu_si128(compressed + 4, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 8)), 16));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 9));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 58));
+  w0 = _mm_srli_epi64(tmp, 6);
+  _mm_storeu_si128(compressed + 5, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 10));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 36));
+  w1 = _mm_srli_epi64(tmp, 28);
+  _mm_storeu_si128(compressed + 6, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 11)), 14));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 12));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 56));
+  w0 = _mm_srli_epi64(tmp, 8);
+  _mm_storeu_si128(compressed + 7, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 13));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 34));
+  w1 = _mm_srli_epi64(tmp, 30);
+  _mm_storeu_si128(compressed + 8, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 14)), 12));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 15));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 54));
+  w0 = _mm_srli_epi64(tmp, 10);
+  _mm_storeu_si128(compressed + 9, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 16));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 32));
+  w1 = _mm_srli_epi64(tmp, 32);
+  _mm_storeu_si128(compressed + 10, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 17)), 10));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 18));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 52));
+  w0 = _mm_srli_epi64(tmp, 12);
+  _mm_storeu_si128(compressed + 11, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 19));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 30));
+  w1 = _mm_srli_epi64(tmp, 34);
+  _mm_storeu_si128(compressed + 12, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 20)), 8));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 21));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 50));
+  w0 = _mm_srli_epi64(tmp, 14);
+  _mm_storeu_si128(compressed + 13, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 22));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 28));
+  w1 = _mm_srli_epi64(tmp, 36);
+  _mm_storeu_si128(compressed + 14, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 23)), 6));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 24));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 48));
+  w0 = _mm_srli_epi64(tmp, 16);
+  _mm_storeu_si128(compressed + 15, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 25));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 26));
+  w1 = _mm_srli_epi64(tmp, 38);
+  _mm_storeu_si128(compressed + 16, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 26)), 4));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 27));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 46));
+  w0 = _mm_srli_epi64(tmp, 18);
+  _mm_storeu_si128(compressed + 17, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 28));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 24));
+  w1 = _mm_srli_epi64(tmp, 40);
+  _mm_storeu_si128(compressed + 18, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 29)), 2));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 30));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 44));
+  w0 = _mm_srli_epi64(tmp, 20);
+  _mm_storeu_si128(compressed + 19, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 31)), 22));
+  _mm_storeu_si128(compressed + 20, w0);
+}
+
+/* we are going to pack 64 43-bit values, touching 22 128-bit words, using 352
+ * bytes */
+static void simdpackblockmask43(const u64 *pin, __m128i *compressed) {
+  /* we are going to touch  22 128-bit words */
+  __m128i w0, w1;
+  const __m128i *in = (const __m128i *)pin;
+  const __m128i mask = _mm_set1_epi64x(8796093022207);
+  __m128i tmp; /* used to store inputs at word boundary */
+  w0 = _mm_and_si128(mask, _mm_loadu_si128(in + 0));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 1));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 43));
+  w1 = _mm_srli_epi64(tmp, 21);
+  _mm_storeu_si128(compressed + 0, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 2));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 22));
+  w0 = _mm_srli_epi64(tmp, 42);
+  _mm_storeu_si128(compressed + 1, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 3)), 1));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 4));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 44));
+  w1 = _mm_srli_epi64(tmp, 20);
+  _mm_storeu_si128(compressed + 2, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 5));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 23));
+  w0 = _mm_srli_epi64(tmp, 41);
+  _mm_storeu_si128(compressed + 3, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 6)), 2));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 7));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 45));
+  w1 = _mm_srli_epi64(tmp, 19);
+  _mm_storeu_si128(compressed + 4, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 8));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 24));
+  w0 = _mm_srli_epi64(tmp, 40);
+  _mm_storeu_si128(compressed + 5, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 9)), 3));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 10));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 46));
+  w1 = _mm_srli_epi64(tmp, 18);
+  _mm_storeu_si128(compressed + 6, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 11));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 25));
+  w0 = _mm_srli_epi64(tmp, 39);
+  _mm_storeu_si128(compressed + 7, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 12)), 4));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 13));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 47));
+  w1 = _mm_srli_epi64(tmp, 17);
+  _mm_storeu_si128(compressed + 8, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 14));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 26));
+  w0 = _mm_srli_epi64(tmp, 38);
+  _mm_storeu_si128(compressed + 9, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 15)), 5));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 16));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 48));
+  w1 = _mm_srli_epi64(tmp, 16);
+  _mm_storeu_si128(compressed + 10, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 17));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 27));
+  w0 = _mm_srli_epi64(tmp, 37);
+  _mm_storeu_si128(compressed + 11, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 18)), 6));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 19));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 49));
+  w1 = _mm_srli_epi64(tmp, 15);
+  _mm_storeu_si128(compressed + 12, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 20));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 28));
+  w0 = _mm_srli_epi64(tmp, 36);
+  _mm_storeu_si128(compressed + 13, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 21)), 7));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 22));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 50));
+  w1 = _mm_srli_epi64(tmp, 14);
+  _mm_storeu_si128(compressed + 14, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 23));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 29));
+  w0 = _mm_srli_epi64(tmp, 35);
+  _mm_storeu_si128(compressed + 15, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 24)), 8));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 25));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 51));
+  w1 = _mm_srli_epi64(tmp, 13);
+  _mm_storeu_si128(compressed + 16, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 26));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 30));
+  w0 = _mm_srli_epi64(tmp, 34);
+  _mm_storeu_si128(compressed + 17, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 27)), 9));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 28));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 52));
+  w1 = _mm_srli_epi64(tmp, 12);
+  _mm_storeu_si128(compressed + 18, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 29));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 31));
+  w0 = _mm_srli_epi64(tmp, 33);
+  _mm_storeu_si128(compressed + 19, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 30)), 10));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 31));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 53));
+  w1 = _mm_srli_epi64(tmp, 11);
+  _mm_storeu_si128(compressed + 21, w1);
+}
+
+/* we are going to pack 64 44-bit values, touching 22 128-bit words, using 352
+ * bytes */
+static void simdpackblockmask44(const u64 *pin, __m128i *compressed) {
+  /* we are going to touch  22 128-bit words */
+  __m128i w0, w1;
+  const __m128i *in = (const __m128i *)pin;
+  const __m128i mask = _mm_set1_epi64x(17592186044415);
+  __m128i tmp; /* used to store inputs at word boundary */
+  w0 = _mm_and_si128(mask, _mm_loadu_si128(in + 0));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 1));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 44));
+  w1 = _mm_srli_epi64(tmp, 20);
+  _mm_storeu_si128(compressed + 0, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 2));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 24));
+  w0 = _mm_srli_epi64(tmp, 40);
+  _mm_storeu_si128(compressed + 1, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 3)), 4));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 4));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 48));
+  w1 = _mm_srli_epi64(tmp, 16);
+  _mm_storeu_si128(compressed + 2, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 5));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 28));
+  w0 = _mm_srli_epi64(tmp, 36);
+  _mm_storeu_si128(compressed + 3, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 6)), 8));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 7));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 52));
+  w1 = _mm_srli_epi64(tmp, 12);
+  _mm_storeu_si128(compressed + 4, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 8));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 32));
+  w0 = _mm_srli_epi64(tmp, 32);
+  _mm_storeu_si128(compressed + 5, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 9)), 12));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 10));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 56));
+  w1 = _mm_srli_epi64(tmp, 8);
+  _mm_storeu_si128(compressed + 6, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 11));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 36));
+  w0 = _mm_srli_epi64(tmp, 28);
+  _mm_storeu_si128(compressed + 7, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 12)), 16));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 13));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 60));
+  w1 = _mm_srli_epi64(tmp, 4);
+  _mm_storeu_si128(compressed + 8, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 14));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 40));
+  w0 = _mm_srli_epi64(tmp, 24);
+  _mm_storeu_si128(compressed + 9, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 15)), 20));
+  _mm_storeu_si128(compressed + 10, w0);
+  w1 = _mm_and_si128(mask, _mm_loadu_si128(in + 16));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 17));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 44));
+  w0 = _mm_srli_epi64(tmp, 20);
+  _mm_storeu_si128(compressed + 11, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 18));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 24));
+  w1 = _mm_srli_epi64(tmp, 40);
+  _mm_storeu_si128(compressed + 12, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 19)), 4));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 20));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 48));
+  w0 = _mm_srli_epi64(tmp, 16);
+  _mm_storeu_si128(compressed + 13, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 21));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 28));
+  w1 = _mm_srli_epi64(tmp, 36);
+  _mm_storeu_si128(compressed + 14, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 22)), 8));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 23));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 52));
+  w0 = _mm_srli_epi64(tmp, 12);
+  _mm_storeu_si128(compressed + 15, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 24));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 32));
+  w1 = _mm_srli_epi64(tmp, 32);
+  _mm_storeu_si128(compressed + 16, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 25)), 12));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 26));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 56));
+  w0 = _mm_srli_epi64(tmp, 8);
+  _mm_storeu_si128(compressed + 17, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 27));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 36));
+  w1 = _mm_srli_epi64(tmp, 28);
+  _mm_storeu_si128(compressed + 18, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 28)), 16));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 29));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 60));
+  w0 = _mm_srli_epi64(tmp, 4);
+  _mm_storeu_si128(compressed + 19, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 30));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 40));
+  w1 = _mm_srli_epi64(tmp, 24);
+  _mm_storeu_si128(compressed + 20, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 31)), 20));
+  _mm_storeu_si128(compressed + 21, w1);
+}
+
+/* we are going to pack 64 45-bit values, touching 23 128-bit words, using 368
+ * bytes */
+static void simdpackblockmask45(const u64 *pin, __m128i *compressed) {
+  /* we are going to touch  23 128-bit words */
+  __m128i w0, w1;
+  const __m128i *in = (const __m128i *)pin;
+  const __m128i mask = _mm_set1_epi64x(35184372088831);
+  __m128i tmp; /* used to store inputs at word boundary */
+  w0 = _mm_and_si128(mask, _mm_loadu_si128(in + 0));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 1));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 45));
+  w1 = _mm_srli_epi64(tmp, 19);
+  _mm_storeu_si128(compressed + 0, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 2));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 26));
+  w0 = _mm_srli_epi64(tmp, 38);
+  _mm_storeu_si128(compressed + 1, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 3)), 7));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 4));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 52));
+  w1 = _mm_srli_epi64(tmp, 12);
+  _mm_storeu_si128(compressed + 2, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 5));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 33));
+  w0 = _mm_srli_epi64(tmp, 31);
+  _mm_storeu_si128(compressed + 3, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 6)), 14));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 7));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 59));
+  w1 = _mm_srli_epi64(tmp, 5);
+  _mm_storeu_si128(compressed + 4, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 8));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 40));
+  w0 = _mm_srli_epi64(tmp, 24);
+  _mm_storeu_si128(compressed + 5, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 9));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 21));
+  w1 = _mm_srli_epi64(tmp, 43);
+  _mm_storeu_si128(compressed + 6, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 10)), 2));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 11));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 47));
+  w0 = _mm_srli_epi64(tmp, 17);
+  _mm_storeu_si128(compressed + 7, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 12));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 28));
+  w1 = _mm_srli_epi64(tmp, 36);
+  _mm_storeu_si128(compressed + 8, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 13)), 9));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 14));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 54));
+  w0 = _mm_srli_epi64(tmp, 10);
+  _mm_storeu_si128(compressed + 9, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 15));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 35));
+  w1 = _mm_srli_epi64(tmp, 29);
+  _mm_storeu_si128(compressed + 10, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 16)), 16));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 17));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 61));
+  w0 = _mm_srli_epi64(tmp, 3);
+  _mm_storeu_si128(compressed + 11, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 18));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 42));
+  w1 = _mm_srli_epi64(tmp, 22);
+  _mm_storeu_si128(compressed + 12, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 19));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 23));
+  w0 = _mm_srli_epi64(tmp, 41);
+  _mm_storeu_si128(compressed + 13, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 20)), 4));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 21));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 49));
+  w1 = _mm_srli_epi64(tmp, 15);
+  _mm_storeu_si128(compressed + 14, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 22));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 30));
+  w0 = _mm_srli_epi64(tmp, 34);
+  _mm_storeu_si128(compressed + 15, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 23)), 11));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 24));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 56));
+  w1 = _mm_srli_epi64(tmp, 8);
+  _mm_storeu_si128(compressed + 16, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 25));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 37));
+  w0 = _mm_srli_epi64(tmp, 27);
+  _mm_storeu_si128(compressed + 17, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 26)), 18));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 27));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 63));
+  w1 = _mm_srli_epi64(tmp, 1);
+  _mm_storeu_si128(compressed + 18, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 28));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 44));
+  w0 = _mm_srli_epi64(tmp, 20);
+  _mm_storeu_si128(compressed + 19, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 29));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 25));
+  w1 = _mm_srli_epi64(tmp, 39);
+  _mm_storeu_si128(compressed + 20, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 30)), 6));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 31));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 51));
+  w0 = _mm_srli_epi64(tmp, 13);
+  _mm_storeu_si128(compressed + 22, w0);
+}
+
+/* we are going to pack 64 46-bit values, touching 23 128-bit words, using 368
+ * bytes */
+static void simdpackblockmask46(const u64 *pin, __m128i *compressed) {
+  /* we are going to touch  23 128-bit words */
+  __m128i w0, w1;
+  const __m128i *in = (const __m128i *)pin;
+  const __m128i mask = _mm_set1_epi64x(70368744177663);
+  __m128i tmp; /* used to store inputs at word boundary */
+  w0 = _mm_and_si128(mask, _mm_loadu_si128(in + 0));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 1));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 46));
+  w1 = _mm_srli_epi64(tmp, 18);
+  _mm_storeu_si128(compressed + 0, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 2));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 28));
+  w0 = _mm_srli_epi64(tmp, 36);
+  _mm_storeu_si128(compressed + 1, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 3)), 10));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 4));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 56));
+  w1 = _mm_srli_epi64(tmp, 8);
+  _mm_storeu_si128(compressed + 2, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 5));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 38));
+  w0 = _mm_srli_epi64(tmp, 26);
+  _mm_storeu_si128(compressed + 3, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 6));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 20));
+  w1 = _mm_srli_epi64(tmp, 44);
+  _mm_storeu_si128(compressed + 4, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 7)), 2));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 8));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 48));
+  w0 = _mm_srli_epi64(tmp, 16);
+  _mm_storeu_si128(compressed + 5, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 9));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 30));
+  w1 = _mm_srli_epi64(tmp, 34);
+  _mm_storeu_si128(compressed + 6, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 10)), 12));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 11));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 58));
+  w0 = _mm_srli_epi64(tmp, 6);
+  _mm_storeu_si128(compressed + 7, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 12));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 40));
+  w1 = _mm_srli_epi64(tmp, 24);
+  _mm_storeu_si128(compressed + 8, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 13));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 22));
+  w0 = _mm_srli_epi64(tmp, 42);
+  _mm_storeu_si128(compressed + 9, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 14)), 4));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 15));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 50));
+  w1 = _mm_srli_epi64(tmp, 14);
+  _mm_storeu_si128(compressed + 10, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 16));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 32));
+  w0 = _mm_srli_epi64(tmp, 32);
+  _mm_storeu_si128(compressed + 11, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 17)), 14));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 18));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 60));
+  w1 = _mm_srli_epi64(tmp, 4);
+  _mm_storeu_si128(compressed + 12, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 19));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 42));
+  w0 = _mm_srli_epi64(tmp, 22);
+  _mm_storeu_si128(compressed + 13, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 20));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 24));
+  w1 = _mm_srli_epi64(tmp, 40);
+  _mm_storeu_si128(compressed + 14, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 21)), 6));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 22));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 52));
+  w0 = _mm_srli_epi64(tmp, 12);
+  _mm_storeu_si128(compressed + 15, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 23));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 34));
+  w1 = _mm_srli_epi64(tmp, 30);
+  _mm_storeu_si128(compressed + 16, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 24)), 16));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 25));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 62));
+  w0 = _mm_srli_epi64(tmp, 2);
+  _mm_storeu_si128(compressed + 17, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 26));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 44));
+  w1 = _mm_srli_epi64(tmp, 20);
+  _mm_storeu_si128(compressed + 18, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 27));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 26));
+  w0 = _mm_srli_epi64(tmp, 38);
+  _mm_storeu_si128(compressed + 19, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 28)), 8));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 29));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 54));
+  w1 = _mm_srli_epi64(tmp, 10);
+  _mm_storeu_si128(compressed + 20, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 30));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 36));
+  w0 = _mm_srli_epi64(tmp, 28);
+  _mm_storeu_si128(compressed + 21, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 31)), 18));
+  _mm_storeu_si128(compressed + 22, w0);
+}
+
+/* we are going to pack 64 47-bit values, touching 24 128-bit words, using 384
+ * bytes */
+static void simdpackblockmask47(const u64 *pin, __m128i *compressed) {
+  /* we are going to touch  24 128-bit words */
+  __m128i w0, w1;
+  const __m128i *in = (const __m128i *)pin;
+  const __m128i mask = _mm_set1_epi64x(140737488355327);
+  __m128i tmp; /* used to store inputs at word boundary */
+  w0 = _mm_and_si128(mask, _mm_loadu_si128(in + 0));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 1));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 47));
+  w1 = _mm_srli_epi64(tmp, 17);
+  _mm_storeu_si128(compressed + 0, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 2));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 30));
+  w0 = _mm_srli_epi64(tmp, 34);
+  _mm_storeu_si128(compressed + 1, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 3)), 13));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 4));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 60));
+  w1 = _mm_srli_epi64(tmp, 4);
+  _mm_storeu_si128(compressed + 2, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 5));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 43));
+  w0 = _mm_srli_epi64(tmp, 21);
+  _mm_storeu_si128(compressed + 3, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 6));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 26));
+  w1 = _mm_srli_epi64(tmp, 38);
+  _mm_storeu_si128(compressed + 4, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 7)), 9));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 8));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 56));
+  w0 = _mm_srli_epi64(tmp, 8);
+  _mm_storeu_si128(compressed + 5, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 9));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 39));
+  w1 = _mm_srli_epi64(tmp, 25);
+  _mm_storeu_si128(compressed + 6, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 10));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 22));
+  w0 = _mm_srli_epi64(tmp, 42);
+  _mm_storeu_si128(compressed + 7, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 11)), 5));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 12));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 52));
+  w1 = _mm_srli_epi64(tmp, 12);
+  _mm_storeu_si128(compressed + 8, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 13));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 35));
+  w0 = _mm_srli_epi64(tmp, 29);
+  _mm_storeu_si128(compressed + 9, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 14));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 18));
+  w1 = _mm_srli_epi64(tmp, 46);
+  _mm_storeu_si128(compressed + 10, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 15)), 1));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 16));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 48));
+  w0 = _mm_srli_epi64(tmp, 16);
+  _mm_storeu_si128(compressed + 11, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 17));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 31));
+  w1 = _mm_srli_epi64(tmp, 33);
+  _mm_storeu_si128(compressed + 12, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 18)), 14));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 19));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 61));
+  w0 = _mm_srli_epi64(tmp, 3);
+  _mm_storeu_si128(compressed + 13, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 20));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 44));
+  w1 = _mm_srli_epi64(tmp, 20);
+  _mm_storeu_si128(compressed + 14, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 21));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 27));
+  w0 = _mm_srli_epi64(tmp, 37);
+  _mm_storeu_si128(compressed + 15, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 22)), 10));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 23));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 57));
+  w1 = _mm_srli_epi64(tmp, 7);
+  _mm_storeu_si128(compressed + 16, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 24));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 40));
+  w0 = _mm_srli_epi64(tmp, 24);
+  _mm_storeu_si128(compressed + 17, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 25));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 23));
+  w1 = _mm_srli_epi64(tmp, 41);
+  _mm_storeu_si128(compressed + 18, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 26)), 6));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 27));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 53));
+  w0 = _mm_srli_epi64(tmp, 11);
+  _mm_storeu_si128(compressed + 19, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 28));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 36));
+  w1 = _mm_srli_epi64(tmp, 28);
+  _mm_storeu_si128(compressed + 20, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 29));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 19));
+  w0 = _mm_srli_epi64(tmp, 45);
+  _mm_storeu_si128(compressed + 21, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 30)), 2));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 31));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 49));
+  w1 = _mm_srli_epi64(tmp, 15);
+  _mm_storeu_si128(compressed + 23, w1);
+}
+
+/* we are going to pack 64 48-bit values, touching 24 128-bit words, using 384
+ * bytes */
+static void simdpackblockmask48(const u64 *pin, __m128i *compressed) {
+  /* we are going to touch  24 128-bit words */
+  __m128i w0, w1;
+  const __m128i *in = (const __m128i *)pin;
+  const __m128i mask = _mm_set1_epi64x(281474976710655);
+  __m128i tmp; /* used to store inputs at word boundary */
+  w0 = _mm_and_si128(mask, _mm_loadu_si128(in + 0));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 1));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 48));
+  w1 = _mm_srli_epi64(tmp, 16);
+  _mm_storeu_si128(compressed + 0, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 2));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 32));
+  w0 = _mm_srli_epi64(tmp, 32);
+  _mm_storeu_si128(compressed + 1, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 3)), 16));
+  _mm_storeu_si128(compressed + 2, w0);
+  w1 = _mm_and_si128(mask, _mm_loadu_si128(in + 4));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 5));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 48));
+  w0 = _mm_srli_epi64(tmp, 16);
+  _mm_storeu_si128(compressed + 3, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 6));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 32));
+  w1 = _mm_srli_epi64(tmp, 32);
+  _mm_storeu_si128(compressed + 4, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 7)), 16));
+  _mm_storeu_si128(compressed + 5, w1);
+  w0 = _mm_and_si128(mask, _mm_loadu_si128(in + 8));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 9));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 48));
+  w1 = _mm_srli_epi64(tmp, 16);
+  _mm_storeu_si128(compressed + 6, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 10));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 32));
+  w0 = _mm_srli_epi64(tmp, 32);
+  _mm_storeu_si128(compressed + 7, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 11)), 16));
+  _mm_storeu_si128(compressed + 8, w0);
+  w1 = _mm_and_si128(mask, _mm_loadu_si128(in + 12));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 13));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 48));
+  w0 = _mm_srli_epi64(tmp, 16);
+  _mm_storeu_si128(compressed + 9, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 14));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 32));
+  w1 = _mm_srli_epi64(tmp, 32);
+  _mm_storeu_si128(compressed + 10, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 15)), 16));
+  _mm_storeu_si128(compressed + 11, w1);
+  w0 = _mm_and_si128(mask, _mm_loadu_si128(in + 16));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 17));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 48));
+  w1 = _mm_srli_epi64(tmp, 16);
+  _mm_storeu_si128(compressed + 12, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 18));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 32));
+  w0 = _mm_srli_epi64(tmp, 32);
+  _mm_storeu_si128(compressed + 13, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 19)), 16));
+  _mm_storeu_si128(compressed + 14, w0);
+  w1 = _mm_and_si128(mask, _mm_loadu_si128(in + 20));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 21));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 48));
+  w0 = _mm_srli_epi64(tmp, 16);
+  _mm_storeu_si128(compressed + 15, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 22));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 32));
+  w1 = _mm_srli_epi64(tmp, 32);
+  _mm_storeu_si128(compressed + 16, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 23)), 16));
+  _mm_storeu_si128(compressed + 17, w1);
+  w0 = _mm_and_si128(mask, _mm_loadu_si128(in + 24));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 25));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 48));
+  w1 = _mm_srli_epi64(tmp, 16);
+  _mm_storeu_si128(compressed + 18, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 26));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 32));
+  w0 = _mm_srli_epi64(tmp, 32);
+  _mm_storeu_si128(compressed + 19, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 27)), 16));
+  _mm_storeu_si128(compressed + 20, w0);
+  w1 = _mm_and_si128(mask, _mm_loadu_si128(in + 28));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 29));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 48));
+  w0 = _mm_srli_epi64(tmp, 16);
+  _mm_storeu_si128(compressed + 21, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 30));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 32));
+  w1 = _mm_srli_epi64(tmp, 32);
+  _mm_storeu_si128(compressed + 22, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 31)), 16));
+  _mm_storeu_si128(compressed + 23, w1);
+}
+
+/* we are going to pack 64 49-bit values, touching 25 128-bit words, using 400
+ * bytes */
+static void simdpackblockmask49(const u64 *pin, __m128i *compressed) {
+  /* we are going to touch  25 128-bit words */
+  __m128i w0, w1;
+  const __m128i *in = (const __m128i *)pin;
+  const __m128i mask = _mm_set1_epi64x(562949953421311);
+  __m128i tmp; /* used to store inputs at word boundary */
+  w0 = _mm_and_si128(mask, _mm_loadu_si128(in + 0));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 1));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 49));
+  w1 = _mm_srli_epi64(tmp, 15);
+  _mm_storeu_si128(compressed + 0, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 2));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 34));
+  w0 = _mm_srli_epi64(tmp, 30);
+  _mm_storeu_si128(compressed + 1, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 3));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 19));
+  w1 = _mm_srli_epi64(tmp, 45);
+  _mm_storeu_si128(compressed + 2, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 4)), 4));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 5));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 53));
+  w0 = _mm_srli_epi64(tmp, 11);
+  _mm_storeu_si128(compressed + 3, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 6));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 38));
+  w1 = _mm_srli_epi64(tmp, 26);
+  _mm_storeu_si128(compressed + 4, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 7));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 23));
+  w0 = _mm_srli_epi64(tmp, 41);
+  _mm_storeu_si128(compressed + 5, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 8)), 8));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 9));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 57));
+  w1 = _mm_srli_epi64(tmp, 7);
+  _mm_storeu_si128(compressed + 6, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 10));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 42));
+  w0 = _mm_srli_epi64(tmp, 22);
+  _mm_storeu_si128(compressed + 7, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 11));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 27));
+  w1 = _mm_srli_epi64(tmp, 37);
+  _mm_storeu_si128(compressed + 8, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 12)), 12));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 13));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 61));
+  w0 = _mm_srli_epi64(tmp, 3);
+  _mm_storeu_si128(compressed + 9, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 14));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 46));
+  w1 = _mm_srli_epi64(tmp, 18);
+  _mm_storeu_si128(compressed + 10, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 15));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 31));
+  w0 = _mm_srli_epi64(tmp, 33);
+  _mm_storeu_si128(compressed + 11, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 16));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 16));
+  w1 = _mm_srli_epi64(tmp, 48);
+  _mm_storeu_si128(compressed + 12, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 17)), 1));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 18));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 50));
+  w0 = _mm_srli_epi64(tmp, 14);
+  _mm_storeu_si128(compressed + 13, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 19));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 35));
+  w1 = _mm_srli_epi64(tmp, 29);
+  _mm_storeu_si128(compressed + 14, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 20));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 20));
+  w0 = _mm_srli_epi64(tmp, 44);
+  _mm_storeu_si128(compressed + 15, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 21)), 5));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 22));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 54));
+  w1 = _mm_srli_epi64(tmp, 10);
+  _mm_storeu_si128(compressed + 16, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 23));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 39));
+  w0 = _mm_srli_epi64(tmp, 25);
+  _mm_storeu_si128(compressed + 17, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 24));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 24));
+  w1 = _mm_srli_epi64(tmp, 40);
+  _mm_storeu_si128(compressed + 18, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 25)), 9));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 26));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 58));
+  w0 = _mm_srli_epi64(tmp, 6);
+  _mm_storeu_si128(compressed + 19, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 27));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 43));
+  w1 = _mm_srli_epi64(tmp, 21);
+  _mm_storeu_si128(compressed + 20, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 28));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 28));
+  w0 = _mm_srli_epi64(tmp, 36);
+  _mm_storeu_si128(compressed + 21, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 29)), 13));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 30));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 62));
+  w1 = _mm_srli_epi64(tmp, 2);
+  _mm_storeu_si128(compressed + 22, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 31));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 47));
+  w0 = _mm_srli_epi64(tmp, 17);
+  _mm_storeu_si128(compressed + 24, w0);
+}
+
+/* we are going to pack 64 50-bit values, touching 25 128-bit words, using 400
+ * bytes */
+static void simdpackblockmask50(const u64 *pin, __m128i *compressed) {
+  /* we are going to touch  25 128-bit words */
+  __m128i w0, w1;
+  const __m128i *in = (const __m128i *)pin;
+  const __m128i mask = _mm_set1_epi64x(1125899906842623);
+  __m128i tmp; /* used to store inputs at word boundary */
+  w0 = _mm_and_si128(mask, _mm_loadu_si128(in + 0));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 1));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 50));
+  w1 = _mm_srli_epi64(tmp, 14);
+  _mm_storeu_si128(compressed + 0, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 2));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 36));
+  w0 = _mm_srli_epi64(tmp, 28);
+  _mm_storeu_si128(compressed + 1, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 3));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 22));
+  w1 = _mm_srli_epi64(tmp, 42);
+  _mm_storeu_si128(compressed + 2, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 4)), 8));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 5));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 58));
+  w0 = _mm_srli_epi64(tmp, 6);
+  _mm_storeu_si128(compressed + 3, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 6));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 44));
+  w1 = _mm_srli_epi64(tmp, 20);
+  _mm_storeu_si128(compressed + 4, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 7));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 30));
+  w0 = _mm_srli_epi64(tmp, 34);
+  _mm_storeu_si128(compressed + 5, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 8));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 16));
+  w1 = _mm_srli_epi64(tmp, 48);
+  _mm_storeu_si128(compressed + 6, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 9)), 2));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 10));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 52));
+  w0 = _mm_srli_epi64(tmp, 12);
+  _mm_storeu_si128(compressed + 7, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 11));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 38));
+  w1 = _mm_srli_epi64(tmp, 26);
+  _mm_storeu_si128(compressed + 8, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 12));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 24));
+  w0 = _mm_srli_epi64(tmp, 40);
+  _mm_storeu_si128(compressed + 9, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 13)), 10));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 14));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 60));
+  w1 = _mm_srli_epi64(tmp, 4);
+  _mm_storeu_si128(compressed + 10, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 15));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 46));
+  w0 = _mm_srli_epi64(tmp, 18);
+  _mm_storeu_si128(compressed + 11, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 16));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 32));
+  w1 = _mm_srli_epi64(tmp, 32);
+  _mm_storeu_si128(compressed + 12, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 17));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 18));
+  w0 = _mm_srli_epi64(tmp, 46);
+  _mm_storeu_si128(compressed + 13, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 18)), 4));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 19));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 54));
+  w1 = _mm_srli_epi64(tmp, 10);
+  _mm_storeu_si128(compressed + 14, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 20));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 40));
+  w0 = _mm_srli_epi64(tmp, 24);
+  _mm_storeu_si128(compressed + 15, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 21));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 26));
+  w1 = _mm_srli_epi64(tmp, 38);
+  _mm_storeu_si128(compressed + 16, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 22)), 12));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 23));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 62));
+  w0 = _mm_srli_epi64(tmp, 2);
+  _mm_storeu_si128(compressed + 17, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 24));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 48));
+  w1 = _mm_srli_epi64(tmp, 16);
+  _mm_storeu_si128(compressed + 18, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 25));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 34));
+  w0 = _mm_srli_epi64(tmp, 30);
+  _mm_storeu_si128(compressed + 19, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 26));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 20));
+  w1 = _mm_srli_epi64(tmp, 44);
+  _mm_storeu_si128(compressed + 20, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 27)), 6));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 28));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 56));
+  w0 = _mm_srli_epi64(tmp, 8);
+  _mm_storeu_si128(compressed + 21, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 29));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 42));
+  w1 = _mm_srli_epi64(tmp, 22);
+  _mm_storeu_si128(compressed + 22, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 30));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 28));
+  w0 = _mm_srli_epi64(tmp, 36);
+  _mm_storeu_si128(compressed + 23, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 31)), 14));
+  _mm_storeu_si128(compressed + 24, w0);
+}
+
+/* we are going to pack 64 51-bit values, touching 26 128-bit words, using 416
+ * bytes */
+static void simdpackblockmask51(const u64 *pin, __m128i *compressed) {
+  /* we are going to touch  26 128-bit words */
+  __m128i w0, w1;
+  const __m128i *in = (const __m128i *)pin;
+  const __m128i mask = _mm_set1_epi64x(2251799813685247);
+  __m128i tmp; /* used to store inputs at word boundary */
+  w0 = _mm_and_si128(mask, _mm_loadu_si128(in + 0));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 1));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 51));
+  w1 = _mm_srli_epi64(tmp, 13);
+  _mm_storeu_si128(compressed + 0, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 2));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 38));
+  w0 = _mm_srli_epi64(tmp, 26);
+  _mm_storeu_si128(compressed + 1, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 3));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 25));
+  w1 = _mm_srli_epi64(tmp, 39);
+  _mm_storeu_si128(compressed + 2, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 4)), 12));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 5));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 63));
+  w0 = _mm_srli_epi64(tmp, 1);
+  _mm_storeu_si128(compressed + 3, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 6));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 50));
+  w1 = _mm_srli_epi64(tmp, 14);
+  _mm_storeu_si128(compressed + 4, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 7));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 37));
+  w0 = _mm_srli_epi64(tmp, 27);
+  _mm_storeu_si128(compressed + 5, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 8));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 24));
+  w1 = _mm_srli_epi64(tmp, 40);
+  _mm_storeu_si128(compressed + 6, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 9)), 11));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 10));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 62));
+  w0 = _mm_srli_epi64(tmp, 2);
+  _mm_storeu_si128(compressed + 7, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 11));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 49));
+  w1 = _mm_srli_epi64(tmp, 15);
+  _mm_storeu_si128(compressed + 8, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 12));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 36));
+  w0 = _mm_srli_epi64(tmp, 28);
+  _mm_storeu_si128(compressed + 9, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 13));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 23));
+  w1 = _mm_srli_epi64(tmp, 41);
+  _mm_storeu_si128(compressed + 10, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 14)), 10));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 15));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 61));
+  w0 = _mm_srli_epi64(tmp, 3);
+  _mm_storeu_si128(compressed + 11, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 16));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 48));
+  w1 = _mm_srli_epi64(tmp, 16);
+  _mm_storeu_si128(compressed + 12, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 17));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 35));
+  w0 = _mm_srli_epi64(tmp, 29);
+  _mm_storeu_si128(compressed + 13, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 18));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 22));
+  w1 = _mm_srli_epi64(tmp, 42);
+  _mm_storeu_si128(compressed + 14, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 19)), 9));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 20));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 60));
+  w0 = _mm_srli_epi64(tmp, 4);
+  _mm_storeu_si128(compressed + 15, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 21));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 47));
+  w1 = _mm_srli_epi64(tmp, 17);
+  _mm_storeu_si128(compressed + 16, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 22));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 34));
+  w0 = _mm_srli_epi64(tmp, 30);
+  _mm_storeu_si128(compressed + 17, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 23));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 21));
+  w1 = _mm_srli_epi64(tmp, 43);
+  _mm_storeu_si128(compressed + 18, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 24)), 8));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 25));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 59));
+  w0 = _mm_srli_epi64(tmp, 5);
+  _mm_storeu_si128(compressed + 19, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 26));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 46));
+  w1 = _mm_srli_epi64(tmp, 18);
+  _mm_storeu_si128(compressed + 20, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 27));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 33));
+  w0 = _mm_srli_epi64(tmp, 31);
+  _mm_storeu_si128(compressed + 21, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 28));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 20));
+  w1 = _mm_srli_epi64(tmp, 44);
+  _mm_storeu_si128(compressed + 22, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 29)), 7));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 30));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 58));
+  w0 = _mm_srli_epi64(tmp, 6);
+  _mm_storeu_si128(compressed + 23, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 31));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 45));
+  w1 = _mm_srli_epi64(tmp, 19);
+  _mm_storeu_si128(compressed + 25, w1);
+}
+
+/* we are going to pack 64 52-bit values, touching 26 128-bit words, using 416
+ * bytes */
+static void simdpackblockmask52(const u64 *pin, __m128i *compressed) {
+  /* we are going to touch  26 128-bit words */
+  __m128i w0, w1;
+  const __m128i *in = (const __m128i *)pin;
+  const __m128i mask = _mm_set1_epi64x(4503599627370495);
+  __m128i tmp; /* used to store inputs at word boundary */
+  w0 = _mm_and_si128(mask, _mm_loadu_si128(in + 0));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 1));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 52));
+  w1 = _mm_srli_epi64(tmp, 12);
+  _mm_storeu_si128(compressed + 0, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 2));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 40));
+  w0 = _mm_srli_epi64(tmp, 24);
+  _mm_storeu_si128(compressed + 1, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 3));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 28));
+  w1 = _mm_srli_epi64(tmp, 36);
+  _mm_storeu_si128(compressed + 2, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 4));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 16));
+  w0 = _mm_srli_epi64(tmp, 48);
+  _mm_storeu_si128(compressed + 3, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 5)), 4));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 6));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 56));
+  w1 = _mm_srli_epi64(tmp, 8);
+  _mm_storeu_si128(compressed + 4, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 7));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 44));
+  w0 = _mm_srli_epi64(tmp, 20);
+  _mm_storeu_si128(compressed + 5, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 8));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 32));
+  w1 = _mm_srli_epi64(tmp, 32);
+  _mm_storeu_si128(compressed + 6, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 9));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 20));
+  w0 = _mm_srli_epi64(tmp, 44);
+  _mm_storeu_si128(compressed + 7, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 10)), 8));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 11));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 60));
+  w1 = _mm_srli_epi64(tmp, 4);
+  _mm_storeu_si128(compressed + 8, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 12));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 48));
+  w0 = _mm_srli_epi64(tmp, 16);
+  _mm_storeu_si128(compressed + 9, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 13));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 36));
+  w1 = _mm_srli_epi64(tmp, 28);
+  _mm_storeu_si128(compressed + 10, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 14));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 24));
+  w0 = _mm_srli_epi64(tmp, 40);
+  _mm_storeu_si128(compressed + 11, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 15)), 12));
+  _mm_storeu_si128(compressed + 12, w0);
+  w1 = _mm_and_si128(mask, _mm_loadu_si128(in + 16));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 17));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 52));
+  w0 = _mm_srli_epi64(tmp, 12);
+  _mm_storeu_si128(compressed + 13, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 18));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 40));
+  w1 = _mm_srli_epi64(tmp, 24);
+  _mm_storeu_si128(compressed + 14, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 19));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 28));
+  w0 = _mm_srli_epi64(tmp, 36);
+  _mm_storeu_si128(compressed + 15, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 20));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 16));
+  w1 = _mm_srli_epi64(tmp, 48);
+  _mm_storeu_si128(compressed + 16, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 21)), 4));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 22));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 56));
+  w0 = _mm_srli_epi64(tmp, 8);
+  _mm_storeu_si128(compressed + 17, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 23));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 44));
+  w1 = _mm_srli_epi64(tmp, 20);
+  _mm_storeu_si128(compressed + 18, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 24));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 32));
+  w0 = _mm_srli_epi64(tmp, 32);
+  _mm_storeu_si128(compressed + 19, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 25));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 20));
+  w1 = _mm_srli_epi64(tmp, 44);
+  _mm_storeu_si128(compressed + 20, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 26)), 8));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 27));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 60));
+  w0 = _mm_srli_epi64(tmp, 4);
+  _mm_storeu_si128(compressed + 21, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 28));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 48));
+  w1 = _mm_srli_epi64(tmp, 16);
+  _mm_storeu_si128(compressed + 22, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 29));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 36));
+  w0 = _mm_srli_epi64(tmp, 28);
+  _mm_storeu_si128(compressed + 23, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 30));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 24));
+  w1 = _mm_srli_epi64(tmp, 40);
+  _mm_storeu_si128(compressed + 24, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 31)), 12));
+  _mm_storeu_si128(compressed + 25, w1);
+}
+
+/* we are going to pack 64 53-bit values, touching 27 128-bit words, using 432
+ * bytes */
+static void simdpackblockmask53(const u64 *pin, __m128i *compressed) {
+  /* we are going to touch  27 128-bit words */
+  __m128i w0, w1;
+  const __m128i *in = (const __m128i *)pin;
+  const __m128i mask = _mm_set1_epi64x(9007199254740991);
+  __m128i tmp; /* used to store inputs at word boundary */
+  w0 = _mm_and_si128(mask, _mm_loadu_si128(in + 0));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 1));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 53));
+  w1 = _mm_srli_epi64(tmp, 11);
+  _mm_storeu_si128(compressed + 0, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 2));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 42));
+  w0 = _mm_srli_epi64(tmp, 22);
+  _mm_storeu_si128(compressed + 1, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 3));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 31));
+  w1 = _mm_srli_epi64(tmp, 33);
+  _mm_storeu_si128(compressed + 2, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 4));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 20));
+  w0 = _mm_srli_epi64(tmp, 44);
+  _mm_storeu_si128(compressed + 3, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 5)), 9));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 6));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 62));
+  w1 = _mm_srli_epi64(tmp, 2);
+  _mm_storeu_si128(compressed + 4, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 7));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 51));
+  w0 = _mm_srli_epi64(tmp, 13);
+  _mm_storeu_si128(compressed + 5, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 8));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 40));
+  w1 = _mm_srli_epi64(tmp, 24);
+  _mm_storeu_si128(compressed + 6, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 9));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 29));
+  w0 = _mm_srli_epi64(tmp, 35);
+  _mm_storeu_si128(compressed + 7, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 10));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 18));
+  w1 = _mm_srli_epi64(tmp, 46);
+  _mm_storeu_si128(compressed + 8, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 11)), 7));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 12));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 60));
+  w0 = _mm_srli_epi64(tmp, 4);
+  _mm_storeu_si128(compressed + 9, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 13));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 49));
+  w1 = _mm_srli_epi64(tmp, 15);
+  _mm_storeu_si128(compressed + 10, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 14));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 38));
+  w0 = _mm_srli_epi64(tmp, 26);
+  _mm_storeu_si128(compressed + 11, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 15));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 27));
+  w1 = _mm_srli_epi64(tmp, 37);
+  _mm_storeu_si128(compressed + 12, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 16));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 16));
+  w0 = _mm_srli_epi64(tmp, 48);
+  _mm_storeu_si128(compressed + 13, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 17)), 5));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 18));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 58));
+  w1 = _mm_srli_epi64(tmp, 6);
+  _mm_storeu_si128(compressed + 14, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 19));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 47));
+  w0 = _mm_srli_epi64(tmp, 17);
+  _mm_storeu_si128(compressed + 15, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 20));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 36));
+  w1 = _mm_srli_epi64(tmp, 28);
+  _mm_storeu_si128(compressed + 16, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 21));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 25));
+  w0 = _mm_srli_epi64(tmp, 39);
+  _mm_storeu_si128(compressed + 17, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 22));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 14));
+  w1 = _mm_srli_epi64(tmp, 50);
+  _mm_storeu_si128(compressed + 18, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 23)), 3));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 24));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 56));
+  w0 = _mm_srli_epi64(tmp, 8);
+  _mm_storeu_si128(compressed + 19, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 25));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 45));
+  w1 = _mm_srli_epi64(tmp, 19);
+  _mm_storeu_si128(compressed + 20, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 26));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 34));
+  w0 = _mm_srli_epi64(tmp, 30);
+  _mm_storeu_si128(compressed + 21, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 27));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 23));
+  w1 = _mm_srli_epi64(tmp, 41);
+  _mm_storeu_si128(compressed + 22, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 28));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 12));
+  w0 = _mm_srli_epi64(tmp, 52);
+  _mm_storeu_si128(compressed + 23, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 29)), 1));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 30));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 54));
+  w1 = _mm_srli_epi64(tmp, 10);
+  _mm_storeu_si128(compressed + 24, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 31));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 43));
+  w0 = _mm_srli_epi64(tmp, 21);
+  _mm_storeu_si128(compressed + 26, w0);
+}
+
+/* we are going to pack 64 54-bit values, touching 27 128-bit words, using 432
+ * bytes */
+static void simdpackblockmask54(const u64 *pin, __m128i *compressed) {
+  /* we are going to touch  27 128-bit words */
+  __m128i w0, w1;
+  const __m128i *in = (const __m128i *)pin;
+  const __m128i mask = _mm_set1_epi64x(18014398509481983);
+  __m128i tmp; /* used to store inputs at word boundary */
+  w0 = _mm_and_si128(mask, _mm_loadu_si128(in + 0));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 1));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 54));
+  w1 = _mm_srli_epi64(tmp, 10);
+  _mm_storeu_si128(compressed + 0, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 2));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 44));
+  w0 = _mm_srli_epi64(tmp, 20);
+  _mm_storeu_si128(compressed + 1, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 3));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 34));
+  w1 = _mm_srli_epi64(tmp, 30);
+  _mm_storeu_si128(compressed + 2, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 4));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 24));
+  w0 = _mm_srli_epi64(tmp, 40);
+  _mm_storeu_si128(compressed + 3, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 5));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 14));
+  w1 = _mm_srli_epi64(tmp, 50);
+  _mm_storeu_si128(compressed + 4, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 6)), 4));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 7));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 58));
+  w0 = _mm_srli_epi64(tmp, 6);
+  _mm_storeu_si128(compressed + 5, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 8));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 48));
+  w1 = _mm_srli_epi64(tmp, 16);
+  _mm_storeu_si128(compressed + 6, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 9));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 38));
+  w0 = _mm_srli_epi64(tmp, 26);
+  _mm_storeu_si128(compressed + 7, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 10));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 28));
+  w1 = _mm_srli_epi64(tmp, 36);
+  _mm_storeu_si128(compressed + 8, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 11));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 18));
+  w0 = _mm_srli_epi64(tmp, 46);
+  _mm_storeu_si128(compressed + 9, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 12)), 8));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 13));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 62));
+  w1 = _mm_srli_epi64(tmp, 2);
+  _mm_storeu_si128(compressed + 10, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 14));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 52));
+  w0 = _mm_srli_epi64(tmp, 12);
+  _mm_storeu_si128(compressed + 11, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 15));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 42));
+  w1 = _mm_srli_epi64(tmp, 22);
+  _mm_storeu_si128(compressed + 12, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 16));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 32));
+  w0 = _mm_srli_epi64(tmp, 32);
+  _mm_storeu_si128(compressed + 13, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 17));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 22));
+  w1 = _mm_srli_epi64(tmp, 42);
+  _mm_storeu_si128(compressed + 14, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 18));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 12));
+  w0 = _mm_srli_epi64(tmp, 52);
+  _mm_storeu_si128(compressed + 15, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 19)), 2));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 20));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 56));
+  w1 = _mm_srli_epi64(tmp, 8);
+  _mm_storeu_si128(compressed + 16, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 21));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 46));
+  w0 = _mm_srli_epi64(tmp, 18);
+  _mm_storeu_si128(compressed + 17, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 22));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 36));
+  w1 = _mm_srli_epi64(tmp, 28);
+  _mm_storeu_si128(compressed + 18, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 23));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 26));
+  w0 = _mm_srli_epi64(tmp, 38);
+  _mm_storeu_si128(compressed + 19, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 24));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 16));
+  w1 = _mm_srli_epi64(tmp, 48);
+  _mm_storeu_si128(compressed + 20, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 25)), 6));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 26));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 60));
+  w0 = _mm_srli_epi64(tmp, 4);
+  _mm_storeu_si128(compressed + 21, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 27));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 50));
+  w1 = _mm_srli_epi64(tmp, 14);
+  _mm_storeu_si128(compressed + 22, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 28));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 40));
+  w0 = _mm_srli_epi64(tmp, 24);
+  _mm_storeu_si128(compressed + 23, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 29));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 30));
+  w1 = _mm_srli_epi64(tmp, 34);
+  _mm_storeu_si128(compressed + 24, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 30));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 20));
+  w0 = _mm_srli_epi64(tmp, 44);
+  _mm_storeu_si128(compressed + 25, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 31)), 10));
+  _mm_storeu_si128(compressed + 26, w0);
+}
+
+/* we are going to pack 64 55-bit values, touching 28 128-bit words, using 448
+ * bytes */
+static void simdpackblockmask55(const u64 *pin, __m128i *compressed) {
+  /* we are going to touch  28 128-bit words */
+  __m128i w0, w1;
+  const __m128i *in = (const __m128i *)pin;
+  const __m128i mask = _mm_set1_epi64x(36028797018963967);
+  __m128i tmp; /* used to store inputs at word boundary */
+  w0 = _mm_and_si128(mask, _mm_loadu_si128(in + 0));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 1));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 55));
+  w1 = _mm_srli_epi64(tmp, 9);
+  _mm_storeu_si128(compressed + 0, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 2));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 46));
+  w0 = _mm_srli_epi64(tmp, 18);
+  _mm_storeu_si128(compressed + 1, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 3));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 37));
+  w1 = _mm_srli_epi64(tmp, 27);
+  _mm_storeu_si128(compressed + 2, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 4));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 28));
+  w0 = _mm_srli_epi64(tmp, 36);
+  _mm_storeu_si128(compressed + 3, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 5));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 19));
+  w1 = _mm_srli_epi64(tmp, 45);
+  _mm_storeu_si128(compressed + 4, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 6));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 10));
+  w0 = _mm_srli_epi64(tmp, 54);
+  _mm_storeu_si128(compressed + 5, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 7)), 1));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 8));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 56));
+  w1 = _mm_srli_epi64(tmp, 8);
+  _mm_storeu_si128(compressed + 6, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 9));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 47));
+  w0 = _mm_srli_epi64(tmp, 17);
+  _mm_storeu_si128(compressed + 7, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 10));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 38));
+  w1 = _mm_srli_epi64(tmp, 26);
+  _mm_storeu_si128(compressed + 8, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 11));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 29));
+  w0 = _mm_srli_epi64(tmp, 35);
+  _mm_storeu_si128(compressed + 9, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 12));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 20));
+  w1 = _mm_srli_epi64(tmp, 44);
+  _mm_storeu_si128(compressed + 10, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 13));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 11));
+  w0 = _mm_srli_epi64(tmp, 53);
+  _mm_storeu_si128(compressed + 11, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 14)), 2));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 15));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 57));
+  w1 = _mm_srli_epi64(tmp, 7);
+  _mm_storeu_si128(compressed + 12, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 16));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 48));
+  w0 = _mm_srli_epi64(tmp, 16);
+  _mm_storeu_si128(compressed + 13, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 17));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 39));
+  w1 = _mm_srli_epi64(tmp, 25);
+  _mm_storeu_si128(compressed + 14, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 18));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 30));
+  w0 = _mm_srli_epi64(tmp, 34);
+  _mm_storeu_si128(compressed + 15, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 19));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 21));
+  w1 = _mm_srli_epi64(tmp, 43);
+  _mm_storeu_si128(compressed + 16, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 20));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 12));
+  w0 = _mm_srli_epi64(tmp, 52);
+  _mm_storeu_si128(compressed + 17, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 21)), 3));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 22));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 58));
+  w1 = _mm_srli_epi64(tmp, 6);
+  _mm_storeu_si128(compressed + 18, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 23));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 49));
+  w0 = _mm_srli_epi64(tmp, 15);
+  _mm_storeu_si128(compressed + 19, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 24));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 40));
+  w1 = _mm_srli_epi64(tmp, 24);
+  _mm_storeu_si128(compressed + 20, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 25));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 31));
+  w0 = _mm_srli_epi64(tmp, 33);
+  _mm_storeu_si128(compressed + 21, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 26));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 22));
+  w1 = _mm_srli_epi64(tmp, 42);
+  _mm_storeu_si128(compressed + 22, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 27));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 13));
+  w0 = _mm_srli_epi64(tmp, 51);
+  _mm_storeu_si128(compressed + 23, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 28)), 4));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 29));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 59));
+  w1 = _mm_srli_epi64(tmp, 5);
+  _mm_storeu_si128(compressed + 24, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 30));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 50));
+  w0 = _mm_srli_epi64(tmp, 14);
+  _mm_storeu_si128(compressed + 25, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 31));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 41));
+  w1 = _mm_srli_epi64(tmp, 23);
+  _mm_storeu_si128(compressed + 27, w1);
+}
+
+/* we are going to pack 64 56-bit values, touching 28 128-bit words, using 448
+ * bytes */
+static void simdpackblockmask56(const u64 *pin, __m128i *compressed) {
+  /* we are going to touch  28 128-bit words */
+  __m128i w0, w1;
+  const __m128i *in = (const __m128i *)pin;
+  const __m128i mask = _mm_set1_epi64x(72057594037927935);
+  __m128i tmp; /* used to store inputs at word boundary */
+  w0 = _mm_and_si128(mask, _mm_loadu_si128(in + 0));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 1));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 56));
+  w1 = _mm_srli_epi64(tmp, 8);
+  _mm_storeu_si128(compressed + 0, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 2));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 48));
+  w0 = _mm_srli_epi64(tmp, 16);
+  _mm_storeu_si128(compressed + 1, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 3));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 40));
+  w1 = _mm_srli_epi64(tmp, 24);
+  _mm_storeu_si128(compressed + 2, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 4));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 32));
+  w0 = _mm_srli_epi64(tmp, 32);
+  _mm_storeu_si128(compressed + 3, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 5));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 24));
+  w1 = _mm_srli_epi64(tmp, 40);
+  _mm_storeu_si128(compressed + 4, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 6));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 16));
+  w0 = _mm_srli_epi64(tmp, 48);
+  _mm_storeu_si128(compressed + 5, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 7)), 8));
+  _mm_storeu_si128(compressed + 6, w0);
+  w1 = _mm_and_si128(mask, _mm_loadu_si128(in + 8));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 9));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 56));
+  w0 = _mm_srli_epi64(tmp, 8);
+  _mm_storeu_si128(compressed + 7, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 10));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 48));
+  w1 = _mm_srli_epi64(tmp, 16);
+  _mm_storeu_si128(compressed + 8, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 11));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 40));
+  w0 = _mm_srli_epi64(tmp, 24);
+  _mm_storeu_si128(compressed + 9, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 12));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 32));
+  w1 = _mm_srli_epi64(tmp, 32);
+  _mm_storeu_si128(compressed + 10, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 13));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 24));
+  w0 = _mm_srli_epi64(tmp, 40);
+  _mm_storeu_si128(compressed + 11, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 14));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 16));
+  w1 = _mm_srli_epi64(tmp, 48);
+  _mm_storeu_si128(compressed + 12, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 15)), 8));
+  _mm_storeu_si128(compressed + 13, w1);
+  w0 = _mm_and_si128(mask, _mm_loadu_si128(in + 16));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 17));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 56));
+  w1 = _mm_srli_epi64(tmp, 8);
+  _mm_storeu_si128(compressed + 14, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 18));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 48));
+  w0 = _mm_srli_epi64(tmp, 16);
+  _mm_storeu_si128(compressed + 15, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 19));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 40));
+  w1 = _mm_srli_epi64(tmp, 24);
+  _mm_storeu_si128(compressed + 16, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 20));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 32));
+  w0 = _mm_srli_epi64(tmp, 32);
+  _mm_storeu_si128(compressed + 17, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 21));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 24));
+  w1 = _mm_srli_epi64(tmp, 40);
+  _mm_storeu_si128(compressed + 18, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 22));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 16));
+  w0 = _mm_srli_epi64(tmp, 48);
+  _mm_storeu_si128(compressed + 19, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 23)), 8));
+  _mm_storeu_si128(compressed + 20, w0);
+  w1 = _mm_and_si128(mask, _mm_loadu_si128(in + 24));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 25));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 56));
+  w0 = _mm_srli_epi64(tmp, 8);
+  _mm_storeu_si128(compressed + 21, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 26));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 48));
+  w1 = _mm_srli_epi64(tmp, 16);
+  _mm_storeu_si128(compressed + 22, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 27));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 40));
+  w0 = _mm_srli_epi64(tmp, 24);
+  _mm_storeu_si128(compressed + 23, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 28));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 32));
+  w1 = _mm_srli_epi64(tmp, 32);
+  _mm_storeu_si128(compressed + 24, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 29));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 24));
+  w0 = _mm_srli_epi64(tmp, 40);
+  _mm_storeu_si128(compressed + 25, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 30));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 16));
+  w1 = _mm_srli_epi64(tmp, 48);
+  _mm_storeu_si128(compressed + 26, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 31)), 8));
+  _mm_storeu_si128(compressed + 27, w1);
+}
+
+/* we are going to pack 64 57-bit values, touching 29 128-bit words, using 464
+ * bytes */
+static void simdpackblockmask57(const u64 *pin, __m128i *compressed) {
+  /* we are going to touch  29 128-bit words */
+  __m128i w0, w1;
+  const __m128i *in = (const __m128i *)pin;
+  const __m128i mask = _mm_set1_epi64x(144115188075855871);
+  __m128i tmp; /* used to store inputs at word boundary */
+  w0 = _mm_and_si128(mask, _mm_loadu_si128(in + 0));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 1));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 57));
+  w1 = _mm_srli_epi64(tmp, 7);
+  _mm_storeu_si128(compressed + 0, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 2));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 50));
+  w0 = _mm_srli_epi64(tmp, 14);
+  _mm_storeu_si128(compressed + 1, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 3));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 43));
+  w1 = _mm_srli_epi64(tmp, 21);
+  _mm_storeu_si128(compressed + 2, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 4));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 36));
+  w0 = _mm_srli_epi64(tmp, 28);
+  _mm_storeu_si128(compressed + 3, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 5));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 29));
+  w1 = _mm_srli_epi64(tmp, 35);
+  _mm_storeu_si128(compressed + 4, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 6));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 22));
+  w0 = _mm_srli_epi64(tmp, 42);
+  _mm_storeu_si128(compressed + 5, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 7));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 15));
+  w1 = _mm_srli_epi64(tmp, 49);
+  _mm_storeu_si128(compressed + 6, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 8));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 8));
+  w0 = _mm_srli_epi64(tmp, 56);
+  _mm_storeu_si128(compressed + 7, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 9)), 1));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 10));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 58));
+  w1 = _mm_srli_epi64(tmp, 6);
+  _mm_storeu_si128(compressed + 8, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 11));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 51));
+  w0 = _mm_srli_epi64(tmp, 13);
+  _mm_storeu_si128(compressed + 9, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 12));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 44));
+  w1 = _mm_srli_epi64(tmp, 20);
+  _mm_storeu_si128(compressed + 10, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 13));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 37));
+  w0 = _mm_srli_epi64(tmp, 27);
+  _mm_storeu_si128(compressed + 11, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 14));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 30));
+  w1 = _mm_srli_epi64(tmp, 34);
+  _mm_storeu_si128(compressed + 12, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 15));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 23));
+  w0 = _mm_srli_epi64(tmp, 41);
+  _mm_storeu_si128(compressed + 13, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 16));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 16));
+  w1 = _mm_srli_epi64(tmp, 48);
+  _mm_storeu_si128(compressed + 14, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 17));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 9));
+  w0 = _mm_srli_epi64(tmp, 55);
+  _mm_storeu_si128(compressed + 15, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 18)), 2));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 19));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 59));
+  w1 = _mm_srli_epi64(tmp, 5);
+  _mm_storeu_si128(compressed + 16, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 20));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 52));
+  w0 = _mm_srli_epi64(tmp, 12);
+  _mm_storeu_si128(compressed + 17, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 21));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 45));
+  w1 = _mm_srli_epi64(tmp, 19);
+  _mm_storeu_si128(compressed + 18, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 22));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 38));
+  w0 = _mm_srli_epi64(tmp, 26);
+  _mm_storeu_si128(compressed + 19, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 23));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 31));
+  w1 = _mm_srli_epi64(tmp, 33);
+  _mm_storeu_si128(compressed + 20, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 24));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 24));
+  w0 = _mm_srli_epi64(tmp, 40);
+  _mm_storeu_si128(compressed + 21, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 25));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 17));
+  w1 = _mm_srli_epi64(tmp, 47);
+  _mm_storeu_si128(compressed + 22, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 26));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 10));
+  w0 = _mm_srli_epi64(tmp, 54);
+  _mm_storeu_si128(compressed + 23, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 27)), 3));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 28));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 60));
+  w1 = _mm_srli_epi64(tmp, 4);
+  _mm_storeu_si128(compressed + 24, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 29));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 53));
+  w0 = _mm_srli_epi64(tmp, 11);
+  _mm_storeu_si128(compressed + 25, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 30));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 46));
+  w1 = _mm_srli_epi64(tmp, 18);
+  _mm_storeu_si128(compressed + 26, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 31));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 39));
+  w0 = _mm_srli_epi64(tmp, 25);
+  _mm_storeu_si128(compressed + 28, w0);
+}
+
+/* we are going to pack 64 58-bit values, touching 29 128-bit words, using 464
+ * bytes */
+static void simdpackblockmask58(const u64 *pin, __m128i *compressed) {
+  /* we are going to touch  29 128-bit words */
+  __m128i w0, w1;
+  const __m128i *in = (const __m128i *)pin;
+  const __m128i mask = _mm_set1_epi64x(288230376151711743);
+  __m128i tmp; /* used to store inputs at word boundary */
+  w0 = _mm_and_si128(mask, _mm_loadu_si128(in + 0));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 1));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 58));
+  w1 = _mm_srli_epi64(tmp, 6);
+  _mm_storeu_si128(compressed + 0, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 2));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 52));
+  w0 = _mm_srli_epi64(tmp, 12);
+  _mm_storeu_si128(compressed + 1, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 3));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 46));
+  w1 = _mm_srli_epi64(tmp, 18);
+  _mm_storeu_si128(compressed + 2, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 4));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 40));
+  w0 = _mm_srli_epi64(tmp, 24);
+  _mm_storeu_si128(compressed + 3, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 5));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 34));
+  w1 = _mm_srli_epi64(tmp, 30);
+  _mm_storeu_si128(compressed + 4, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 6));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 28));
+  w0 = _mm_srli_epi64(tmp, 36);
+  _mm_storeu_si128(compressed + 5, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 7));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 22));
+  w1 = _mm_srli_epi64(tmp, 42);
+  _mm_storeu_si128(compressed + 6, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 8));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 16));
+  w0 = _mm_srli_epi64(tmp, 48);
+  _mm_storeu_si128(compressed + 7, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 9));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 10));
+  w1 = _mm_srli_epi64(tmp, 54);
+  _mm_storeu_si128(compressed + 8, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 10)), 4));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 11));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 62));
+  w0 = _mm_srli_epi64(tmp, 2);
+  _mm_storeu_si128(compressed + 9, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 12));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 56));
+  w1 = _mm_srli_epi64(tmp, 8);
+  _mm_storeu_si128(compressed + 10, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 13));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 50));
+  w0 = _mm_srli_epi64(tmp, 14);
+  _mm_storeu_si128(compressed + 11, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 14));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 44));
+  w1 = _mm_srli_epi64(tmp, 20);
+  _mm_storeu_si128(compressed + 12, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 15));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 38));
+  w0 = _mm_srli_epi64(tmp, 26);
+  _mm_storeu_si128(compressed + 13, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 16));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 32));
+  w1 = _mm_srli_epi64(tmp, 32);
+  _mm_storeu_si128(compressed + 14, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 17));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 26));
+  w0 = _mm_srli_epi64(tmp, 38);
+  _mm_storeu_si128(compressed + 15, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 18));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 20));
+  w1 = _mm_srli_epi64(tmp, 44);
+  _mm_storeu_si128(compressed + 16, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 19));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 14));
+  w0 = _mm_srli_epi64(tmp, 50);
+  _mm_storeu_si128(compressed + 17, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 20));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 8));
+  w1 = _mm_srli_epi64(tmp, 56);
+  _mm_storeu_si128(compressed + 18, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 21)), 2));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 22));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 60));
+  w0 = _mm_srli_epi64(tmp, 4);
+  _mm_storeu_si128(compressed + 19, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 23));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 54));
+  w1 = _mm_srli_epi64(tmp, 10);
+  _mm_storeu_si128(compressed + 20, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 24));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 48));
+  w0 = _mm_srli_epi64(tmp, 16);
+  _mm_storeu_si128(compressed + 21, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 25));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 42));
+  w1 = _mm_srli_epi64(tmp, 22);
+  _mm_storeu_si128(compressed + 22, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 26));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 36));
+  w0 = _mm_srli_epi64(tmp, 28);
+  _mm_storeu_si128(compressed + 23, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 27));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 30));
+  w1 = _mm_srli_epi64(tmp, 34);
+  _mm_storeu_si128(compressed + 24, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 28));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 24));
+  w0 = _mm_srli_epi64(tmp, 40);
+  _mm_storeu_si128(compressed + 25, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 29));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 18));
+  w1 = _mm_srli_epi64(tmp, 46);
+  _mm_storeu_si128(compressed + 26, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 30));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 12));
+  w0 = _mm_srli_epi64(tmp, 52);
+  _mm_storeu_si128(compressed + 27, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 31)), 6));
+  _mm_storeu_si128(compressed + 28, w0);
+}
+
+/* we are going to pack 64 59-bit values, touching 30 128-bit words, using 480
+ * bytes */
+static void simdpackblockmask59(const u64 *pin, __m128i *compressed) {
+  /* we are going to touch  30 128-bit words */
+  __m128i w0, w1;
+  const __m128i *in = (const __m128i *)pin;
+  const __m128i mask = _mm_set1_epi64x(576460752303423487);
+  __m128i tmp; /* used to store inputs at word boundary */
+  w0 = _mm_and_si128(mask, _mm_loadu_si128(in + 0));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 1));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 59));
+  w1 = _mm_srli_epi64(tmp, 5);
+  _mm_storeu_si128(compressed + 0, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 2));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 54));
+  w0 = _mm_srli_epi64(tmp, 10);
+  _mm_storeu_si128(compressed + 1, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 3));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 49));
+  w1 = _mm_srli_epi64(tmp, 15);
+  _mm_storeu_si128(compressed + 2, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 4));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 44));
+  w0 = _mm_srli_epi64(tmp, 20);
+  _mm_storeu_si128(compressed + 3, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 5));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 39));
+  w1 = _mm_srli_epi64(tmp, 25);
+  _mm_storeu_si128(compressed + 4, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 6));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 34));
+  w0 = _mm_srli_epi64(tmp, 30);
+  _mm_storeu_si128(compressed + 5, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 7));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 29));
+  w1 = _mm_srli_epi64(tmp, 35);
+  _mm_storeu_si128(compressed + 6, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 8));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 24));
+  w0 = _mm_srli_epi64(tmp, 40);
+  _mm_storeu_si128(compressed + 7, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 9));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 19));
+  w1 = _mm_srli_epi64(tmp, 45);
+  _mm_storeu_si128(compressed + 8, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 10));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 14));
+  w0 = _mm_srli_epi64(tmp, 50);
+  _mm_storeu_si128(compressed + 9, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 11));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 9));
+  w1 = _mm_srli_epi64(tmp, 55);
+  _mm_storeu_si128(compressed + 10, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 12)), 4));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 13));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 63));
+  w0 = _mm_srli_epi64(tmp, 1);
+  _mm_storeu_si128(compressed + 11, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 14));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 58));
+  w1 = _mm_srli_epi64(tmp, 6);
+  _mm_storeu_si128(compressed + 12, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 15));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 53));
+  w0 = _mm_srli_epi64(tmp, 11);
+  _mm_storeu_si128(compressed + 13, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 16));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 48));
+  w1 = _mm_srli_epi64(tmp, 16);
+  _mm_storeu_si128(compressed + 14, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 17));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 43));
+  w0 = _mm_srli_epi64(tmp, 21);
+  _mm_storeu_si128(compressed + 15, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 18));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 38));
+  w1 = _mm_srli_epi64(tmp, 26);
+  _mm_storeu_si128(compressed + 16, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 19));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 33));
+  w0 = _mm_srli_epi64(tmp, 31);
+  _mm_storeu_si128(compressed + 17, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 20));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 28));
+  w1 = _mm_srli_epi64(tmp, 36);
+  _mm_storeu_si128(compressed + 18, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 21));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 23));
+  w0 = _mm_srli_epi64(tmp, 41);
+  _mm_storeu_si128(compressed + 19, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 22));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 18));
+  w1 = _mm_srli_epi64(tmp, 46);
+  _mm_storeu_si128(compressed + 20, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 23));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 13));
+  w0 = _mm_srli_epi64(tmp, 51);
+  _mm_storeu_si128(compressed + 21, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 24));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 8));
+  w1 = _mm_srli_epi64(tmp, 56);
+  _mm_storeu_si128(compressed + 22, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 25)), 3));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 26));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 62));
+  w0 = _mm_srli_epi64(tmp, 2);
+  _mm_storeu_si128(compressed + 23, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 27));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 57));
+  w1 = _mm_srli_epi64(tmp, 7);
+  _mm_storeu_si128(compressed + 24, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 28));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 52));
+  w0 = _mm_srli_epi64(tmp, 12);
+  _mm_storeu_si128(compressed + 25, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 29));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 47));
+  w1 = _mm_srli_epi64(tmp, 17);
+  _mm_storeu_si128(compressed + 26, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 30));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 42));
+  w0 = _mm_srli_epi64(tmp, 22);
+  _mm_storeu_si128(compressed + 27, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 31));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 37));
+  w1 = _mm_srli_epi64(tmp, 27);
+  _mm_storeu_si128(compressed + 29, w1);
+}
+
+/* we are going to pack 64 60-bit values, touching 30 128-bit words, using 480
+ * bytes */
+static void simdpackblockmask60(const u64 *pin, __m128i *compressed) {
+  /* we are going to touch  30 128-bit words */
+  __m128i w0, w1;
+  const __m128i *in = (const __m128i *)pin;
+  const __m128i mask = _mm_set1_epi64x(1152921504606846975);
+  __m128i tmp; /* used to store inputs at word boundary */
+  w0 = _mm_and_si128(mask, _mm_loadu_si128(in + 0));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 1));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 60));
+  w1 = _mm_srli_epi64(tmp, 4);
+  _mm_storeu_si128(compressed + 0, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 2));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 56));
+  w0 = _mm_srli_epi64(tmp, 8);
+  _mm_storeu_si128(compressed + 1, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 3));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 52));
+  w1 = _mm_srli_epi64(tmp, 12);
+  _mm_storeu_si128(compressed + 2, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 4));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 48));
+  w0 = _mm_srli_epi64(tmp, 16);
+  _mm_storeu_si128(compressed + 3, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 5));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 44));
+  w1 = _mm_srli_epi64(tmp, 20);
+  _mm_storeu_si128(compressed + 4, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 6));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 40));
+  w0 = _mm_srli_epi64(tmp, 24);
+  _mm_storeu_si128(compressed + 5, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 7));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 36));
+  w1 = _mm_srli_epi64(tmp, 28);
+  _mm_storeu_si128(compressed + 6, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 8));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 32));
+  w0 = _mm_srli_epi64(tmp, 32);
+  _mm_storeu_si128(compressed + 7, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 9));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 28));
+  w1 = _mm_srli_epi64(tmp, 36);
+  _mm_storeu_si128(compressed + 8, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 10));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 24));
+  w0 = _mm_srli_epi64(tmp, 40);
+  _mm_storeu_si128(compressed + 9, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 11));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 20));
+  w1 = _mm_srli_epi64(tmp, 44);
+  _mm_storeu_si128(compressed + 10, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 12));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 16));
+  w0 = _mm_srli_epi64(tmp, 48);
+  _mm_storeu_si128(compressed + 11, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 13));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 12));
+  w1 = _mm_srli_epi64(tmp, 52);
+  _mm_storeu_si128(compressed + 12, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 14));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 8));
+  w0 = _mm_srli_epi64(tmp, 56);
+  _mm_storeu_si128(compressed + 13, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 15)), 4));
+  _mm_storeu_si128(compressed + 14, w0);
+  w1 = _mm_and_si128(mask, _mm_loadu_si128(in + 16));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 17));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 60));
+  w0 = _mm_srli_epi64(tmp, 4);
+  _mm_storeu_si128(compressed + 15, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 18));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 56));
+  w1 = _mm_srli_epi64(tmp, 8);
+  _mm_storeu_si128(compressed + 16, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 19));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 52));
+  w0 = _mm_srli_epi64(tmp, 12);
+  _mm_storeu_si128(compressed + 17, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 20));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 48));
+  w1 = _mm_srli_epi64(tmp, 16);
+  _mm_storeu_si128(compressed + 18, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 21));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 44));
+  w0 = _mm_srli_epi64(tmp, 20);
+  _mm_storeu_si128(compressed + 19, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 22));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 40));
+  w1 = _mm_srli_epi64(tmp, 24);
+  _mm_storeu_si128(compressed + 20, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 23));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 36));
+  w0 = _mm_srli_epi64(tmp, 28);
+  _mm_storeu_si128(compressed + 21, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 24));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 32));
+  w1 = _mm_srli_epi64(tmp, 32);
+  _mm_storeu_si128(compressed + 22, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 25));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 28));
+  w0 = _mm_srli_epi64(tmp, 36);
+  _mm_storeu_si128(compressed + 23, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 26));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 24));
+  w1 = _mm_srli_epi64(tmp, 40);
+  _mm_storeu_si128(compressed + 24, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 27));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 20));
+  w0 = _mm_srli_epi64(tmp, 44);
+  _mm_storeu_si128(compressed + 25, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 28));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 16));
+  w1 = _mm_srli_epi64(tmp, 48);
+  _mm_storeu_si128(compressed + 26, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 29));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 12));
+  w0 = _mm_srli_epi64(tmp, 52);
+  _mm_storeu_si128(compressed + 27, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 30));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 8));
+  w1 = _mm_srli_epi64(tmp, 56);
+  _mm_storeu_si128(compressed + 28, w0);
+  w1 = _mm_or_si128(
+      w1, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 31)), 4));
+  _mm_storeu_si128(compressed + 29, w1);
+}
+
+/* we are going to pack 64 61-bit values, touching 31 128-bit words, using 496
+ * bytes */
+static void simdpackblockmask61(const u64 *pin, __m128i *compressed) {
+  /* we are going to touch  31 128-bit words */
+  __m128i w0, w1;
+  const __m128i *in = (const __m128i *)pin;
+  const __m128i mask = _mm_set1_epi64x(2305843009213693951);
+  __m128i tmp; /* used to store inputs at word boundary */
+  w0 = _mm_and_si128(mask, _mm_loadu_si128(in + 0));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 1));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 61));
+  w1 = _mm_srli_epi64(tmp, 3);
+  _mm_storeu_si128(compressed + 0, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 2));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 58));
+  w0 = _mm_srli_epi64(tmp, 6);
+  _mm_storeu_si128(compressed + 1, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 3));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 55));
+  w1 = _mm_srli_epi64(tmp, 9);
+  _mm_storeu_si128(compressed + 2, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 4));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 52));
+  w0 = _mm_srli_epi64(tmp, 12);
+  _mm_storeu_si128(compressed + 3, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 5));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 49));
+  w1 = _mm_srli_epi64(tmp, 15);
+  _mm_storeu_si128(compressed + 4, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 6));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 46));
+  w0 = _mm_srli_epi64(tmp, 18);
+  _mm_storeu_si128(compressed + 5, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 7));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 43));
+  w1 = _mm_srli_epi64(tmp, 21);
+  _mm_storeu_si128(compressed + 6, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 8));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 40));
+  w0 = _mm_srli_epi64(tmp, 24);
+  _mm_storeu_si128(compressed + 7, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 9));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 37));
+  w1 = _mm_srli_epi64(tmp, 27);
+  _mm_storeu_si128(compressed + 8, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 10));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 34));
+  w0 = _mm_srli_epi64(tmp, 30);
+  _mm_storeu_si128(compressed + 9, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 11));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 31));
+  w1 = _mm_srli_epi64(tmp, 33);
+  _mm_storeu_si128(compressed + 10, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 12));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 28));
+  w0 = _mm_srli_epi64(tmp, 36);
+  _mm_storeu_si128(compressed + 11, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 13));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 25));
+  w1 = _mm_srli_epi64(tmp, 39);
+  _mm_storeu_si128(compressed + 12, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 14));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 22));
+  w0 = _mm_srli_epi64(tmp, 42);
+  _mm_storeu_si128(compressed + 13, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 15));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 19));
+  w1 = _mm_srli_epi64(tmp, 45);
+  _mm_storeu_si128(compressed + 14, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 16));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 16));
+  w0 = _mm_srli_epi64(tmp, 48);
+  _mm_storeu_si128(compressed + 15, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 17));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 13));
+  w1 = _mm_srli_epi64(tmp, 51);
+  _mm_storeu_si128(compressed + 16, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 18));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 10));
+  w0 = _mm_srli_epi64(tmp, 54);
+  _mm_storeu_si128(compressed + 17, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 19));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 7));
+  w1 = _mm_srli_epi64(tmp, 57);
+  _mm_storeu_si128(compressed + 18, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 20));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 4));
+  w0 = _mm_srli_epi64(tmp, 60);
+  _mm_storeu_si128(compressed + 19, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 21)), 1));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 22));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 62));
+  w1 = _mm_srli_epi64(tmp, 2);
+  _mm_storeu_si128(compressed + 20, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 23));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 59));
+  w0 = _mm_srli_epi64(tmp, 5);
+  _mm_storeu_si128(compressed + 21, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 24));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 56));
+  w1 = _mm_srli_epi64(tmp, 8);
+  _mm_storeu_si128(compressed + 22, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 25));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 53));
+  w0 = _mm_srli_epi64(tmp, 11);
+  _mm_storeu_si128(compressed + 23, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 26));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 50));
+  w1 = _mm_srli_epi64(tmp, 14);
+  _mm_storeu_si128(compressed + 24, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 27));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 47));
+  w0 = _mm_srli_epi64(tmp, 17);
+  _mm_storeu_si128(compressed + 25, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 28));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 44));
+  w1 = _mm_srli_epi64(tmp, 20);
+  _mm_storeu_si128(compressed + 26, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 29));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 41));
+  w0 = _mm_srli_epi64(tmp, 23);
+  _mm_storeu_si128(compressed + 27, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 30));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 38));
+  w1 = _mm_srli_epi64(tmp, 26);
+  _mm_storeu_si128(compressed + 28, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 31));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 35));
+  w0 = _mm_srli_epi64(tmp, 29);
+  _mm_storeu_si128(compressed + 30, w0);
+}
+
+/* we are going to pack 64 62-bit values, touching 31 128-bit words, using 496
+ * bytes */
+static void simdpackblockmask62(const u64 *pin, __m128i *compressed) {
+  /* we are going to touch  31 128-bit words */
+  __m128i w0, w1;
+  const __m128i *in = (const __m128i *)pin;
+  const __m128i mask = _mm_set1_epi64x(4611686018427387903);
+  __m128i tmp; /* used to store inputs at word boundary */
+  w0 = _mm_and_si128(mask, _mm_loadu_si128(in + 0));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 1));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 62));
+  w1 = _mm_srli_epi64(tmp, 2);
+  _mm_storeu_si128(compressed + 0, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 2));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 60));
+  w0 = _mm_srli_epi64(tmp, 4);
+  _mm_storeu_si128(compressed + 1, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 3));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 58));
+  w1 = _mm_srli_epi64(tmp, 6);
+  _mm_storeu_si128(compressed + 2, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 4));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 56));
+  w0 = _mm_srli_epi64(tmp, 8);
+  _mm_storeu_si128(compressed + 3, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 5));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 54));
+  w1 = _mm_srli_epi64(tmp, 10);
+  _mm_storeu_si128(compressed + 4, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 6));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 52));
+  w0 = _mm_srli_epi64(tmp, 12);
+  _mm_storeu_si128(compressed + 5, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 7));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 50));
+  w1 = _mm_srli_epi64(tmp, 14);
+  _mm_storeu_si128(compressed + 6, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 8));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 48));
+  w0 = _mm_srli_epi64(tmp, 16);
+  _mm_storeu_si128(compressed + 7, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 9));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 46));
+  w1 = _mm_srli_epi64(tmp, 18);
+  _mm_storeu_si128(compressed + 8, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 10));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 44));
+  w0 = _mm_srli_epi64(tmp, 20);
+  _mm_storeu_si128(compressed + 9, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 11));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 42));
+  w1 = _mm_srli_epi64(tmp, 22);
+  _mm_storeu_si128(compressed + 10, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 12));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 40));
+  w0 = _mm_srli_epi64(tmp, 24);
+  _mm_storeu_si128(compressed + 11, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 13));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 38));
+  w1 = _mm_srli_epi64(tmp, 26);
+  _mm_storeu_si128(compressed + 12, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 14));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 36));
+  w0 = _mm_srli_epi64(tmp, 28);
+  _mm_storeu_si128(compressed + 13, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 15));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 34));
+  w1 = _mm_srli_epi64(tmp, 30);
+  _mm_storeu_si128(compressed + 14, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 16));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 32));
+  w0 = _mm_srli_epi64(tmp, 32);
+  _mm_storeu_si128(compressed + 15, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 17));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 30));
+  w1 = _mm_srli_epi64(tmp, 34);
+  _mm_storeu_si128(compressed + 16, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 18));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 28));
+  w0 = _mm_srli_epi64(tmp, 36);
+  _mm_storeu_si128(compressed + 17, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 19));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 26));
+  w1 = _mm_srli_epi64(tmp, 38);
+  _mm_storeu_si128(compressed + 18, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 20));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 24));
+  w0 = _mm_srli_epi64(tmp, 40);
+  _mm_storeu_si128(compressed + 19, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 21));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 22));
+  w1 = _mm_srli_epi64(tmp, 42);
+  _mm_storeu_si128(compressed + 20, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 22));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 20));
+  w0 = _mm_srli_epi64(tmp, 44);
+  _mm_storeu_si128(compressed + 21, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 23));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 18));
+  w1 = _mm_srli_epi64(tmp, 46);
+  _mm_storeu_si128(compressed + 22, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 24));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 16));
+  w0 = _mm_srli_epi64(tmp, 48);
+  _mm_storeu_si128(compressed + 23, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 25));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 14));
+  w1 = _mm_srli_epi64(tmp, 50);
+  _mm_storeu_si128(compressed + 24, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 26));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 12));
+  w0 = _mm_srli_epi64(tmp, 52);
+  _mm_storeu_si128(compressed + 25, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 27));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 10));
+  w1 = _mm_srli_epi64(tmp, 54);
+  _mm_storeu_si128(compressed + 26, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 28));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 8));
+  w0 = _mm_srli_epi64(tmp, 56);
+  _mm_storeu_si128(compressed + 27, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 29));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 6));
+  w1 = _mm_srli_epi64(tmp, 58);
+  _mm_storeu_si128(compressed + 28, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 30));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 4));
+  w0 = _mm_srli_epi64(tmp, 60);
+  _mm_storeu_si128(compressed + 29, w1);
+  w0 = _mm_or_si128(
+      w0, _mm_slli_epi64(_mm_and_si128(mask, _mm_loadu_si128(in + 31)), 2));
+  _mm_storeu_si128(compressed + 30, w0);
+}
+
+/* we are going to pack 64 63-bit values, touching 32 128-bit words, using 512
+ * bytes */
+static void simdpackblockmask63(const u64 *pin, __m128i *compressed) {
+  /* we are going to touch  32 128-bit words */
+  __m128i w0, w1;
+  const __m128i *in = (const __m128i *)pin;
+  const __m128i mask = _mm_set1_epi64x(9223372036854775807);
+  __m128i tmp; /* used to store inputs at word boundary */
+  w0 = _mm_and_si128(mask, _mm_loadu_si128(in + 0));
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 1));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 63));
+  w1 = _mm_srli_epi64(tmp, 1);
+  _mm_storeu_si128(compressed + 0, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 2));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 62));
+  w0 = _mm_srli_epi64(tmp, 2);
+  _mm_storeu_si128(compressed + 1, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 3));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 61));
+  w1 = _mm_srli_epi64(tmp, 3);
+  _mm_storeu_si128(compressed + 2, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 4));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 60));
+  w0 = _mm_srli_epi64(tmp, 4);
+  _mm_storeu_si128(compressed + 3, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 5));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 59));
+  w1 = _mm_srli_epi64(tmp, 5);
+  _mm_storeu_si128(compressed + 4, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 6));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 58));
+  w0 = _mm_srli_epi64(tmp, 6);
+  _mm_storeu_si128(compressed + 5, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 7));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 57));
+  w1 = _mm_srli_epi64(tmp, 7);
+  _mm_storeu_si128(compressed + 6, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 8));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 56));
+  w0 = _mm_srli_epi64(tmp, 8);
+  _mm_storeu_si128(compressed + 7, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 9));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 55));
+  w1 = _mm_srli_epi64(tmp, 9);
+  _mm_storeu_si128(compressed + 8, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 10));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 54));
+  w0 = _mm_srli_epi64(tmp, 10);
+  _mm_storeu_si128(compressed + 9, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 11));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 53));
+  w1 = _mm_srli_epi64(tmp, 11);
+  _mm_storeu_si128(compressed + 10, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 12));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 52));
+  w0 = _mm_srli_epi64(tmp, 12);
+  _mm_storeu_si128(compressed + 11, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 13));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 51));
+  w1 = _mm_srli_epi64(tmp, 13);
+  _mm_storeu_si128(compressed + 12, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 14));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 50));
+  w0 = _mm_srli_epi64(tmp, 14);
+  _mm_storeu_si128(compressed + 13, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 15));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 49));
+  w1 = _mm_srli_epi64(tmp, 15);
+  _mm_storeu_si128(compressed + 14, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 16));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 48));
+  w0 = _mm_srli_epi64(tmp, 16);
+  _mm_storeu_si128(compressed + 15, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 17));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 47));
+  w1 = _mm_srli_epi64(tmp, 17);
+  _mm_storeu_si128(compressed + 16, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 18));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 46));
+  w0 = _mm_srli_epi64(tmp, 18);
+  _mm_storeu_si128(compressed + 17, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 19));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 45));
+  w1 = _mm_srli_epi64(tmp, 19);
+  _mm_storeu_si128(compressed + 18, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 20));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 44));
+  w0 = _mm_srli_epi64(tmp, 20);
+  _mm_storeu_si128(compressed + 19, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 21));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 43));
+  w1 = _mm_srli_epi64(tmp, 21);
+  _mm_storeu_si128(compressed + 20, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 22));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 42));
+  w0 = _mm_srli_epi64(tmp, 22);
+  _mm_storeu_si128(compressed + 21, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 23));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 41));
+  w1 = _mm_srli_epi64(tmp, 23);
+  _mm_storeu_si128(compressed + 22, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 24));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 40));
+  w0 = _mm_srli_epi64(tmp, 24);
+  _mm_storeu_si128(compressed + 23, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 25));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 39));
+  w1 = _mm_srli_epi64(tmp, 25);
+  _mm_storeu_si128(compressed + 24, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 26));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 38));
+  w0 = _mm_srli_epi64(tmp, 26);
+  _mm_storeu_si128(compressed + 25, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 27));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 37));
+  w1 = _mm_srli_epi64(tmp, 27);
+  _mm_storeu_si128(compressed + 26, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 28));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 36));
+  w0 = _mm_srli_epi64(tmp, 28);
+  _mm_storeu_si128(compressed + 27, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 29));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 35));
+  w1 = _mm_srli_epi64(tmp, 29);
+  _mm_storeu_si128(compressed + 28, w0);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 30));
+  w1 = _mm_or_si128(w1, _mm_slli_epi64(tmp, 34));
+  w0 = _mm_srli_epi64(tmp, 30);
+  _mm_storeu_si128(compressed + 29, w1);
+  tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 31));
+  w0 = _mm_or_si128(w0, _mm_slli_epi64(tmp, 33));
+  w1 = _mm_srli_epi64(tmp, 31);
+  _mm_storeu_si128(compressed + 31, w1);
+}
+
+/* we are going to pack 64 64-bit values, touching 32 128-bit words, using 512
+ * bytes */
+static void simdpackblockmask64(const u64 *pin, __m128i *compressed) {
+  /* we are going to touch  32 128-bit words */
+  __m128i w0, w1;
+  const __m128i *in = (const __m128i *)pin;
+  w0 = _mm_loadu_si128(in + 0);
+  _mm_storeu_si128(compressed + 0, w0);
+  w1 = _mm_loadu_si128(in + 1);
+  _mm_storeu_si128(compressed + 1, w1);
+  w0 = _mm_loadu_si128(in + 2);
+  _mm_storeu_si128(compressed + 2, w0);
+  w1 = _mm_loadu_si128(in + 3);
+  _mm_storeu_si128(compressed + 3, w1);
+  w0 = _mm_loadu_si128(in + 4);
+  _mm_storeu_si128(compressed + 4, w0);
+  w1 = _mm_loadu_si128(in + 5);
+  _mm_storeu_si128(compressed + 5, w1);
+  w0 = _mm_loadu_si128(in + 6);
+  _mm_storeu_si128(compressed + 6, w0);
+  w1 = _mm_loadu_si128(in + 7);
+  _mm_storeu_si128(compressed + 7, w1);
+  w0 = _mm_loadu_si128(in + 8);
+  _mm_storeu_si128(compressed + 8, w0);
+  w1 = _mm_loadu_si128(in + 9);
+  _mm_storeu_si128(compressed + 9, w1);
+  w0 = _mm_loadu_si128(in + 10);
+  _mm_storeu_si128(compressed + 10, w0);
+  w1 = _mm_loadu_si128(in + 11);
+  _mm_storeu_si128(compressed + 11, w1);
+  w0 = _mm_loadu_si128(in + 12);
+  _mm_storeu_si128(compressed + 12, w0);
+  w1 = _mm_loadu_si128(in + 13);
+  _mm_storeu_si128(compressed + 13, w1);
+  w0 = _mm_loadu_si128(in + 14);
+  _mm_storeu_si128(compressed + 14, w0);
+  w1 = _mm_loadu_si128(in + 15);
+  _mm_storeu_si128(compressed + 15, w1);
+  w0 = _mm_loadu_si128(in + 16);
+  _mm_storeu_si128(compressed + 16, w0);
+  w1 = _mm_loadu_si128(in + 17);
+  _mm_storeu_si128(compressed + 17, w1);
+  w0 = _mm_loadu_si128(in + 18);
+  _mm_storeu_si128(compressed + 18, w0);
+  w1 = _mm_loadu_si128(in + 19);
+  _mm_storeu_si128(compressed + 19, w1);
+  w0 = _mm_loadu_si128(in + 20);
+  _mm_storeu_si128(compressed + 20, w0);
+  w1 = _mm_loadu_si128(in + 21);
+  _mm_storeu_si128(compressed + 21, w1);
+  w0 = _mm_loadu_si128(in + 22);
+  _mm_storeu_si128(compressed + 22, w0);
+  w1 = _mm_loadu_si128(in + 23);
+  _mm_storeu_si128(compressed + 23, w1);
+  w0 = _mm_loadu_si128(in + 24);
+  _mm_storeu_si128(compressed + 24, w0);
+  w1 = _mm_loadu_si128(in + 25);
+  _mm_storeu_si128(compressed + 25, w1);
+  w0 = _mm_loadu_si128(in + 26);
+  _mm_storeu_si128(compressed + 26, w0);
+  w1 = _mm_loadu_si128(in + 27);
+  _mm_storeu_si128(compressed + 27, w1);
+  w0 = _mm_loadu_si128(in + 28);
+  _mm_storeu_si128(compressed + 28, w0);
+  w1 = _mm_loadu_si128(in + 29);
+  _mm_storeu_si128(compressed + 29, w1);
+  w0 = _mm_loadu_si128(in + 30);
+  _mm_storeu_si128(compressed + 30, w0);
+  w1 = _mm_loadu_si128(in + 31);
+  _mm_storeu_si128(compressed + 31, w1);
+}
+
+static void simdunpackblock0(const __m128i *compressed, u64 *pout) {
+  (void)compressed;
+  memset(pout, 0, 64);
+}
+
+/* we packed 64 1-bit values, touching 1 128-bit words, using 16 bytes */
+static void simdunpackblock1(const __m128i *compressed, u64 *pout) {
+  /* we are going to access  1 128-bit word */
+  __m128i w0;
+  __m128i *out = (__m128i *)pout;
+  const __m128i mask = _mm_set1_epi64x(1);
+  w0 = _mm_loadu_si128(compressed);
+  _mm_storeu_si128(out + 0, _mm_and_si128(mask, w0));
+  _mm_storeu_si128(out + 1, _mm_and_si128(mask, _mm_srli_epi64(w0, 1)));
+  _mm_storeu_si128(out + 2, _mm_and_si128(mask, _mm_srli_epi64(w0, 2)));
+  _mm_storeu_si128(out + 3, _mm_and_si128(mask, _mm_srli_epi64(w0, 3)));
+  _mm_storeu_si128(out + 4, _mm_and_si128(mask, _mm_srli_epi64(w0, 4)));
+  _mm_storeu_si128(out + 5, _mm_and_si128(mask, _mm_srli_epi64(w0, 5)));
+  _mm_storeu_si128(out + 6, _mm_and_si128(mask, _mm_srli_epi64(w0, 6)));
+  _mm_storeu_si128(out + 7, _mm_and_si128(mask, _mm_srli_epi64(w0, 7)));
+  _mm_storeu_si128(out + 8, _mm_and_si128(mask, _mm_srli_epi64(w0, 8)));
+  _mm_storeu_si128(out + 9, _mm_and_si128(mask, _mm_srli_epi64(w0, 9)));
+  _mm_storeu_si128(out + 10, _mm_and_si128(mask, _mm_srli_epi64(w0, 10)));
+  _mm_storeu_si128(out + 11, _mm_and_si128(mask, _mm_srli_epi64(w0, 11)));
+  _mm_storeu_si128(out + 12, _mm_and_si128(mask, _mm_srli_epi64(w0, 12)));
+  _mm_storeu_si128(out + 13, _mm_and_si128(mask, _mm_srli_epi64(w0, 13)));
+  _mm_storeu_si128(out + 14, _mm_and_si128(mask, _mm_srli_epi64(w0, 14)));
+  _mm_storeu_si128(out + 15, _mm_and_si128(mask, _mm_srli_epi64(w0, 15)));
+  _mm_storeu_si128(out + 16, _mm_and_si128(mask, _mm_srli_epi64(w0, 16)));
+  _mm_storeu_si128(out + 17, _mm_and_si128(mask, _mm_srli_epi64(w0, 17)));
+  _mm_storeu_si128(out + 18, _mm_and_si128(mask, _mm_srli_epi64(w0, 18)));
+  _mm_storeu_si128(out + 19, _mm_and_si128(mask, _mm_srli_epi64(w0, 19)));
+  _mm_storeu_si128(out + 20, _mm_and_si128(mask, _mm_srli_epi64(w0, 20)));
+  _mm_storeu_si128(out + 21, _mm_and_si128(mask, _mm_srli_epi64(w0, 21)));
+  _mm_storeu_si128(out + 22, _mm_and_si128(mask, _mm_srli_epi64(w0, 22)));
+  _mm_storeu_si128(out + 23, _mm_and_si128(mask, _mm_srli_epi64(w0, 23)));
+  _mm_storeu_si128(out + 24, _mm_and_si128(mask, _mm_srli_epi64(w0, 24)));
+  _mm_storeu_si128(out + 25, _mm_and_si128(mask, _mm_srli_epi64(w0, 25)));
+  _mm_storeu_si128(out + 26, _mm_and_si128(mask, _mm_srli_epi64(w0, 26)));
+  _mm_storeu_si128(out + 27, _mm_and_si128(mask, _mm_srli_epi64(w0, 27)));
+  _mm_storeu_si128(out + 28, _mm_and_si128(mask, _mm_srli_epi64(w0, 28)));
+  _mm_storeu_si128(out + 29, _mm_and_si128(mask, _mm_srli_epi64(w0, 29)));
+  _mm_storeu_si128(out + 30, _mm_and_si128(mask, _mm_srli_epi64(w0, 30)));
+  _mm_storeu_si128(out + 31, _mm_and_si128(mask, _mm_srli_epi64(w0, 31)));
+}
+
+/* we packed 64 2-bit values, touching 1 128-bit words, using 16 bytes */
+static void simdunpackblock2(const __m128i *compressed, u64 *pout) {
+  /* we are going to access  1 128-bit word */
+  __m128i w0;
+  __m128i *out = (__m128i *)pout;
+  const __m128i mask = _mm_set1_epi64x(3);
+  w0 = _mm_loadu_si128(compressed);
+  _mm_storeu_si128(out + 0, _mm_and_si128(mask, w0));
+  _mm_storeu_si128(out + 1, _mm_and_si128(mask, _mm_srli_epi64(w0, 2)));
+  _mm_storeu_si128(out + 2, _mm_and_si128(mask, _mm_srli_epi64(w0, 4)));
+  _mm_storeu_si128(out + 3, _mm_and_si128(mask, _mm_srli_epi64(w0, 6)));
+  _mm_storeu_si128(out + 4, _mm_and_si128(mask, _mm_srli_epi64(w0, 8)));
+  _mm_storeu_si128(out + 5, _mm_and_si128(mask, _mm_srli_epi64(w0, 10)));
+  _mm_storeu_si128(out + 6, _mm_and_si128(mask, _mm_srli_epi64(w0, 12)));
+  _mm_storeu_si128(out + 7, _mm_and_si128(mask, _mm_srli_epi64(w0, 14)));
+  _mm_storeu_si128(out + 8, _mm_and_si128(mask, _mm_srli_epi64(w0, 16)));
+  _mm_storeu_si128(out + 9, _mm_and_si128(mask, _mm_srli_epi64(w0, 18)));
+  _mm_storeu_si128(out + 10, _mm_and_si128(mask, _mm_srli_epi64(w0, 20)));
+  _mm_storeu_si128(out + 11, _mm_and_si128(mask, _mm_srli_epi64(w0, 22)));
+  _mm_storeu_si128(out + 12, _mm_and_si128(mask, _mm_srli_epi64(w0, 24)));
+  _mm_storeu_si128(out + 13, _mm_and_si128(mask, _mm_srli_epi64(w0, 26)));
+  _mm_storeu_si128(out + 14, _mm_and_si128(mask, _mm_srli_epi64(w0, 28)));
+  _mm_storeu_si128(out + 15, _mm_and_si128(mask, _mm_srli_epi64(w0, 30)));
+  _mm_storeu_si128(out + 16, _mm_and_si128(mask, _mm_srli_epi64(w0, 32)));
+  _mm_storeu_si128(out + 17, _mm_and_si128(mask, _mm_srli_epi64(w0, 34)));
+  _mm_storeu_si128(out + 18, _mm_and_si128(mask, _mm_srli_epi64(w0, 36)));
+  _mm_storeu_si128(out + 19, _mm_and_si128(mask, _mm_srli_epi64(w0, 38)));
+  _mm_storeu_si128(out + 20, _mm_and_si128(mask, _mm_srli_epi64(w0, 40)));
+  _mm_storeu_si128(out + 21, _mm_and_si128(mask, _mm_srli_epi64(w0, 42)));
+  _mm_storeu_si128(out + 22, _mm_and_si128(mask, _mm_srli_epi64(w0, 44)));
+  _mm_storeu_si128(out + 23, _mm_and_si128(mask, _mm_srli_epi64(w0, 46)));
+  _mm_storeu_si128(out + 24, _mm_and_si128(mask, _mm_srli_epi64(w0, 48)));
+  _mm_storeu_si128(out + 25, _mm_and_si128(mask, _mm_srli_epi64(w0, 50)));
+  _mm_storeu_si128(out + 26, _mm_and_si128(mask, _mm_srli_epi64(w0, 52)));
+  _mm_storeu_si128(out + 27, _mm_and_si128(mask, _mm_srli_epi64(w0, 54)));
+  _mm_storeu_si128(out + 28, _mm_and_si128(mask, _mm_srli_epi64(w0, 56)));
+  _mm_storeu_si128(out + 29, _mm_and_si128(mask, _mm_srli_epi64(w0, 58)));
+  _mm_storeu_si128(out + 30, _mm_and_si128(mask, _mm_srli_epi64(w0, 60)));
+  _mm_storeu_si128(out + 31, _mm_srli_epi64(w0, 62));
+}
+
+/* we packed 64 3-bit values, touching 2 128-bit words, using 32 bytes */
+static void simdunpackblock3(const __m128i *compressed, u64 *pout) {
+  /* we are going to access  2 128-bit words */
+  __m128i w0, w1;
+  __m128i *out = (__m128i *)pout;
+  const __m128i mask = _mm_set1_epi64x(7);
+  w0 = _mm_loadu_si128(compressed);
+  _mm_storeu_si128(out + 0, _mm_and_si128(mask, w0));
+  _mm_storeu_si128(out + 1, _mm_and_si128(mask, _mm_srli_epi64(w0, 3)));
+  _mm_storeu_si128(out + 2, _mm_and_si128(mask, _mm_srli_epi64(w0, 6)));
+  _mm_storeu_si128(out + 3, _mm_and_si128(mask, _mm_srli_epi64(w0, 9)));
+  _mm_storeu_si128(out + 4, _mm_and_si128(mask, _mm_srli_epi64(w0, 12)));
+  _mm_storeu_si128(out + 5, _mm_and_si128(mask, _mm_srli_epi64(w0, 15)));
+  _mm_storeu_si128(out + 6, _mm_and_si128(mask, _mm_srli_epi64(w0, 18)));
+  _mm_storeu_si128(out + 7, _mm_and_si128(mask, _mm_srli_epi64(w0, 21)));
+  _mm_storeu_si128(out + 8, _mm_and_si128(mask, _mm_srli_epi64(w0, 24)));
+  _mm_storeu_si128(out + 9, _mm_and_si128(mask, _mm_srli_epi64(w0, 27)));
+  _mm_storeu_si128(out + 10, _mm_and_si128(mask, _mm_srli_epi64(w0, 30)));
+  _mm_storeu_si128(out + 11, _mm_and_si128(mask, _mm_srli_epi64(w0, 33)));
+  _mm_storeu_si128(out + 12, _mm_and_si128(mask, _mm_srli_epi64(w0, 36)));
+  _mm_storeu_si128(out + 13, _mm_and_si128(mask, _mm_srli_epi64(w0, 39)));
+  _mm_storeu_si128(out + 14, _mm_and_si128(mask, _mm_srli_epi64(w0, 42)));
+  _mm_storeu_si128(out + 15, _mm_and_si128(mask, _mm_srli_epi64(w0, 45)));
+  _mm_storeu_si128(out + 16, _mm_and_si128(mask, _mm_srli_epi64(w0, 48)));
+  _mm_storeu_si128(out + 17, _mm_and_si128(mask, _mm_srli_epi64(w0, 51)));
+  _mm_storeu_si128(out + 18, _mm_and_si128(mask, _mm_srli_epi64(w0, 54)));
+  _mm_storeu_si128(out + 19, _mm_and_si128(mask, _mm_srli_epi64(w0, 57)));
+  _mm_storeu_si128(out + 20, _mm_and_si128(mask, _mm_srli_epi64(w0, 60)));
+  w1 = _mm_loadu_si128(compressed + 1);
+  _mm_storeu_si128(out + 21,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 63),
+                                                    _mm_slli_epi64(w1, 1))));
+  _mm_storeu_si128(out + 22, _mm_and_si128(mask, _mm_srli_epi64(w1, 2)));
+  _mm_storeu_si128(out + 23, _mm_and_si128(mask, _mm_srli_epi64(w1, 5)));
+  _mm_storeu_si128(out + 24, _mm_and_si128(mask, _mm_srli_epi64(w1, 8)));
+  _mm_storeu_si128(out + 25, _mm_and_si128(mask, _mm_srli_epi64(w1, 11)));
+  _mm_storeu_si128(out + 26, _mm_and_si128(mask, _mm_srli_epi64(w1, 14)));
+  _mm_storeu_si128(out + 27, _mm_and_si128(mask, _mm_srli_epi64(w1, 17)));
+  _mm_storeu_si128(out + 28, _mm_and_si128(mask, _mm_srli_epi64(w1, 20)));
+  _mm_storeu_si128(out + 29, _mm_and_si128(mask, _mm_srli_epi64(w1, 23)));
+  _mm_storeu_si128(out + 30, _mm_and_si128(mask, _mm_srli_epi64(w1, 26)));
+  _mm_storeu_si128(out + 31, _mm_and_si128(mask, _mm_srli_epi64(w1, 29)));
+}
+
+/* we packed 64 4-bit values, touching 2 128-bit words, using 32 bytes */
+static void simdunpackblock4(const __m128i *compressed, u64 *pout) {
+  /* we are going to access  2 128-bit words */
+  __m128i w0, w1;
+  __m128i *out = (__m128i *)pout;
+  const __m128i mask = _mm_set1_epi64x(15);
+  w0 = _mm_loadu_si128(compressed);
+  _mm_storeu_si128(out + 0, _mm_and_si128(mask, w0));
+  _mm_storeu_si128(out + 1, _mm_and_si128(mask, _mm_srli_epi64(w0, 4)));
+  _mm_storeu_si128(out + 2, _mm_and_si128(mask, _mm_srli_epi64(w0, 8)));
+  _mm_storeu_si128(out + 3, _mm_and_si128(mask, _mm_srli_epi64(w0, 12)));
+  _mm_storeu_si128(out + 4, _mm_and_si128(mask, _mm_srli_epi64(w0, 16)));
+  _mm_storeu_si128(out + 5, _mm_and_si128(mask, _mm_srli_epi64(w0, 20)));
+  _mm_storeu_si128(out + 6, _mm_and_si128(mask, _mm_srli_epi64(w0, 24)));
+  _mm_storeu_si128(out + 7, _mm_and_si128(mask, _mm_srli_epi64(w0, 28)));
+  _mm_storeu_si128(out + 8, _mm_and_si128(mask, _mm_srli_epi64(w0, 32)));
+  _mm_storeu_si128(out + 9, _mm_and_si128(mask, _mm_srli_epi64(w0, 36)));
+  _mm_storeu_si128(out + 10, _mm_and_si128(mask, _mm_srli_epi64(w0, 40)));
+  _mm_storeu_si128(out + 11, _mm_and_si128(mask, _mm_srli_epi64(w0, 44)));
+  _mm_storeu_si128(out + 12, _mm_and_si128(mask, _mm_srli_epi64(w0, 48)));
+  _mm_storeu_si128(out + 13, _mm_and_si128(mask, _mm_srli_epi64(w0, 52)));
+  _mm_storeu_si128(out + 14, _mm_and_si128(mask, _mm_srli_epi64(w0, 56)));
+  _mm_storeu_si128(out + 15, _mm_srli_epi64(w0, 60));
+  w1 = _mm_loadu_si128(compressed + 1);
+  _mm_storeu_si128(out + 16, _mm_and_si128(mask, w1));
+  _mm_storeu_si128(out + 17, _mm_and_si128(mask, _mm_srli_epi64(w1, 4)));
+  _mm_storeu_si128(out + 18, _mm_and_si128(mask, _mm_srli_epi64(w1, 8)));
+  _mm_storeu_si128(out + 19, _mm_and_si128(mask, _mm_srli_epi64(w1, 12)));
+  _mm_storeu_si128(out + 20, _mm_and_si128(mask, _mm_srli_epi64(w1, 16)));
+  _mm_storeu_si128(out + 21, _mm_and_si128(mask, _mm_srli_epi64(w1, 20)));
+  _mm_storeu_si128(out + 22, _mm_and_si128(mask, _mm_srli_epi64(w1, 24)));
+  _mm_storeu_si128(out + 23, _mm_and_si128(mask, _mm_srli_epi64(w1, 28)));
+  _mm_storeu_si128(out + 24, _mm_and_si128(mask, _mm_srli_epi64(w1, 32)));
+  _mm_storeu_si128(out + 25, _mm_and_si128(mask, _mm_srli_epi64(w1, 36)));
+  _mm_storeu_si128(out + 26, _mm_and_si128(mask, _mm_srli_epi64(w1, 40)));
+  _mm_storeu_si128(out + 27, _mm_and_si128(mask, _mm_srli_epi64(w1, 44)));
+  _mm_storeu_si128(out + 28, _mm_and_si128(mask, _mm_srli_epi64(w1, 48)));
+  _mm_storeu_si128(out + 29, _mm_and_si128(mask, _mm_srli_epi64(w1, 52)));
+  _mm_storeu_si128(out + 30, _mm_and_si128(mask, _mm_srli_epi64(w1, 56)));
+  _mm_storeu_si128(out + 31, _mm_srli_epi64(w1, 60));
+}
+
+/* we packed 64 5-bit values, touching 3 128-bit words, using 48 bytes */
+static void simdunpackblock5(const __m128i *compressed, u64 *pout) {
+  /* we are going to access  3 128-bit words */
+  __m128i w0, w1;
+  __m128i *out = (__m128i *)pout;
+  const __m128i mask = _mm_set1_epi64x(31);
+  w0 = _mm_loadu_si128(compressed);
+  _mm_storeu_si128(out + 0, _mm_and_si128(mask, w0));
+  _mm_storeu_si128(out + 1, _mm_and_si128(mask, _mm_srli_epi64(w0, 5)));
+  _mm_storeu_si128(out + 2, _mm_and_si128(mask, _mm_srli_epi64(w0, 10)));
+  _mm_storeu_si128(out + 3, _mm_and_si128(mask, _mm_srli_epi64(w0, 15)));
+  _mm_storeu_si128(out + 4, _mm_and_si128(mask, _mm_srli_epi64(w0, 20)));
+  _mm_storeu_si128(out + 5, _mm_and_si128(mask, _mm_srli_epi64(w0, 25)));
+  _mm_storeu_si128(out + 6, _mm_and_si128(mask, _mm_srli_epi64(w0, 30)));
+  _mm_storeu_si128(out + 7, _mm_and_si128(mask, _mm_srli_epi64(w0, 35)));
+  _mm_storeu_si128(out + 8, _mm_and_si128(mask, _mm_srli_epi64(w0, 40)));
+  _mm_storeu_si128(out + 9, _mm_and_si128(mask, _mm_srli_epi64(w0, 45)));
+  _mm_storeu_si128(out + 10, _mm_and_si128(mask, _mm_srli_epi64(w0, 50)));
+  _mm_storeu_si128(out + 11, _mm_and_si128(mask, _mm_srli_epi64(w0, 55)));
+  w1 = _mm_loadu_si128(compressed + 1);
+  _mm_storeu_si128(out + 12,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 60),
+                                                    _mm_slli_epi64(w1, 4))));
+  _mm_storeu_si128(out + 13, _mm_and_si128(mask, _mm_srli_epi64(w1, 1)));
+  _mm_storeu_si128(out + 14, _mm_and_si128(mask, _mm_srli_epi64(w1, 6)));
+  _mm_storeu_si128(out + 15, _mm_and_si128(mask, _mm_srli_epi64(w1, 11)));
+  _mm_storeu_si128(out + 16, _mm_and_si128(mask, _mm_srli_epi64(w1, 16)));
+  _mm_storeu_si128(out + 17, _mm_and_si128(mask, _mm_srli_epi64(w1, 21)));
+  _mm_storeu_si128(out + 18, _mm_and_si128(mask, _mm_srli_epi64(w1, 26)));
+  _mm_storeu_si128(out + 19, _mm_and_si128(mask, _mm_srli_epi64(w1, 31)));
+  _mm_storeu_si128(out + 20, _mm_and_si128(mask, _mm_srli_epi64(w1, 36)));
+  _mm_storeu_si128(out + 21, _mm_and_si128(mask, _mm_srli_epi64(w1, 41)));
+  _mm_storeu_si128(out + 22, _mm_and_si128(mask, _mm_srli_epi64(w1, 46)));
+  _mm_storeu_si128(out + 23, _mm_and_si128(mask, _mm_srli_epi64(w1, 51)));
+  _mm_storeu_si128(out + 24, _mm_and_si128(mask, _mm_srli_epi64(w1, 56)));
+  w0 = _mm_loadu_si128(compressed + 2);
+  _mm_storeu_si128(out + 25,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 61),
+                                                    _mm_slli_epi64(w0, 3))));
+  _mm_storeu_si128(out + 26, _mm_and_si128(mask, _mm_srli_epi64(w0, 2)));
+  _mm_storeu_si128(out + 27, _mm_and_si128(mask, _mm_srli_epi64(w0, 7)));
+  _mm_storeu_si128(out + 28, _mm_and_si128(mask, _mm_srli_epi64(w0, 12)));
+  _mm_storeu_si128(out + 29, _mm_and_si128(mask, _mm_srli_epi64(w0, 17)));
+  _mm_storeu_si128(out + 30, _mm_and_si128(mask, _mm_srli_epi64(w0, 22)));
+  _mm_storeu_si128(out + 31, _mm_and_si128(mask, _mm_srli_epi64(w0, 27)));
+}
+
+/* we packed 64 6-bit values, touching 3 128-bit words, using 48 bytes */
+static void simdunpackblock6(const __m128i *compressed, u64 *pout) {
+  /* we are going to access  3 128-bit words */
+  __m128i w0, w1;
+  __m128i *out = (__m128i *)pout;
+  const __m128i mask = _mm_set1_epi64x(63);
+  w0 = _mm_loadu_si128(compressed);
+  _mm_storeu_si128(out + 0, _mm_and_si128(mask, w0));
+  _mm_storeu_si128(out + 1, _mm_and_si128(mask, _mm_srli_epi64(w0, 6)));
+  _mm_storeu_si128(out + 2, _mm_and_si128(mask, _mm_srli_epi64(w0, 12)));
+  _mm_storeu_si128(out + 3, _mm_and_si128(mask, _mm_srli_epi64(w0, 18)));
+  _mm_storeu_si128(out + 4, _mm_and_si128(mask, _mm_srli_epi64(w0, 24)));
+  _mm_storeu_si128(out + 5, _mm_and_si128(mask, _mm_srli_epi64(w0, 30)));
+  _mm_storeu_si128(out + 6, _mm_and_si128(mask, _mm_srli_epi64(w0, 36)));
+  _mm_storeu_si128(out + 7, _mm_and_si128(mask, _mm_srli_epi64(w0, 42)));
+  _mm_storeu_si128(out + 8, _mm_and_si128(mask, _mm_srli_epi64(w0, 48)));
+  _mm_storeu_si128(out + 9, _mm_and_si128(mask, _mm_srli_epi64(w0, 54)));
+  w1 = _mm_loadu_si128(compressed + 1);
+  _mm_storeu_si128(out + 10,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 60),
+                                                    _mm_slli_epi64(w1, 4))));
+  _mm_storeu_si128(out + 11, _mm_and_si128(mask, _mm_srli_epi64(w1, 2)));
+  _mm_storeu_si128(out + 12, _mm_and_si128(mask, _mm_srli_epi64(w1, 8)));
+  _mm_storeu_si128(out + 13, _mm_and_si128(mask, _mm_srli_epi64(w1, 14)));
+  _mm_storeu_si128(out + 14, _mm_and_si128(mask, _mm_srli_epi64(w1, 20)));
+  _mm_storeu_si128(out + 15, _mm_and_si128(mask, _mm_srli_epi64(w1, 26)));
+  _mm_storeu_si128(out + 16, _mm_and_si128(mask, _mm_srli_epi64(w1, 32)));
+  _mm_storeu_si128(out + 17, _mm_and_si128(mask, _mm_srli_epi64(w1, 38)));
+  _mm_storeu_si128(out + 18, _mm_and_si128(mask, _mm_srli_epi64(w1, 44)));
+  _mm_storeu_si128(out + 19, _mm_and_si128(mask, _mm_srli_epi64(w1, 50)));
+  _mm_storeu_si128(out + 20, _mm_and_si128(mask, _mm_srli_epi64(w1, 56)));
+  w0 = _mm_loadu_si128(compressed + 2);
+  _mm_storeu_si128(out + 21,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 62),
+                                                    _mm_slli_epi64(w0, 2))));
+  _mm_storeu_si128(out + 22, _mm_and_si128(mask, _mm_srli_epi64(w0, 4)));
+  _mm_storeu_si128(out + 23, _mm_and_si128(mask, _mm_srli_epi64(w0, 10)));
+  _mm_storeu_si128(out + 24, _mm_and_si128(mask, _mm_srli_epi64(w0, 16)));
+  _mm_storeu_si128(out + 25, _mm_and_si128(mask, _mm_srli_epi64(w0, 22)));
+  _mm_storeu_si128(out + 26, _mm_and_si128(mask, _mm_srli_epi64(w0, 28)));
+  _mm_storeu_si128(out + 27, _mm_and_si128(mask, _mm_srli_epi64(w0, 34)));
+  _mm_storeu_si128(out + 28, _mm_and_si128(mask, _mm_srli_epi64(w0, 40)));
+  _mm_storeu_si128(out + 29, _mm_and_si128(mask, _mm_srli_epi64(w0, 46)));
+  _mm_storeu_si128(out + 30, _mm_and_si128(mask, _mm_srli_epi64(w0, 52)));
+  _mm_storeu_si128(out + 31, _mm_srli_epi64(w0, 58));
+}
+
+/* we packed 64 7-bit values, touching 4 128-bit words, using 64 bytes */
+static void simdunpackblock7(const __m128i *compressed, u64 *pout) {
+  /* we are going to access  4 128-bit words */
+  __m128i w0, w1;
+  __m128i *out = (__m128i *)pout;
+  const __m128i mask = _mm_set1_epi64x(127);
+  w0 = _mm_loadu_si128(compressed);
+  _mm_storeu_si128(out + 0, _mm_and_si128(mask, w0));
+  _mm_storeu_si128(out + 1, _mm_and_si128(mask, _mm_srli_epi64(w0, 7)));
+  _mm_storeu_si128(out + 2, _mm_and_si128(mask, _mm_srli_epi64(w0, 14)));
+  _mm_storeu_si128(out + 3, _mm_and_si128(mask, _mm_srli_epi64(w0, 21)));
+  _mm_storeu_si128(out + 4, _mm_and_si128(mask, _mm_srli_epi64(w0, 28)));
+  _mm_storeu_si128(out + 5, _mm_and_si128(mask, _mm_srli_epi64(w0, 35)));
+  _mm_storeu_si128(out + 6, _mm_and_si128(mask, _mm_srli_epi64(w0, 42)));
+  _mm_storeu_si128(out + 7, _mm_and_si128(mask, _mm_srli_epi64(w0, 49)));
+  _mm_storeu_si128(out + 8, _mm_and_si128(mask, _mm_srli_epi64(w0, 56)));
+  w1 = _mm_loadu_si128(compressed + 1);
+  _mm_storeu_si128(out + 9,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 63),
+                                                    _mm_slli_epi64(w1, 1))));
+  _mm_storeu_si128(out + 10, _mm_and_si128(mask, _mm_srli_epi64(w1, 6)));
+  _mm_storeu_si128(out + 11, _mm_and_si128(mask, _mm_srli_epi64(w1, 13)));
+  _mm_storeu_si128(out + 12, _mm_and_si128(mask, _mm_srli_epi64(w1, 20)));
+  _mm_storeu_si128(out + 13, _mm_and_si128(mask, _mm_srli_epi64(w1, 27)));
+  _mm_storeu_si128(out + 14, _mm_and_si128(mask, _mm_srli_epi64(w1, 34)));
+  _mm_storeu_si128(out + 15, _mm_and_si128(mask, _mm_srli_epi64(w1, 41)));
+  _mm_storeu_si128(out + 16, _mm_and_si128(mask, _mm_srli_epi64(w1, 48)));
+  _mm_storeu_si128(out + 17, _mm_and_si128(mask, _mm_srli_epi64(w1, 55)));
+  w0 = _mm_loadu_si128(compressed + 2);
+  _mm_storeu_si128(out + 18,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 62),
+                                                    _mm_slli_epi64(w0, 2))));
+  _mm_storeu_si128(out + 19, _mm_and_si128(mask, _mm_srli_epi64(w0, 5)));
+  _mm_storeu_si128(out + 20, _mm_and_si128(mask, _mm_srli_epi64(w0, 12)));
+  _mm_storeu_si128(out + 21, _mm_and_si128(mask, _mm_srli_epi64(w0, 19)));
+  _mm_storeu_si128(out + 22, _mm_and_si128(mask, _mm_srli_epi64(w0, 26)));
+  _mm_storeu_si128(out + 23, _mm_and_si128(mask, _mm_srli_epi64(w0, 33)));
+  _mm_storeu_si128(out + 24, _mm_and_si128(mask, _mm_srli_epi64(w0, 40)));
+  _mm_storeu_si128(out + 25, _mm_and_si128(mask, _mm_srli_epi64(w0, 47)));
+  _mm_storeu_si128(out + 26, _mm_and_si128(mask, _mm_srli_epi64(w0, 54)));
+  w1 = _mm_loadu_si128(compressed + 3);
+  _mm_storeu_si128(out + 27,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 61),
+                                                    _mm_slli_epi64(w1, 3))));
+  _mm_storeu_si128(out + 28, _mm_and_si128(mask, _mm_srli_epi64(w1, 4)));
+  _mm_storeu_si128(out + 29, _mm_and_si128(mask, _mm_srli_epi64(w1, 11)));
+  _mm_storeu_si128(out + 30, _mm_and_si128(mask, _mm_srli_epi64(w1, 18)));
+  _mm_storeu_si128(out + 31, _mm_and_si128(mask, _mm_srli_epi64(w1, 25)));
+}
+
+/* we packed 64 8-bit values, touching 4 128-bit words, using 64 bytes */
+static void simdunpackblock8(const __m128i *compressed, u64 *pout) {
+  /* we are going to access  4 128-bit words */
+  __m128i w0, w1;
+  __m128i *out = (__m128i *)pout;
+  const __m128i mask = _mm_set1_epi64x(255);
+  w0 = _mm_loadu_si128(compressed);
+  _mm_storeu_si128(out + 0, _mm_and_si128(mask, w0));
+  _mm_storeu_si128(out + 1, _mm_and_si128(mask, _mm_srli_epi64(w0, 8)));
+  _mm_storeu_si128(out + 2, _mm_and_si128(mask, _mm_srli_epi64(w0, 16)));
+  _mm_storeu_si128(out + 3, _mm_and_si128(mask, _mm_srli_epi64(w0, 24)));
+  _mm_storeu_si128(out + 4, _mm_and_si128(mask, _mm_srli_epi64(w0, 32)));
+  _mm_storeu_si128(out + 5, _mm_and_si128(mask, _mm_srli_epi64(w0, 40)));
+  _mm_storeu_si128(out + 6, _mm_and_si128(mask, _mm_srli_epi64(w0, 48)));
+  _mm_storeu_si128(out + 7, _mm_srli_epi64(w0, 56));
+  w1 = _mm_loadu_si128(compressed + 1);
+  _mm_storeu_si128(out + 8, _mm_and_si128(mask, w1));
+  _mm_storeu_si128(out + 9, _mm_and_si128(mask, _mm_srli_epi64(w1, 8)));
+  _mm_storeu_si128(out + 10, _mm_and_si128(mask, _mm_srli_epi64(w1, 16)));
+  _mm_storeu_si128(out + 11, _mm_and_si128(mask, _mm_srli_epi64(w1, 24)));
+  _mm_storeu_si128(out + 12, _mm_and_si128(mask, _mm_srli_epi64(w1, 32)));
+  _mm_storeu_si128(out + 13, _mm_and_si128(mask, _mm_srli_epi64(w1, 40)));
+  _mm_storeu_si128(out + 14, _mm_and_si128(mask, _mm_srli_epi64(w1, 48)));
+  _mm_storeu_si128(out + 15, _mm_srli_epi64(w1, 56));
+  w0 = _mm_loadu_si128(compressed + 2);
+  _mm_storeu_si128(out + 16, _mm_and_si128(mask, w0));
+  _mm_storeu_si128(out + 17, _mm_and_si128(mask, _mm_srli_epi64(w0, 8)));
+  _mm_storeu_si128(out + 18, _mm_and_si128(mask, _mm_srli_epi64(w0, 16)));
+  _mm_storeu_si128(out + 19, _mm_and_si128(mask, _mm_srli_epi64(w0, 24)));
+  _mm_storeu_si128(out + 20, _mm_and_si128(mask, _mm_srli_epi64(w0, 32)));
+  _mm_storeu_si128(out + 21, _mm_and_si128(mask, _mm_srli_epi64(w0, 40)));
+  _mm_storeu_si128(out + 22, _mm_and_si128(mask, _mm_srli_epi64(w0, 48)));
+  _mm_storeu_si128(out + 23, _mm_srli_epi64(w0, 56));
+  w1 = _mm_loadu_si128(compressed + 3);
+  _mm_storeu_si128(out + 24, _mm_and_si128(mask, w1));
+  _mm_storeu_si128(out + 25, _mm_and_si128(mask, _mm_srli_epi64(w1, 8)));
+  _mm_storeu_si128(out + 26, _mm_and_si128(mask, _mm_srli_epi64(w1, 16)));
+  _mm_storeu_si128(out + 27, _mm_and_si128(mask, _mm_srli_epi64(w1, 24)));
+  _mm_storeu_si128(out + 28, _mm_and_si128(mask, _mm_srli_epi64(w1, 32)));
+  _mm_storeu_si128(out + 29, _mm_and_si128(mask, _mm_srli_epi64(w1, 40)));
+  _mm_storeu_si128(out + 30, _mm_and_si128(mask, _mm_srli_epi64(w1, 48)));
+  _mm_storeu_si128(out + 31, _mm_srli_epi64(w1, 56));
+}
+
+/* we packed 64 9-bit values, touching 5 128-bit words, using 80 bytes */
+static void simdunpackblock9(const __m128i *compressed, u64 *pout) {
+  /* we are going to access  5 128-bit words */
+  __m128i w0, w1;
+  __m128i *out = (__m128i *)pout;
+  const __m128i mask = _mm_set1_epi64x(511);
+  w0 = _mm_loadu_si128(compressed);
+  _mm_storeu_si128(out + 0, _mm_and_si128(mask, w0));
+  _mm_storeu_si128(out + 1, _mm_and_si128(mask, _mm_srli_epi64(w0, 9)));
+  _mm_storeu_si128(out + 2, _mm_and_si128(mask, _mm_srli_epi64(w0, 18)));
+  _mm_storeu_si128(out + 3, _mm_and_si128(mask, _mm_srli_epi64(w0, 27)));
+  _mm_storeu_si128(out + 4, _mm_and_si128(mask, _mm_srli_epi64(w0, 36)));
+  _mm_storeu_si128(out + 5, _mm_and_si128(mask, _mm_srli_epi64(w0, 45)));
+  _mm_storeu_si128(out + 6, _mm_and_si128(mask, _mm_srli_epi64(w0, 54)));
+  w1 = _mm_loadu_si128(compressed + 1);
+  _mm_storeu_si128(out + 7,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 63),
+                                                    _mm_slli_epi64(w1, 1))));
+  _mm_storeu_si128(out + 8, _mm_and_si128(mask, _mm_srli_epi64(w1, 8)));
+  _mm_storeu_si128(out + 9, _mm_and_si128(mask, _mm_srli_epi64(w1, 17)));
+  _mm_storeu_si128(out + 10, _mm_and_si128(mask, _mm_srli_epi64(w1, 26)));
+  _mm_storeu_si128(out + 11, _mm_and_si128(mask, _mm_srli_epi64(w1, 35)));
+  _mm_storeu_si128(out + 12, _mm_and_si128(mask, _mm_srli_epi64(w1, 44)));
+  _mm_storeu_si128(out + 13, _mm_and_si128(mask, _mm_srli_epi64(w1, 53)));
+  w0 = _mm_loadu_si128(compressed + 2);
+  _mm_storeu_si128(out + 14,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 62),
+                                                    _mm_slli_epi64(w0, 2))));
+  _mm_storeu_si128(out + 15, _mm_and_si128(mask, _mm_srli_epi64(w0, 7)));
+  _mm_storeu_si128(out + 16, _mm_and_si128(mask, _mm_srli_epi64(w0, 16)));
+  _mm_storeu_si128(out + 17, _mm_and_si128(mask, _mm_srli_epi64(w0, 25)));
+  _mm_storeu_si128(out + 18, _mm_and_si128(mask, _mm_srli_epi64(w0, 34)));
+  _mm_storeu_si128(out + 19, _mm_and_si128(mask, _mm_srli_epi64(w0, 43)));
+  _mm_storeu_si128(out + 20, _mm_and_si128(mask, _mm_srli_epi64(w0, 52)));
+  w1 = _mm_loadu_si128(compressed + 3);
+  _mm_storeu_si128(out + 21,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 61),
+                                                    _mm_slli_epi64(w1, 3))));
+  _mm_storeu_si128(out + 22, _mm_and_si128(mask, _mm_srli_epi64(w1, 6)));
+  _mm_storeu_si128(out + 23, _mm_and_si128(mask, _mm_srli_epi64(w1, 15)));
+  _mm_storeu_si128(out + 24, _mm_and_si128(mask, _mm_srli_epi64(w1, 24)));
+  _mm_storeu_si128(out + 25, _mm_and_si128(mask, _mm_srli_epi64(w1, 33)));
+  _mm_storeu_si128(out + 26, _mm_and_si128(mask, _mm_srli_epi64(w1, 42)));
+  _mm_storeu_si128(out + 27, _mm_and_si128(mask, _mm_srli_epi64(w1, 51)));
+  w0 = _mm_loadu_si128(compressed + 4);
+  _mm_storeu_si128(out + 28,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 60),
+                                                    _mm_slli_epi64(w0, 4))));
+  _mm_storeu_si128(out + 29, _mm_and_si128(mask, _mm_srli_epi64(w0, 5)));
+  _mm_storeu_si128(out + 30, _mm_and_si128(mask, _mm_srli_epi64(w0, 14)));
+  _mm_storeu_si128(out + 31, _mm_and_si128(mask, _mm_srli_epi64(w0, 23)));
+}
+
+/* we packed 64 10-bit values, touching 5 128-bit words, using 80 bytes */
+static void simdunpackblock10(const __m128i *compressed, u64 *pout) {
+  /* we are going to access  5 128-bit words */
+  __m128i w0, w1;
+  __m128i *out = (__m128i *)pout;
+  const __m128i mask = _mm_set1_epi64x(1023);
+  w0 = _mm_loadu_si128(compressed);
+  _mm_storeu_si128(out + 0, _mm_and_si128(mask, w0));
+  _mm_storeu_si128(out + 1, _mm_and_si128(mask, _mm_srli_epi64(w0, 10)));
+  _mm_storeu_si128(out + 2, _mm_and_si128(mask, _mm_srli_epi64(w0, 20)));
+  _mm_storeu_si128(out + 3, _mm_and_si128(mask, _mm_srli_epi64(w0, 30)));
+  _mm_storeu_si128(out + 4, _mm_and_si128(mask, _mm_srli_epi64(w0, 40)));
+  _mm_storeu_si128(out + 5, _mm_and_si128(mask, _mm_srli_epi64(w0, 50)));
+  w1 = _mm_loadu_si128(compressed + 1);
+  _mm_storeu_si128(out + 6,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 60),
+                                                    _mm_slli_epi64(w1, 4))));
+  _mm_storeu_si128(out + 7, _mm_and_si128(mask, _mm_srli_epi64(w1, 6)));
+  _mm_storeu_si128(out + 8, _mm_and_si128(mask, _mm_srli_epi64(w1, 16)));
+  _mm_storeu_si128(out + 9, _mm_and_si128(mask, _mm_srli_epi64(w1, 26)));
+  _mm_storeu_si128(out + 10, _mm_and_si128(mask, _mm_srli_epi64(w1, 36)));
+  _mm_storeu_si128(out + 11, _mm_and_si128(mask, _mm_srli_epi64(w1, 46)));
+  w0 = _mm_loadu_si128(compressed + 2);
+  _mm_storeu_si128(out + 12,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 56),
+                                                    _mm_slli_epi64(w0, 8))));
+  _mm_storeu_si128(out + 13, _mm_and_si128(mask, _mm_srli_epi64(w0, 2)));
+  _mm_storeu_si128(out + 14, _mm_and_si128(mask, _mm_srli_epi64(w0, 12)));
+  _mm_storeu_si128(out + 15, _mm_and_si128(mask, _mm_srli_epi64(w0, 22)));
+  _mm_storeu_si128(out + 16, _mm_and_si128(mask, _mm_srli_epi64(w0, 32)));
+  _mm_storeu_si128(out + 17, _mm_and_si128(mask, _mm_srli_epi64(w0, 42)));
+  _mm_storeu_si128(out + 18, _mm_and_si128(mask, _mm_srli_epi64(w0, 52)));
+  w1 = _mm_loadu_si128(compressed + 3);
+  _mm_storeu_si128(out + 19,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 62),
+                                                    _mm_slli_epi64(w1, 2))));
+  _mm_storeu_si128(out + 20, _mm_and_si128(mask, _mm_srli_epi64(w1, 8)));
+  _mm_storeu_si128(out + 21, _mm_and_si128(mask, _mm_srli_epi64(w1, 18)));
+  _mm_storeu_si128(out + 22, _mm_and_si128(mask, _mm_srli_epi64(w1, 28)));
+  _mm_storeu_si128(out + 23, _mm_and_si128(mask, _mm_srli_epi64(w1, 38)));
+  _mm_storeu_si128(out + 24, _mm_and_si128(mask, _mm_srli_epi64(w1, 48)));
+  w0 = _mm_loadu_si128(compressed + 4);
+  _mm_storeu_si128(out + 25,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 58),
+                                                    _mm_slli_epi64(w0, 6))));
+  _mm_storeu_si128(out + 26, _mm_and_si128(mask, _mm_srli_epi64(w0, 4)));
+  _mm_storeu_si128(out + 27, _mm_and_si128(mask, _mm_srli_epi64(w0, 14)));
+  _mm_storeu_si128(out + 28, _mm_and_si128(mask, _mm_srli_epi64(w0, 24)));
+  _mm_storeu_si128(out + 29, _mm_and_si128(mask, _mm_srli_epi64(w0, 34)));
+  _mm_storeu_si128(out + 30, _mm_and_si128(mask, _mm_srli_epi64(w0, 44)));
+  _mm_storeu_si128(out + 31, _mm_srli_epi64(w0, 54));
+}
+
+/* we packed 64 11-bit values, touching 6 128-bit words, using 96 bytes */
+static void simdunpackblock11(const __m128i *compressed, u64 *pout) {
+  /* we are going to access  6 128-bit words */
+  __m128i w0, w1;
+  __m128i *out = (__m128i *)pout;
+  const __m128i mask = _mm_set1_epi64x(2047);
+  w0 = _mm_loadu_si128(compressed);
+  _mm_storeu_si128(out + 0, _mm_and_si128(mask, w0));
+  _mm_storeu_si128(out + 1, _mm_and_si128(mask, _mm_srli_epi64(w0, 11)));
+  _mm_storeu_si128(out + 2, _mm_and_si128(mask, _mm_srli_epi64(w0, 22)));
+  _mm_storeu_si128(out + 3, _mm_and_si128(mask, _mm_srli_epi64(w0, 33)));
+  _mm_storeu_si128(out + 4, _mm_and_si128(mask, _mm_srli_epi64(w0, 44)));
+  w1 = _mm_loadu_si128(compressed + 1);
+  _mm_storeu_si128(out + 5,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 55),
+                                                    _mm_slli_epi64(w1, 9))));
+  _mm_storeu_si128(out + 6, _mm_and_si128(mask, _mm_srli_epi64(w1, 2)));
+  _mm_storeu_si128(out + 7, _mm_and_si128(mask, _mm_srli_epi64(w1, 13)));
+  _mm_storeu_si128(out + 8, _mm_and_si128(mask, _mm_srli_epi64(w1, 24)));
+  _mm_storeu_si128(out + 9, _mm_and_si128(mask, _mm_srli_epi64(w1, 35)));
+  _mm_storeu_si128(out + 10, _mm_and_si128(mask, _mm_srli_epi64(w1, 46)));
+  w0 = _mm_loadu_si128(compressed + 2);
+  _mm_storeu_si128(out + 11,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 57),
+                                                    _mm_slli_epi64(w0, 7))));
+  _mm_storeu_si128(out + 12, _mm_and_si128(mask, _mm_srli_epi64(w0, 4)));
+  _mm_storeu_si128(out + 13, _mm_and_si128(mask, _mm_srli_epi64(w0, 15)));
+  _mm_storeu_si128(out + 14, _mm_and_si128(mask, _mm_srli_epi64(w0, 26)));
+  _mm_storeu_si128(out + 15, _mm_and_si128(mask, _mm_srli_epi64(w0, 37)));
+  _mm_storeu_si128(out + 16, _mm_and_si128(mask, _mm_srli_epi64(w0, 48)));
+  w1 = _mm_loadu_si128(compressed + 3);
+  _mm_storeu_si128(out + 17,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 59),
+                                                    _mm_slli_epi64(w1, 5))));
+  _mm_storeu_si128(out + 18, _mm_and_si128(mask, _mm_srli_epi64(w1, 6)));
+  _mm_storeu_si128(out + 19, _mm_and_si128(mask, _mm_srli_epi64(w1, 17)));
+  _mm_storeu_si128(out + 20, _mm_and_si128(mask, _mm_srli_epi64(w1, 28)));
+  _mm_storeu_si128(out + 21, _mm_and_si128(mask, _mm_srli_epi64(w1, 39)));
+  _mm_storeu_si128(out + 22, _mm_and_si128(mask, _mm_srli_epi64(w1, 50)));
+  w0 = _mm_loadu_si128(compressed + 4);
+  _mm_storeu_si128(out + 23,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 61),
+                                                    _mm_slli_epi64(w0, 3))));
+  _mm_storeu_si128(out + 24, _mm_and_si128(mask, _mm_srli_epi64(w0, 8)));
+  _mm_storeu_si128(out + 25, _mm_and_si128(mask, _mm_srli_epi64(w0, 19)));
+  _mm_storeu_si128(out + 26, _mm_and_si128(mask, _mm_srli_epi64(w0, 30)));
+  _mm_storeu_si128(out + 27, _mm_and_si128(mask, _mm_srli_epi64(w0, 41)));
+  _mm_storeu_si128(out + 28, _mm_and_si128(mask, _mm_srli_epi64(w0, 52)));
+  w1 = _mm_loadu_si128(compressed + 5);
+  _mm_storeu_si128(out + 29,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 63),
+                                                    _mm_slli_epi64(w1, 1))));
+  _mm_storeu_si128(out + 30, _mm_and_si128(mask, _mm_srli_epi64(w1, 10)));
+  _mm_storeu_si128(out + 31, _mm_and_si128(mask, _mm_srli_epi64(w1, 21)));
+}
+
+/* we packed 64 12-bit values, touching 6 128-bit words, using 96 bytes */
+static void simdunpackblock12(const __m128i *compressed, u64 *pout) {
+  /* we are going to access  6 128-bit words */
+  __m128i w0, w1;
+  __m128i *out = (__m128i *)pout;
+  const __m128i mask = _mm_set1_epi64x(4095);
+  w0 = _mm_loadu_si128(compressed);
+  _mm_storeu_si128(out + 0, _mm_and_si128(mask, w0));
+  _mm_storeu_si128(out + 1, _mm_and_si128(mask, _mm_srli_epi64(w0, 12)));
+  _mm_storeu_si128(out + 2, _mm_and_si128(mask, _mm_srli_epi64(w0, 24)));
+  _mm_storeu_si128(out + 3, _mm_and_si128(mask, _mm_srli_epi64(w0, 36)));
+  _mm_storeu_si128(out + 4, _mm_and_si128(mask, _mm_srli_epi64(w0, 48)));
+  w1 = _mm_loadu_si128(compressed + 1);
+  _mm_storeu_si128(out + 5,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 60),
+                                                    _mm_slli_epi64(w1, 4))));
+  _mm_storeu_si128(out + 6, _mm_and_si128(mask, _mm_srli_epi64(w1, 8)));
+  _mm_storeu_si128(out + 7, _mm_and_si128(mask, _mm_srli_epi64(w1, 20)));
+  _mm_storeu_si128(out + 8, _mm_and_si128(mask, _mm_srli_epi64(w1, 32)));
+  _mm_storeu_si128(out + 9, _mm_and_si128(mask, _mm_srli_epi64(w1, 44)));
+  w0 = _mm_loadu_si128(compressed + 2);
+  _mm_storeu_si128(out + 10,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 56),
+                                                    _mm_slli_epi64(w0, 8))));
+  _mm_storeu_si128(out + 11, _mm_and_si128(mask, _mm_srli_epi64(w0, 4)));
+  _mm_storeu_si128(out + 12, _mm_and_si128(mask, _mm_srli_epi64(w0, 16)));
+  _mm_storeu_si128(out + 13, _mm_and_si128(mask, _mm_srli_epi64(w0, 28)));
+  _mm_storeu_si128(out + 14, _mm_and_si128(mask, _mm_srli_epi64(w0, 40)));
+  _mm_storeu_si128(out + 15, _mm_srli_epi64(w0, 52));
+  w1 = _mm_loadu_si128(compressed + 3);
+  _mm_storeu_si128(out + 16, _mm_and_si128(mask, w1));
+  _mm_storeu_si128(out + 17, _mm_and_si128(mask, _mm_srli_epi64(w1, 12)));
+  _mm_storeu_si128(out + 18, _mm_and_si128(mask, _mm_srli_epi64(w1, 24)));
+  _mm_storeu_si128(out + 19, _mm_and_si128(mask, _mm_srli_epi64(w1, 36)));
+  _mm_storeu_si128(out + 20, _mm_and_si128(mask, _mm_srli_epi64(w1, 48)));
+  w0 = _mm_loadu_si128(compressed + 4);
+  _mm_storeu_si128(out + 21,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 60),
+                                                    _mm_slli_epi64(w0, 4))));
+  _mm_storeu_si128(out + 22, _mm_and_si128(mask, _mm_srli_epi64(w0, 8)));
+  _mm_storeu_si128(out + 23, _mm_and_si128(mask, _mm_srli_epi64(w0, 20)));
+  _mm_storeu_si128(out + 24, _mm_and_si128(mask, _mm_srli_epi64(w0, 32)));
+  _mm_storeu_si128(out + 25, _mm_and_si128(mask, _mm_srli_epi64(w0, 44)));
+  w1 = _mm_loadu_si128(compressed + 5);
+  _mm_storeu_si128(out + 26,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 56),
+                                                    _mm_slli_epi64(w1, 8))));
+  _mm_storeu_si128(out + 27, _mm_and_si128(mask, _mm_srli_epi64(w1, 4)));
+  _mm_storeu_si128(out + 28, _mm_and_si128(mask, _mm_srli_epi64(w1, 16)));
+  _mm_storeu_si128(out + 29, _mm_and_si128(mask, _mm_srli_epi64(w1, 28)));
+  _mm_storeu_si128(out + 30, _mm_and_si128(mask, _mm_srli_epi64(w1, 40)));
+  _mm_storeu_si128(out + 31, _mm_srli_epi64(w1, 52));
+}
+
+/* we packed 64 13-bit values, touching 7 128-bit words, using 112 bytes */
+static void simdunpackblock13(const __m128i *compressed, u64 *pout) {
+  /* we are going to access  7 128-bit words */
+  __m128i w0, w1;
+  __m128i *out = (__m128i *)pout;
+  const __m128i mask = _mm_set1_epi64x(8191);
+  w0 = _mm_loadu_si128(compressed);
+  _mm_storeu_si128(out + 0, _mm_and_si128(mask, w0));
+  _mm_storeu_si128(out + 1, _mm_and_si128(mask, _mm_srli_epi64(w0, 13)));
+  _mm_storeu_si128(out + 2, _mm_and_si128(mask, _mm_srli_epi64(w0, 26)));
+  _mm_storeu_si128(out + 3, _mm_and_si128(mask, _mm_srli_epi64(w0, 39)));
+  w1 = _mm_loadu_si128(compressed + 1);
+  _mm_storeu_si128(out + 4,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 52),
+                                                    _mm_slli_epi64(w1, 12))));
+  _mm_storeu_si128(out + 5, _mm_and_si128(mask, _mm_srli_epi64(w1, 1)));
+  _mm_storeu_si128(out + 6, _mm_and_si128(mask, _mm_srli_epi64(w1, 14)));
+  _mm_storeu_si128(out + 7, _mm_and_si128(mask, _mm_srli_epi64(w1, 27)));
+  _mm_storeu_si128(out + 8, _mm_and_si128(mask, _mm_srli_epi64(w1, 40)));
+  w0 = _mm_loadu_si128(compressed + 2);
+  _mm_storeu_si128(out + 9,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 53),
+                                                    _mm_slli_epi64(w0, 11))));
+  _mm_storeu_si128(out + 10, _mm_and_si128(mask, _mm_srli_epi64(w0, 2)));
+  _mm_storeu_si128(out + 11, _mm_and_si128(mask, _mm_srli_epi64(w0, 15)));
+  _mm_storeu_si128(out + 12, _mm_and_si128(mask, _mm_srli_epi64(w0, 28)));
+  _mm_storeu_si128(out + 13, _mm_and_si128(mask, _mm_srli_epi64(w0, 41)));
+  w1 = _mm_loadu_si128(compressed + 3);
+  _mm_storeu_si128(out + 14,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 54),
+                                                    _mm_slli_epi64(w1, 10))));
+  _mm_storeu_si128(out + 15, _mm_and_si128(mask, _mm_srli_epi64(w1, 3)));
+  _mm_storeu_si128(out + 16, _mm_and_si128(mask, _mm_srli_epi64(w1, 16)));
+  _mm_storeu_si128(out + 17, _mm_and_si128(mask, _mm_srli_epi64(w1, 29)));
+  _mm_storeu_si128(out + 18, _mm_and_si128(mask, _mm_srli_epi64(w1, 42)));
+  w0 = _mm_loadu_si128(compressed + 4);
+  _mm_storeu_si128(out + 19,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 55),
+                                                    _mm_slli_epi64(w0, 9))));
+  _mm_storeu_si128(out + 20, _mm_and_si128(mask, _mm_srli_epi64(w0, 4)));
+  _mm_storeu_si128(out + 21, _mm_and_si128(mask, _mm_srli_epi64(w0, 17)));
+  _mm_storeu_si128(out + 22, _mm_and_si128(mask, _mm_srli_epi64(w0, 30)));
+  _mm_storeu_si128(out + 23, _mm_and_si128(mask, _mm_srli_epi64(w0, 43)));
+  w1 = _mm_loadu_si128(compressed + 5);
+  _mm_storeu_si128(out + 24,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 56),
+                                                    _mm_slli_epi64(w1, 8))));
+  _mm_storeu_si128(out + 25, _mm_and_si128(mask, _mm_srli_epi64(w1, 5)));
+  _mm_storeu_si128(out + 26, _mm_and_si128(mask, _mm_srli_epi64(w1, 18)));
+  _mm_storeu_si128(out + 27, _mm_and_si128(mask, _mm_srli_epi64(w1, 31)));
+  _mm_storeu_si128(out + 28, _mm_and_si128(mask, _mm_srli_epi64(w1, 44)));
+  w0 = _mm_loadu_si128(compressed + 6);
+  _mm_storeu_si128(out + 29,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 57),
+                                                    _mm_slli_epi64(w0, 7))));
+  _mm_storeu_si128(out + 30, _mm_and_si128(mask, _mm_srli_epi64(w0, 6)));
+  _mm_storeu_si128(out + 31, _mm_and_si128(mask, _mm_srli_epi64(w0, 19)));
+}
+
+/* we packed 64 14-bit values, touching 7 128-bit words, using 112 bytes */
+static void simdunpackblock14(const __m128i *compressed, u64 *pout) {
+  /* we are going to access  7 128-bit words */
+  __m128i w0, w1;
+  __m128i *out = (__m128i *)pout;
+  const __m128i mask = _mm_set1_epi64x(16383);
+  w0 = _mm_loadu_si128(compressed);
+  _mm_storeu_si128(out + 0, _mm_and_si128(mask, w0));
+  _mm_storeu_si128(out + 1, _mm_and_si128(mask, _mm_srli_epi64(w0, 14)));
+  _mm_storeu_si128(out + 2, _mm_and_si128(mask, _mm_srli_epi64(w0, 28)));
+  _mm_storeu_si128(out + 3, _mm_and_si128(mask, _mm_srli_epi64(w0, 42)));
+  w1 = _mm_loadu_si128(compressed + 1);
+  _mm_storeu_si128(out + 4,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 56),
+                                                    _mm_slli_epi64(w1, 8))));
+  _mm_storeu_si128(out + 5, _mm_and_si128(mask, _mm_srli_epi64(w1, 6)));
+  _mm_storeu_si128(out + 6, _mm_and_si128(mask, _mm_srli_epi64(w1, 20)));
+  _mm_storeu_si128(out + 7, _mm_and_si128(mask, _mm_srli_epi64(w1, 34)));
+  _mm_storeu_si128(out + 8, _mm_and_si128(mask, _mm_srli_epi64(w1, 48)));
+  w0 = _mm_loadu_si128(compressed + 2);
+  _mm_storeu_si128(out + 9,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 62),
+                                                    _mm_slli_epi64(w0, 2))));
+  _mm_storeu_si128(out + 10, _mm_and_si128(mask, _mm_srli_epi64(w0, 12)));
+  _mm_storeu_si128(out + 11, _mm_and_si128(mask, _mm_srli_epi64(w0, 26)));
+  _mm_storeu_si128(out + 12, _mm_and_si128(mask, _mm_srli_epi64(w0, 40)));
+  w1 = _mm_loadu_si128(compressed + 3);
+  _mm_storeu_si128(out + 13,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 54),
+                                                    _mm_slli_epi64(w1, 10))));
+  _mm_storeu_si128(out + 14, _mm_and_si128(mask, _mm_srli_epi64(w1, 4)));
+  _mm_storeu_si128(out + 15, _mm_and_si128(mask, _mm_srli_epi64(w1, 18)));
+  _mm_storeu_si128(out + 16, _mm_and_si128(mask, _mm_srli_epi64(w1, 32)));
+  _mm_storeu_si128(out + 17, _mm_and_si128(mask, _mm_srli_epi64(w1, 46)));
+  w0 = _mm_loadu_si128(compressed + 4);
+  _mm_storeu_si128(out + 18,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 60),
+                                                    _mm_slli_epi64(w0, 4))));
+  _mm_storeu_si128(out + 19, _mm_and_si128(mask, _mm_srli_epi64(w0, 10)));
+  _mm_storeu_si128(out + 20, _mm_and_si128(mask, _mm_srli_epi64(w0, 24)));
+  _mm_storeu_si128(out + 21, _mm_and_si128(mask, _mm_srli_epi64(w0, 38)));
+  w1 = _mm_loadu_si128(compressed + 5);
+  _mm_storeu_si128(out + 22,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 52),
+                                                    _mm_slli_epi64(w1, 12))));
+  _mm_storeu_si128(out + 23, _mm_and_si128(mask, _mm_srli_epi64(w1, 2)));
+  _mm_storeu_si128(out + 24, _mm_and_si128(mask, _mm_srli_epi64(w1, 16)));
+  _mm_storeu_si128(out + 25, _mm_and_si128(mask, _mm_srli_epi64(w1, 30)));
+  _mm_storeu_si128(out + 26, _mm_and_si128(mask, _mm_srli_epi64(w1, 44)));
+  w0 = _mm_loadu_si128(compressed + 6);
+  _mm_storeu_si128(out + 27,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 58),
+                                                    _mm_slli_epi64(w0, 6))));
+  _mm_storeu_si128(out + 28, _mm_and_si128(mask, _mm_srli_epi64(w0, 8)));
+  _mm_storeu_si128(out + 29, _mm_and_si128(mask, _mm_srli_epi64(w0, 22)));
+  _mm_storeu_si128(out + 30, _mm_and_si128(mask, _mm_srli_epi64(w0, 36)));
+  _mm_storeu_si128(out + 31, _mm_srli_epi64(w0, 50));
+}
+
+/* we packed 64 15-bit values, touching 8 128-bit words, using 128 bytes */
+static void simdunpackblock15(const __m128i *compressed, u64 *pout) {
+  /* we are going to access  8 128-bit words */
+  __m128i w0, w1;
+  __m128i *out = (__m128i *)pout;
+  const __m128i mask = _mm_set1_epi64x(32767);
+  w0 = _mm_loadu_si128(compressed);
+  _mm_storeu_si128(out + 0, _mm_and_si128(mask, w0));
+  _mm_storeu_si128(out + 1, _mm_and_si128(mask, _mm_srli_epi64(w0, 15)));
+  _mm_storeu_si128(out + 2, _mm_and_si128(mask, _mm_srli_epi64(w0, 30)));
+  _mm_storeu_si128(out + 3, _mm_and_si128(mask, _mm_srli_epi64(w0, 45)));
+  w1 = _mm_loadu_si128(compressed + 1);
+  _mm_storeu_si128(out + 4,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 60),
+                                                    _mm_slli_epi64(w1, 4))));
+  _mm_storeu_si128(out + 5, _mm_and_si128(mask, _mm_srli_epi64(w1, 11)));
+  _mm_storeu_si128(out + 6, _mm_and_si128(mask, _mm_srli_epi64(w1, 26)));
+  _mm_storeu_si128(out + 7, _mm_and_si128(mask, _mm_srli_epi64(w1, 41)));
+  w0 = _mm_loadu_si128(compressed + 2);
+  _mm_storeu_si128(out + 8,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 56),
+                                                    _mm_slli_epi64(w0, 8))));
+  _mm_storeu_si128(out + 9, _mm_and_si128(mask, _mm_srli_epi64(w0, 7)));
+  _mm_storeu_si128(out + 10, _mm_and_si128(mask, _mm_srli_epi64(w0, 22)));
+  _mm_storeu_si128(out + 11, _mm_and_si128(mask, _mm_srli_epi64(w0, 37)));
+  w1 = _mm_loadu_si128(compressed + 3);
+  _mm_storeu_si128(out + 12,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 52),
+                                                    _mm_slli_epi64(w1, 12))));
+  _mm_storeu_si128(out + 13, _mm_and_si128(mask, _mm_srli_epi64(w1, 3)));
+  _mm_storeu_si128(out + 14, _mm_and_si128(mask, _mm_srli_epi64(w1, 18)));
+  _mm_storeu_si128(out + 15, _mm_and_si128(mask, _mm_srli_epi64(w1, 33)));
+  _mm_storeu_si128(out + 16, _mm_and_si128(mask, _mm_srli_epi64(w1, 48)));
+  w0 = _mm_loadu_si128(compressed + 4);
+  _mm_storeu_si128(out + 17,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 63),
+                                                    _mm_slli_epi64(w0, 1))));
+  _mm_storeu_si128(out + 18, _mm_and_si128(mask, _mm_srli_epi64(w0, 14)));
+  _mm_storeu_si128(out + 19, _mm_and_si128(mask, _mm_srli_epi64(w0, 29)));
+  _mm_storeu_si128(out + 20, _mm_and_si128(mask, _mm_srli_epi64(w0, 44)));
+  w1 = _mm_loadu_si128(compressed + 5);
+  _mm_storeu_si128(out + 21,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 59),
+                                                    _mm_slli_epi64(w1, 5))));
+  _mm_storeu_si128(out + 22, _mm_and_si128(mask, _mm_srli_epi64(w1, 10)));
+  _mm_storeu_si128(out + 23, _mm_and_si128(mask, _mm_srli_epi64(w1, 25)));
+  _mm_storeu_si128(out + 24, _mm_and_si128(mask, _mm_srli_epi64(w1, 40)));
+  w0 = _mm_loadu_si128(compressed + 6);
+  _mm_storeu_si128(out + 25,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 55),
+                                                    _mm_slli_epi64(w0, 9))));
+  _mm_storeu_si128(out + 26, _mm_and_si128(mask, _mm_srli_epi64(w0, 6)));
+  _mm_storeu_si128(out + 27, _mm_and_si128(mask, _mm_srli_epi64(w0, 21)));
+  _mm_storeu_si128(out + 28, _mm_and_si128(mask, _mm_srli_epi64(w0, 36)));
+  w1 = _mm_loadu_si128(compressed + 7);
+  _mm_storeu_si128(out + 29,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 51),
+                                                    _mm_slli_epi64(w1, 13))));
+  _mm_storeu_si128(out + 30, _mm_and_si128(mask, _mm_srli_epi64(w1, 2)));
+  _mm_storeu_si128(out + 31, _mm_and_si128(mask, _mm_srli_epi64(w1, 17)));
+}
+
+/* we packed 64 16-bit values, touching 8 128-bit words, using 128 bytes */
+static void simdunpackblock16(const __m128i *compressed, u64 *pout) {
+  /* we are going to access  8 128-bit words */
+  __m128i w0, w1;
+  __m128i *out = (__m128i *)pout;
+  const __m128i mask = _mm_set1_epi64x(65535);
+  w0 = _mm_loadu_si128(compressed);
+  _mm_storeu_si128(out + 0, _mm_and_si128(mask, w0));
+  _mm_storeu_si128(out + 1, _mm_and_si128(mask, _mm_srli_epi64(w0, 16)));
+  _mm_storeu_si128(out + 2, _mm_and_si128(mask, _mm_srli_epi64(w0, 32)));
+  _mm_storeu_si128(out + 3, _mm_srli_epi64(w0, 48));
+  w1 = _mm_loadu_si128(compressed + 1);
+  _mm_storeu_si128(out + 4, _mm_and_si128(mask, w1));
+  _mm_storeu_si128(out + 5, _mm_and_si128(mask, _mm_srli_epi64(w1, 16)));
+  _mm_storeu_si128(out + 6, _mm_and_si128(mask, _mm_srli_epi64(w1, 32)));
+  _mm_storeu_si128(out + 7, _mm_srli_epi64(w1, 48));
+  w0 = _mm_loadu_si128(compressed + 2);
+  _mm_storeu_si128(out + 8, _mm_and_si128(mask, w0));
+  _mm_storeu_si128(out + 9, _mm_and_si128(mask, _mm_srli_epi64(w0, 16)));
+  _mm_storeu_si128(out + 10, _mm_and_si128(mask, _mm_srli_epi64(w0, 32)));
+  _mm_storeu_si128(out + 11, _mm_srli_epi64(w0, 48));
+  w1 = _mm_loadu_si128(compressed + 3);
+  _mm_storeu_si128(out + 12, _mm_and_si128(mask, w1));
+  _mm_storeu_si128(out + 13, _mm_and_si128(mask, _mm_srli_epi64(w1, 16)));
+  _mm_storeu_si128(out + 14, _mm_and_si128(mask, _mm_srli_epi64(w1, 32)));
+  _mm_storeu_si128(out + 15, _mm_srli_epi64(w1, 48));
+  w0 = _mm_loadu_si128(compressed + 4);
+  _mm_storeu_si128(out + 16, _mm_and_si128(mask, w0));
+  _mm_storeu_si128(out + 17, _mm_and_si128(mask, _mm_srli_epi64(w0, 16)));
+  _mm_storeu_si128(out + 18, _mm_and_si128(mask, _mm_srli_epi64(w0, 32)));
+  _mm_storeu_si128(out + 19, _mm_srli_epi64(w0, 48));
+  w1 = _mm_loadu_si128(compressed + 5);
+  _mm_storeu_si128(out + 20, _mm_and_si128(mask, w1));
+  _mm_storeu_si128(out + 21, _mm_and_si128(mask, _mm_srli_epi64(w1, 16)));
+  _mm_storeu_si128(out + 22, _mm_and_si128(mask, _mm_srli_epi64(w1, 32)));
+  _mm_storeu_si128(out + 23, _mm_srli_epi64(w1, 48));
+  w0 = _mm_loadu_si128(compressed + 6);
+  _mm_storeu_si128(out + 24, _mm_and_si128(mask, w0));
+  _mm_storeu_si128(out + 25, _mm_and_si128(mask, _mm_srli_epi64(w0, 16)));
+  _mm_storeu_si128(out + 26, _mm_and_si128(mask, _mm_srli_epi64(w0, 32)));
+  _mm_storeu_si128(out + 27, _mm_srli_epi64(w0, 48));
+  w1 = _mm_loadu_si128(compressed + 7);
+  _mm_storeu_si128(out + 28, _mm_and_si128(mask, w1));
+  _mm_storeu_si128(out + 29, _mm_and_si128(mask, _mm_srli_epi64(w1, 16)));
+  _mm_storeu_si128(out + 30, _mm_and_si128(mask, _mm_srli_epi64(w1, 32)));
+  _mm_storeu_si128(out + 31, _mm_srli_epi64(w1, 48));
+}
+
+/* we packed 64 17-bit values, touching 9 128-bit words, using 144 bytes */
+static void simdunpackblock17(const __m128i *compressed, u64 *pout) {
+  /* we are going to access  9 128-bit words */
+  __m128i w0, w1;
+  __m128i *out = (__m128i *)pout;
+  const __m128i mask = _mm_set1_epi64x(131071);
+  w0 = _mm_loadu_si128(compressed);
+  _mm_storeu_si128(out + 0, _mm_and_si128(mask, w0));
+  _mm_storeu_si128(out + 1, _mm_and_si128(mask, _mm_srli_epi64(w0, 17)));
+  _mm_storeu_si128(out + 2, _mm_and_si128(mask, _mm_srli_epi64(w0, 34)));
+  w1 = _mm_loadu_si128(compressed + 1);
+  _mm_storeu_si128(out + 3,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 51),
+                                                    _mm_slli_epi64(w1, 13))));
+  _mm_storeu_si128(out + 4, _mm_and_si128(mask, _mm_srli_epi64(w1, 4)));
+  _mm_storeu_si128(out + 5, _mm_and_si128(mask, _mm_srli_epi64(w1, 21)));
+  _mm_storeu_si128(out + 6, _mm_and_si128(mask, _mm_srli_epi64(w1, 38)));
+  w0 = _mm_loadu_si128(compressed + 2);
+  _mm_storeu_si128(out + 7,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 55),
+                                                    _mm_slli_epi64(w0, 9))));
+  _mm_storeu_si128(out + 8, _mm_and_si128(mask, _mm_srli_epi64(w0, 8)));
+  _mm_storeu_si128(out + 9, _mm_and_si128(mask, _mm_srli_epi64(w0, 25)));
+  _mm_storeu_si128(out + 10, _mm_and_si128(mask, _mm_srli_epi64(w0, 42)));
+  w1 = _mm_loadu_si128(compressed + 3);
+  _mm_storeu_si128(out + 11,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 59),
+                                                    _mm_slli_epi64(w1, 5))));
+  _mm_storeu_si128(out + 12, _mm_and_si128(mask, _mm_srli_epi64(w1, 12)));
+  _mm_storeu_si128(out + 13, _mm_and_si128(mask, _mm_srli_epi64(w1, 29)));
+  _mm_storeu_si128(out + 14, _mm_and_si128(mask, _mm_srli_epi64(w1, 46)));
+  w0 = _mm_loadu_si128(compressed + 4);
+  _mm_storeu_si128(out + 15,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 63),
+                                                    _mm_slli_epi64(w0, 1))));
+  _mm_storeu_si128(out + 16, _mm_and_si128(mask, _mm_srli_epi64(w0, 16)));
+  _mm_storeu_si128(out + 17, _mm_and_si128(mask, _mm_srli_epi64(w0, 33)));
+  w1 = _mm_loadu_si128(compressed + 5);
+  _mm_storeu_si128(out + 18,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 50),
+                                                    _mm_slli_epi64(w1, 14))));
+  _mm_storeu_si128(out + 19, _mm_and_si128(mask, _mm_srli_epi64(w1, 3)));
+  _mm_storeu_si128(out + 20, _mm_and_si128(mask, _mm_srli_epi64(w1, 20)));
+  _mm_storeu_si128(out + 21, _mm_and_si128(mask, _mm_srli_epi64(w1, 37)));
+  w0 = _mm_loadu_si128(compressed + 6);
+  _mm_storeu_si128(out + 22,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 54),
+                                                    _mm_slli_epi64(w0, 10))));
+  _mm_storeu_si128(out + 23, _mm_and_si128(mask, _mm_srli_epi64(w0, 7)));
+  _mm_storeu_si128(out + 24, _mm_and_si128(mask, _mm_srli_epi64(w0, 24)));
+  _mm_storeu_si128(out + 25, _mm_and_si128(mask, _mm_srli_epi64(w0, 41)));
+  w1 = _mm_loadu_si128(compressed + 7);
+  _mm_storeu_si128(out + 26,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 58),
+                                                    _mm_slli_epi64(w1, 6))));
+  _mm_storeu_si128(out + 27, _mm_and_si128(mask, _mm_srli_epi64(w1, 11)));
+  _mm_storeu_si128(out + 28, _mm_and_si128(mask, _mm_srli_epi64(w1, 28)));
+  _mm_storeu_si128(out + 29, _mm_and_si128(mask, _mm_srli_epi64(w1, 45)));
+  w0 = _mm_loadu_si128(compressed + 8);
+  _mm_storeu_si128(out + 30,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 62),
+                                                    _mm_slli_epi64(w0, 2))));
+  _mm_storeu_si128(out + 31, _mm_and_si128(mask, _mm_srli_epi64(w0, 15)));
+}
+
+/* we packed 64 18-bit values, touching 9 128-bit words, using 144 bytes */
+static void simdunpackblock18(const __m128i *compressed, u64 *pout) {
+  /* we are going to access  9 128-bit words */
+  __m128i w0, w1;
+  __m128i *out = (__m128i *)pout;
+  const __m128i mask = _mm_set1_epi64x(262143);
+  w0 = _mm_loadu_si128(compressed);
+  _mm_storeu_si128(out + 0, _mm_and_si128(mask, w0));
+  _mm_storeu_si128(out + 1, _mm_and_si128(mask, _mm_srli_epi64(w0, 18)));
+  _mm_storeu_si128(out + 2, _mm_and_si128(mask, _mm_srli_epi64(w0, 36)));
+  w1 = _mm_loadu_si128(compressed + 1);
+  _mm_storeu_si128(out + 3,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 54),
+                                                    _mm_slli_epi64(w1, 10))));
+  _mm_storeu_si128(out + 4, _mm_and_si128(mask, _mm_srli_epi64(w1, 8)));
+  _mm_storeu_si128(out + 5, _mm_and_si128(mask, _mm_srli_epi64(w1, 26)));
+  _mm_storeu_si128(out + 6, _mm_and_si128(mask, _mm_srli_epi64(w1, 44)));
+  w0 = _mm_loadu_si128(compressed + 2);
+  _mm_storeu_si128(out + 7,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 62),
+                                                    _mm_slli_epi64(w0, 2))));
+  _mm_storeu_si128(out + 8, _mm_and_si128(mask, _mm_srli_epi64(w0, 16)));
+  _mm_storeu_si128(out + 9, _mm_and_si128(mask, _mm_srli_epi64(w0, 34)));
+  w1 = _mm_loadu_si128(compressed + 3);
+  _mm_storeu_si128(out + 10,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 52),
+                                                    _mm_slli_epi64(w1, 12))));
+  _mm_storeu_si128(out + 11, _mm_and_si128(mask, _mm_srli_epi64(w1, 6)));
+  _mm_storeu_si128(out + 12, _mm_and_si128(mask, _mm_srli_epi64(w1, 24)));
+  _mm_storeu_si128(out + 13, _mm_and_si128(mask, _mm_srli_epi64(w1, 42)));
+  w0 = _mm_loadu_si128(compressed + 4);
+  _mm_storeu_si128(out + 14,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 60),
+                                                    _mm_slli_epi64(w0, 4))));
+  _mm_storeu_si128(out + 15, _mm_and_si128(mask, _mm_srli_epi64(w0, 14)));
+  _mm_storeu_si128(out + 16, _mm_and_si128(mask, _mm_srli_epi64(w0, 32)));
+  w1 = _mm_loadu_si128(compressed + 5);
+  _mm_storeu_si128(out + 17,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 50),
+                                                    _mm_slli_epi64(w1, 14))));
+  _mm_storeu_si128(out + 18, _mm_and_si128(mask, _mm_srli_epi64(w1, 4)));
+  _mm_storeu_si128(out + 19, _mm_and_si128(mask, _mm_srli_epi64(w1, 22)));
+  _mm_storeu_si128(out + 20, _mm_and_si128(mask, _mm_srli_epi64(w1, 40)));
+  w0 = _mm_loadu_si128(compressed + 6);
+  _mm_storeu_si128(out + 21,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 58),
+                                                    _mm_slli_epi64(w0, 6))));
+  _mm_storeu_si128(out + 22, _mm_and_si128(mask, _mm_srli_epi64(w0, 12)));
+  _mm_storeu_si128(out + 23, _mm_and_si128(mask, _mm_srli_epi64(w0, 30)));
+  w1 = _mm_loadu_si128(compressed + 7);
+  _mm_storeu_si128(out + 24,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 48),
+                                                    _mm_slli_epi64(w1, 16))));
+  _mm_storeu_si128(out + 25, _mm_and_si128(mask, _mm_srli_epi64(w1, 2)));
+  _mm_storeu_si128(out + 26, _mm_and_si128(mask, _mm_srli_epi64(w1, 20)));
+  _mm_storeu_si128(out + 27, _mm_and_si128(mask, _mm_srli_epi64(w1, 38)));
+  w0 = _mm_loadu_si128(compressed + 8);
+  _mm_storeu_si128(out + 28,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 56),
+                                                    _mm_slli_epi64(w0, 8))));
+  _mm_storeu_si128(out + 29, _mm_and_si128(mask, _mm_srli_epi64(w0, 10)));
+  _mm_storeu_si128(out + 30, _mm_and_si128(mask, _mm_srli_epi64(w0, 28)));
+  _mm_storeu_si128(out + 31, _mm_srli_epi64(w0, 46));
+}
+
+/* we packed 64 19-bit values, touching 10 128-bit words, using 160 bytes */
+static void simdunpackblock19(const __m128i *compressed, u64 *pout) {
+  /* we are going to access  10 128-bit words */
+  __m128i w0, w1;
+  __m128i *out = (__m128i *)pout;
+  const __m128i mask = _mm_set1_epi64x(524287);
+  w0 = _mm_loadu_si128(compressed);
+  _mm_storeu_si128(out + 0, _mm_and_si128(mask, w0));
+  _mm_storeu_si128(out + 1, _mm_and_si128(mask, _mm_srli_epi64(w0, 19)));
+  _mm_storeu_si128(out + 2, _mm_and_si128(mask, _mm_srli_epi64(w0, 38)));
+  w1 = _mm_loadu_si128(compressed + 1);
+  _mm_storeu_si128(out + 3,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 57),
+                                                    _mm_slli_epi64(w1, 7))));
+  _mm_storeu_si128(out + 4, _mm_and_si128(mask, _mm_srli_epi64(w1, 12)));
+  _mm_storeu_si128(out + 5, _mm_and_si128(mask, _mm_srli_epi64(w1, 31)));
+  w0 = _mm_loadu_si128(compressed + 2);
+  _mm_storeu_si128(out + 6,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 50),
+                                                    _mm_slli_epi64(w0, 14))));
+  _mm_storeu_si128(out + 7, _mm_and_si128(mask, _mm_srli_epi64(w0, 5)));
+  _mm_storeu_si128(out + 8, _mm_and_si128(mask, _mm_srli_epi64(w0, 24)));
+  _mm_storeu_si128(out + 9, _mm_and_si128(mask, _mm_srli_epi64(w0, 43)));
+  w1 = _mm_loadu_si128(compressed + 3);
+  _mm_storeu_si128(out + 10,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 62),
+                                                    _mm_slli_epi64(w1, 2))));
+  _mm_storeu_si128(out + 11, _mm_and_si128(mask, _mm_srli_epi64(w1, 17)));
+  _mm_storeu_si128(out + 12, _mm_and_si128(mask, _mm_srli_epi64(w1, 36)));
+  w0 = _mm_loadu_si128(compressed + 4);
+  _mm_storeu_si128(out + 13,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 55),
+                                                    _mm_slli_epi64(w0, 9))));
+  _mm_storeu_si128(out + 14, _mm_and_si128(mask, _mm_srli_epi64(w0, 10)));
+  _mm_storeu_si128(out + 15, _mm_and_si128(mask, _mm_srli_epi64(w0, 29)));
+  w1 = _mm_loadu_si128(compressed + 5);
+  _mm_storeu_si128(out + 16,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 48),
+                                                    _mm_slli_epi64(w1, 16))));
+  _mm_storeu_si128(out + 17, _mm_and_si128(mask, _mm_srli_epi64(w1, 3)));
+  _mm_storeu_si128(out + 18, _mm_and_si128(mask, _mm_srli_epi64(w1, 22)));
+  _mm_storeu_si128(out + 19, _mm_and_si128(mask, _mm_srli_epi64(w1, 41)));
+  w0 = _mm_loadu_si128(compressed + 6);
+  _mm_storeu_si128(out + 20,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 60),
+                                                    _mm_slli_epi64(w0, 4))));
+  _mm_storeu_si128(out + 21, _mm_and_si128(mask, _mm_srli_epi64(w0, 15)));
+  _mm_storeu_si128(out + 22, _mm_and_si128(mask, _mm_srli_epi64(w0, 34)));
+  w1 = _mm_loadu_si128(compressed + 7);
+  _mm_storeu_si128(out + 23,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 53),
+                                                    _mm_slli_epi64(w1, 11))));
+  _mm_storeu_si128(out + 24, _mm_and_si128(mask, _mm_srli_epi64(w1, 8)));
+  _mm_storeu_si128(out + 25, _mm_and_si128(mask, _mm_srli_epi64(w1, 27)));
+  w0 = _mm_loadu_si128(compressed + 8);
+  _mm_storeu_si128(out + 26,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 46),
+                                                    _mm_slli_epi64(w0, 18))));
+  _mm_storeu_si128(out + 27, _mm_and_si128(mask, _mm_srli_epi64(w0, 1)));
+  _mm_storeu_si128(out + 28, _mm_and_si128(mask, _mm_srli_epi64(w0, 20)));
+  _mm_storeu_si128(out + 29, _mm_and_si128(mask, _mm_srli_epi64(w0, 39)));
+  w1 = _mm_loadu_si128(compressed + 9);
+  _mm_storeu_si128(out + 30,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 58),
+                                                    _mm_slli_epi64(w1, 6))));
+  _mm_storeu_si128(out + 31, _mm_and_si128(mask, _mm_srli_epi64(w1, 13)));
+}
+
+/* we packed 64 20-bit values, touching 10 128-bit words, using 160 bytes */
+static void simdunpackblock20(const __m128i *compressed, u64 *pout) {
+  /* we are going to access  10 128-bit words */
+  __m128i w0, w1;
+  __m128i *out = (__m128i *)pout;
+  const __m128i mask = _mm_set1_epi64x(1048575);
+  w0 = _mm_loadu_si128(compressed);
+  _mm_storeu_si128(out + 0, _mm_and_si128(mask, w0));
+  _mm_storeu_si128(out + 1, _mm_and_si128(mask, _mm_srli_epi64(w0, 20)));
+  _mm_storeu_si128(out + 2, _mm_and_si128(mask, _mm_srli_epi64(w0, 40)));
+  w1 = _mm_loadu_si128(compressed + 1);
+  _mm_storeu_si128(out + 3,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 60),
+                                                    _mm_slli_epi64(w1, 4))));
+  _mm_storeu_si128(out + 4, _mm_and_si128(mask, _mm_srli_epi64(w1, 16)));
+  _mm_storeu_si128(out + 5, _mm_and_si128(mask, _mm_srli_epi64(w1, 36)));
+  w0 = _mm_loadu_si128(compressed + 2);
+  _mm_storeu_si128(out + 6,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 56),
+                                                    _mm_slli_epi64(w0, 8))));
+  _mm_storeu_si128(out + 7, _mm_and_si128(mask, _mm_srli_epi64(w0, 12)));
+  _mm_storeu_si128(out + 8, _mm_and_si128(mask, _mm_srli_epi64(w0, 32)));
+  w1 = _mm_loadu_si128(compressed + 3);
+  _mm_storeu_si128(out + 9,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 52),
+                                                    _mm_slli_epi64(w1, 12))));
+  _mm_storeu_si128(out + 10, _mm_and_si128(mask, _mm_srli_epi64(w1, 8)));
+  _mm_storeu_si128(out + 11, _mm_and_si128(mask, _mm_srli_epi64(w1, 28)));
+  w0 = _mm_loadu_si128(compressed + 4);
+  _mm_storeu_si128(out + 12,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 48),
+                                                    _mm_slli_epi64(w0, 16))));
+  _mm_storeu_si128(out + 13, _mm_and_si128(mask, _mm_srli_epi64(w0, 4)));
+  _mm_storeu_si128(out + 14, _mm_and_si128(mask, _mm_srli_epi64(w0, 24)));
+  _mm_storeu_si128(out + 15, _mm_srli_epi64(w0, 44));
+  w1 = _mm_loadu_si128(compressed + 5);
+  _mm_storeu_si128(out + 16, _mm_and_si128(mask, w1));
+  _mm_storeu_si128(out + 17, _mm_and_si128(mask, _mm_srli_epi64(w1, 20)));
+  _mm_storeu_si128(out + 18, _mm_and_si128(mask, _mm_srli_epi64(w1, 40)));
+  w0 = _mm_loadu_si128(compressed + 6);
+  _mm_storeu_si128(out + 19,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 60),
+                                                    _mm_slli_epi64(w0, 4))));
+  _mm_storeu_si128(out + 20, _mm_and_si128(mask, _mm_srli_epi64(w0, 16)));
+  _mm_storeu_si128(out + 21, _mm_and_si128(mask, _mm_srli_epi64(w0, 36)));
+  w1 = _mm_loadu_si128(compressed + 7);
+  _mm_storeu_si128(out + 22,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 56),
+                                                    _mm_slli_epi64(w1, 8))));
+  _mm_storeu_si128(out + 23, _mm_and_si128(mask, _mm_srli_epi64(w1, 12)));
+  _mm_storeu_si128(out + 24, _mm_and_si128(mask, _mm_srli_epi64(w1, 32)));
+  w0 = _mm_loadu_si128(compressed + 8);
+  _mm_storeu_si128(out + 25,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 52),
+                                                    _mm_slli_epi64(w0, 12))));
+  _mm_storeu_si128(out + 26, _mm_and_si128(mask, _mm_srli_epi64(w0, 8)));
+  _mm_storeu_si128(out + 27, _mm_and_si128(mask, _mm_srli_epi64(w0, 28)));
+  w1 = _mm_loadu_si128(compressed + 9);
+  _mm_storeu_si128(out + 28,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 48),
+                                                    _mm_slli_epi64(w1, 16))));
+  _mm_storeu_si128(out + 29, _mm_and_si128(mask, _mm_srli_epi64(w1, 4)));
+  _mm_storeu_si128(out + 30, _mm_and_si128(mask, _mm_srli_epi64(w1, 24)));
+  _mm_storeu_si128(out + 31, _mm_srli_epi64(w1, 44));
+}
+
+/* we packed 64 21-bit values, touching 11 128-bit words, using 176 bytes */
+static void simdunpackblock21(const __m128i *compressed, u64 *pout) {
+  /* we are going to access  11 128-bit words */
+  __m128i w0, w1;
+  __m128i *out = (__m128i *)pout;
+  const __m128i mask = _mm_set1_epi64x(2097151);
+  w0 = _mm_loadu_si128(compressed);
+  _mm_storeu_si128(out + 0, _mm_and_si128(mask, w0));
+  _mm_storeu_si128(out + 1, _mm_and_si128(mask, _mm_srli_epi64(w0, 21)));
+  _mm_storeu_si128(out + 2, _mm_and_si128(mask, _mm_srli_epi64(w0, 42)));
+  w1 = _mm_loadu_si128(compressed + 1);
+  _mm_storeu_si128(out + 3,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 63),
+                                                    _mm_slli_epi64(w1, 1))));
+  _mm_storeu_si128(out + 4, _mm_and_si128(mask, _mm_srli_epi64(w1, 20)));
+  _mm_storeu_si128(out + 5, _mm_and_si128(mask, _mm_srli_epi64(w1, 41)));
+  w0 = _mm_loadu_si128(compressed + 2);
+  _mm_storeu_si128(out + 6,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 62),
+                                                    _mm_slli_epi64(w0, 2))));
+  _mm_storeu_si128(out + 7, _mm_and_si128(mask, _mm_srli_epi64(w0, 19)));
+  _mm_storeu_si128(out + 8, _mm_and_si128(mask, _mm_srli_epi64(w0, 40)));
+  w1 = _mm_loadu_si128(compressed + 3);
+  _mm_storeu_si128(out + 9,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 61),
+                                                    _mm_slli_epi64(w1, 3))));
+  _mm_storeu_si128(out + 10, _mm_and_si128(mask, _mm_srli_epi64(w1, 18)));
+  _mm_storeu_si128(out + 11, _mm_and_si128(mask, _mm_srli_epi64(w1, 39)));
+  w0 = _mm_loadu_si128(compressed + 4);
+  _mm_storeu_si128(out + 12,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 60),
+                                                    _mm_slli_epi64(w0, 4))));
+  _mm_storeu_si128(out + 13, _mm_and_si128(mask, _mm_srli_epi64(w0, 17)));
+  _mm_storeu_si128(out + 14, _mm_and_si128(mask, _mm_srli_epi64(w0, 38)));
+  w1 = _mm_loadu_si128(compressed + 5);
+  _mm_storeu_si128(out + 15,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 59),
+                                                    _mm_slli_epi64(w1, 5))));
+  _mm_storeu_si128(out + 16, _mm_and_si128(mask, _mm_srli_epi64(w1, 16)));
+  _mm_storeu_si128(out + 17, _mm_and_si128(mask, _mm_srli_epi64(w1, 37)));
+  w0 = _mm_loadu_si128(compressed + 6);
+  _mm_storeu_si128(out + 18,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 58),
+                                                    _mm_slli_epi64(w0, 6))));
+  _mm_storeu_si128(out + 19, _mm_and_si128(mask, _mm_srli_epi64(w0, 15)));
+  _mm_storeu_si128(out + 20, _mm_and_si128(mask, _mm_srli_epi64(w0, 36)));
+  w1 = _mm_loadu_si128(compressed + 7);
+  _mm_storeu_si128(out + 21,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 57),
+                                                    _mm_slli_epi64(w1, 7))));
+  _mm_storeu_si128(out + 22, _mm_and_si128(mask, _mm_srli_epi64(w1, 14)));
+  _mm_storeu_si128(out + 23, _mm_and_si128(mask, _mm_srli_epi64(w1, 35)));
+  w0 = _mm_loadu_si128(compressed + 8);
+  _mm_storeu_si128(out + 24,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 56),
+                                                    _mm_slli_epi64(w0, 8))));
+  _mm_storeu_si128(out + 25, _mm_and_si128(mask, _mm_srli_epi64(w0, 13)));
+  _mm_storeu_si128(out + 26, _mm_and_si128(mask, _mm_srli_epi64(w0, 34)));
+  w1 = _mm_loadu_si128(compressed + 9);
+  _mm_storeu_si128(out + 27,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 55),
+                                                    _mm_slli_epi64(w1, 9))));
+  _mm_storeu_si128(out + 28, _mm_and_si128(mask, _mm_srli_epi64(w1, 12)));
+  _mm_storeu_si128(out + 29, _mm_and_si128(mask, _mm_srli_epi64(w1, 33)));
+  w0 = _mm_loadu_si128(compressed + 10);
+  _mm_storeu_si128(out + 30,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 54),
+                                                    _mm_slli_epi64(w0, 10))));
+  _mm_storeu_si128(out + 31, _mm_and_si128(mask, _mm_srli_epi64(w0, 11)));
+}
+
+/* we packed 64 22-bit values, touching 11 128-bit words, using 176 bytes */
+static void simdunpackblock22(const __m128i *compressed, u64 *pout) {
+  /* we are going to access  11 128-bit words */
+  __m128i w0, w1;
+  __m128i *out = (__m128i *)pout;
+  const __m128i mask = _mm_set1_epi64x(4194303);
+  w0 = _mm_loadu_si128(compressed);
+  _mm_storeu_si128(out + 0, _mm_and_si128(mask, w0));
+  _mm_storeu_si128(out + 1, _mm_and_si128(mask, _mm_srli_epi64(w0, 22)));
+  w1 = _mm_loadu_si128(compressed + 1);
+  _mm_storeu_si128(out + 2,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 44),
+                                                    _mm_slli_epi64(w1, 20))));
+  _mm_storeu_si128(out + 3, _mm_and_si128(mask, _mm_srli_epi64(w1, 2)));
+  _mm_storeu_si128(out + 4, _mm_and_si128(mask, _mm_srli_epi64(w1, 24)));
+  w0 = _mm_loadu_si128(compressed + 2);
+  _mm_storeu_si128(out + 5,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 46),
+                                                    _mm_slli_epi64(w0, 18))));
+  _mm_storeu_si128(out + 6, _mm_and_si128(mask, _mm_srli_epi64(w0, 4)));
+  _mm_storeu_si128(out + 7, _mm_and_si128(mask, _mm_srli_epi64(w0, 26)));
+  w1 = _mm_loadu_si128(compressed + 3);
+  _mm_storeu_si128(out + 8,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 48),
+                                                    _mm_slli_epi64(w1, 16))));
+  _mm_storeu_si128(out + 9, _mm_and_si128(mask, _mm_srli_epi64(w1, 6)));
+  _mm_storeu_si128(out + 10, _mm_and_si128(mask, _mm_srli_epi64(w1, 28)));
+  w0 = _mm_loadu_si128(compressed + 4);
+  _mm_storeu_si128(out + 11,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 50),
+                                                    _mm_slli_epi64(w0, 14))));
+  _mm_storeu_si128(out + 12, _mm_and_si128(mask, _mm_srli_epi64(w0, 8)));
+  _mm_storeu_si128(out + 13, _mm_and_si128(mask, _mm_srli_epi64(w0, 30)));
+  w1 = _mm_loadu_si128(compressed + 5);
+  _mm_storeu_si128(out + 14,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 52),
+                                                    _mm_slli_epi64(w1, 12))));
+  _mm_storeu_si128(out + 15, _mm_and_si128(mask, _mm_srli_epi64(w1, 10)));
+  _mm_storeu_si128(out + 16, _mm_and_si128(mask, _mm_srli_epi64(w1, 32)));
+  w0 = _mm_loadu_si128(compressed + 6);
+  _mm_storeu_si128(out + 17,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 54),
+                                                    _mm_slli_epi64(w0, 10))));
+  _mm_storeu_si128(out + 18, _mm_and_si128(mask, _mm_srli_epi64(w0, 12)));
+  _mm_storeu_si128(out + 19, _mm_and_si128(mask, _mm_srli_epi64(w0, 34)));
+  w1 = _mm_loadu_si128(compressed + 7);
+  _mm_storeu_si128(out + 20,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 56),
+                                                    _mm_slli_epi64(w1, 8))));
+  _mm_storeu_si128(out + 21, _mm_and_si128(mask, _mm_srli_epi64(w1, 14)));
+  _mm_storeu_si128(out + 22, _mm_and_si128(mask, _mm_srli_epi64(w1, 36)));
+  w0 = _mm_loadu_si128(compressed + 8);
+  _mm_storeu_si128(out + 23,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 58),
+                                                    _mm_slli_epi64(w0, 6))));
+  _mm_storeu_si128(out + 24, _mm_and_si128(mask, _mm_srli_epi64(w0, 16)));
+  _mm_storeu_si128(out + 25, _mm_and_si128(mask, _mm_srli_epi64(w0, 38)));
+  w1 = _mm_loadu_si128(compressed + 9);
+  _mm_storeu_si128(out + 26,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 60),
+                                                    _mm_slli_epi64(w1, 4))));
+  _mm_storeu_si128(out + 27, _mm_and_si128(mask, _mm_srli_epi64(w1, 18)));
+  _mm_storeu_si128(out + 28, _mm_and_si128(mask, _mm_srli_epi64(w1, 40)));
+  w0 = _mm_loadu_si128(compressed + 10);
+  _mm_storeu_si128(out + 29,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 62),
+                                                    _mm_slli_epi64(w0, 2))));
+  _mm_storeu_si128(out + 30, _mm_and_si128(mask, _mm_srli_epi64(w0, 20)));
+  _mm_storeu_si128(out + 31, _mm_srli_epi64(w0, 42));
+}
+
+/* we packed 64 23-bit values, touching 12 128-bit words, using 192 bytes */
+static void simdunpackblock23(const __m128i *compressed, u64 *pout) {
+  /* we are going to access  12 128-bit words */
+  __m128i w0, w1;
+  __m128i *out = (__m128i *)pout;
+  const __m128i mask = _mm_set1_epi64x(8388607);
+  w0 = _mm_loadu_si128(compressed);
+  _mm_storeu_si128(out + 0, _mm_and_si128(mask, w0));
+  _mm_storeu_si128(out + 1, _mm_and_si128(mask, _mm_srli_epi64(w0, 23)));
+  w1 = _mm_loadu_si128(compressed + 1);
+  _mm_storeu_si128(out + 2,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 46),
+                                                    _mm_slli_epi64(w1, 18))));
+  _mm_storeu_si128(out + 3, _mm_and_si128(mask, _mm_srli_epi64(w1, 5)));
+  _mm_storeu_si128(out + 4, _mm_and_si128(mask, _mm_srli_epi64(w1, 28)));
+  w0 = _mm_loadu_si128(compressed + 2);
+  _mm_storeu_si128(out + 5,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 51),
+                                                    _mm_slli_epi64(w0, 13))));
+  _mm_storeu_si128(out + 6, _mm_and_si128(mask, _mm_srli_epi64(w0, 10)));
+  _mm_storeu_si128(out + 7, _mm_and_si128(mask, _mm_srli_epi64(w0, 33)));
+  w1 = _mm_loadu_si128(compressed + 3);
+  _mm_storeu_si128(out + 8,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 56),
+                                                    _mm_slli_epi64(w1, 8))));
+  _mm_storeu_si128(out + 9, _mm_and_si128(mask, _mm_srli_epi64(w1, 15)));
+  _mm_storeu_si128(out + 10, _mm_and_si128(mask, _mm_srli_epi64(w1, 38)));
+  w0 = _mm_loadu_si128(compressed + 4);
+  _mm_storeu_si128(out + 11,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 61),
+                                                    _mm_slli_epi64(w0, 3))));
+  _mm_storeu_si128(out + 12, _mm_and_si128(mask, _mm_srli_epi64(w0, 20)));
+  w1 = _mm_loadu_si128(compressed + 5);
+  _mm_storeu_si128(out + 13,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 43),
+                                                    _mm_slli_epi64(w1, 21))));
+  _mm_storeu_si128(out + 14, _mm_and_si128(mask, _mm_srli_epi64(w1, 2)));
+  _mm_storeu_si128(out + 15, _mm_and_si128(mask, _mm_srli_epi64(w1, 25)));
+  w0 = _mm_loadu_si128(compressed + 6);
+  _mm_storeu_si128(out + 16,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 48),
+                                                    _mm_slli_epi64(w0, 16))));
+  _mm_storeu_si128(out + 17, _mm_and_si128(mask, _mm_srli_epi64(w0, 7)));
+  _mm_storeu_si128(out + 18, _mm_and_si128(mask, _mm_srli_epi64(w0, 30)));
+  w1 = _mm_loadu_si128(compressed + 7);
+  _mm_storeu_si128(out + 19,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 53),
+                                                    _mm_slli_epi64(w1, 11))));
+  _mm_storeu_si128(out + 20, _mm_and_si128(mask, _mm_srli_epi64(w1, 12)));
+  _mm_storeu_si128(out + 21, _mm_and_si128(mask, _mm_srli_epi64(w1, 35)));
+  w0 = _mm_loadu_si128(compressed + 8);
+  _mm_storeu_si128(out + 22,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 58),
+                                                    _mm_slli_epi64(w0, 6))));
+  _mm_storeu_si128(out + 23, _mm_and_si128(mask, _mm_srli_epi64(w0, 17)));
+  _mm_storeu_si128(out + 24, _mm_and_si128(mask, _mm_srli_epi64(w0, 40)));
+  w1 = _mm_loadu_si128(compressed + 9);
+  _mm_storeu_si128(out + 25,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 63),
+                                                    _mm_slli_epi64(w1, 1))));
+  _mm_storeu_si128(out + 26, _mm_and_si128(mask, _mm_srli_epi64(w1, 22)));
+  w0 = _mm_loadu_si128(compressed + 10);
+  _mm_storeu_si128(out + 27,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 45),
+                                                    _mm_slli_epi64(w0, 19))));
+  _mm_storeu_si128(out + 28, _mm_and_si128(mask, _mm_srli_epi64(w0, 4)));
+  _mm_storeu_si128(out + 29, _mm_and_si128(mask, _mm_srli_epi64(w0, 27)));
+  w1 = _mm_loadu_si128(compressed + 11);
+  _mm_storeu_si128(out + 30,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 50),
+                                                    _mm_slli_epi64(w1, 14))));
+  _mm_storeu_si128(out + 31, _mm_and_si128(mask, _mm_srli_epi64(w1, 9)));
+}
+
+/* we packed 64 24-bit values, touching 12 128-bit words, using 192 bytes */
+static void simdunpackblock24(const __m128i *compressed, u64 *pout) {
+  /* we are going to access  12 128-bit words */
+  __m128i w0, w1;
+  __m128i *out = (__m128i *)pout;
+  const __m128i mask = _mm_set1_epi64x(16777215);
+  w0 = _mm_loadu_si128(compressed);
+  _mm_storeu_si128(out + 0, _mm_and_si128(mask, w0));
+  _mm_storeu_si128(out + 1, _mm_and_si128(mask, _mm_srli_epi64(w0, 24)));
+  w1 = _mm_loadu_si128(compressed + 1);
+  _mm_storeu_si128(out + 2,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 48),
+                                                    _mm_slli_epi64(w1, 16))));
+  _mm_storeu_si128(out + 3, _mm_and_si128(mask, _mm_srli_epi64(w1, 8)));
+  _mm_storeu_si128(out + 4, _mm_and_si128(mask, _mm_srli_epi64(w1, 32)));
+  w0 = _mm_loadu_si128(compressed + 2);
+  _mm_storeu_si128(out + 5,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 56),
+                                                    _mm_slli_epi64(w0, 8))));
+  _mm_storeu_si128(out + 6, _mm_and_si128(mask, _mm_srli_epi64(w0, 16)));
+  _mm_storeu_si128(out + 7, _mm_srli_epi64(w0, 40));
+  w1 = _mm_loadu_si128(compressed + 3);
+  _mm_storeu_si128(out + 8, _mm_and_si128(mask, w1));
+  _mm_storeu_si128(out + 9, _mm_and_si128(mask, _mm_srli_epi64(w1, 24)));
+  w0 = _mm_loadu_si128(compressed + 4);
+  _mm_storeu_si128(out + 10,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 48),
+                                                    _mm_slli_epi64(w0, 16))));
+  _mm_storeu_si128(out + 11, _mm_and_si128(mask, _mm_srli_epi64(w0, 8)));
+  _mm_storeu_si128(out + 12, _mm_and_si128(mask, _mm_srli_epi64(w0, 32)));
+  w1 = _mm_loadu_si128(compressed + 5);
+  _mm_storeu_si128(out + 13,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 56),
+                                                    _mm_slli_epi64(w1, 8))));
+  _mm_storeu_si128(out + 14, _mm_and_si128(mask, _mm_srli_epi64(w1, 16)));
+  _mm_storeu_si128(out + 15, _mm_srli_epi64(w1, 40));
+  w0 = _mm_loadu_si128(compressed + 6);
+  _mm_storeu_si128(out + 16, _mm_and_si128(mask, w0));
+  _mm_storeu_si128(out + 17, _mm_and_si128(mask, _mm_srli_epi64(w0, 24)));
+  w1 = _mm_loadu_si128(compressed + 7);
+  _mm_storeu_si128(out + 18,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 48),
+                                                    _mm_slli_epi64(w1, 16))));
+  _mm_storeu_si128(out + 19, _mm_and_si128(mask, _mm_srli_epi64(w1, 8)));
+  _mm_storeu_si128(out + 20, _mm_and_si128(mask, _mm_srli_epi64(w1, 32)));
+  w0 = _mm_loadu_si128(compressed + 8);
+  _mm_storeu_si128(out + 21,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 56),
+                                                    _mm_slli_epi64(w0, 8))));
+  _mm_storeu_si128(out + 22, _mm_and_si128(mask, _mm_srli_epi64(w0, 16)));
+  _mm_storeu_si128(out + 23, _mm_srli_epi64(w0, 40));
+  w1 = _mm_loadu_si128(compressed + 9);
+  _mm_storeu_si128(out + 24, _mm_and_si128(mask, w1));
+  _mm_storeu_si128(out + 25, _mm_and_si128(mask, _mm_srli_epi64(w1, 24)));
+  w0 = _mm_loadu_si128(compressed + 10);
+  _mm_storeu_si128(out + 26,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 48),
+                                                    _mm_slli_epi64(w0, 16))));
+  _mm_storeu_si128(out + 27, _mm_and_si128(mask, _mm_srli_epi64(w0, 8)));
+  _mm_storeu_si128(out + 28, _mm_and_si128(mask, _mm_srli_epi64(w0, 32)));
+  w1 = _mm_loadu_si128(compressed + 11);
+  _mm_storeu_si128(out + 29,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 56),
+                                                    _mm_slli_epi64(w1, 8))));
+  _mm_storeu_si128(out + 30, _mm_and_si128(mask, _mm_srli_epi64(w1, 16)));
+  _mm_storeu_si128(out + 31, _mm_srli_epi64(w1, 40));
+}
+
+/* we packed 64 25-bit values, touching 13 128-bit words, using 208 bytes */
+static void simdunpackblock25(const __m128i *compressed, u64 *pout) {
+  /* we are going to access  13 128-bit words */
+  __m128i w0, w1;
+  __m128i *out = (__m128i *)pout;
+  const __m128i mask = _mm_set1_epi64x(33554431);
+  w0 = _mm_loadu_si128(compressed);
+  _mm_storeu_si128(out + 0, _mm_and_si128(mask, w0));
+  _mm_storeu_si128(out + 1, _mm_and_si128(mask, _mm_srli_epi64(w0, 25)));
+  w1 = _mm_loadu_si128(compressed + 1);
+  _mm_storeu_si128(out + 2,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 50),
+                                                    _mm_slli_epi64(w1, 14))));
+  _mm_storeu_si128(out + 3, _mm_and_si128(mask, _mm_srli_epi64(w1, 11)));
+  _mm_storeu_si128(out + 4, _mm_and_si128(mask, _mm_srli_epi64(w1, 36)));
+  w0 = _mm_loadu_si128(compressed + 2);
+  _mm_storeu_si128(out + 5,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 61),
+                                                    _mm_slli_epi64(w0, 3))));
+  _mm_storeu_si128(out + 6, _mm_and_si128(mask, _mm_srli_epi64(w0, 22)));
+  w1 = _mm_loadu_si128(compressed + 3);
+  _mm_storeu_si128(out + 7,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 47),
+                                                    _mm_slli_epi64(w1, 17))));
+  _mm_storeu_si128(out + 8, _mm_and_si128(mask, _mm_srli_epi64(w1, 8)));
+  _mm_storeu_si128(out + 9, _mm_and_si128(mask, _mm_srli_epi64(w1, 33)));
+  w0 = _mm_loadu_si128(compressed + 4);
+  _mm_storeu_si128(out + 10,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 58),
+                                                    _mm_slli_epi64(w0, 6))));
+  _mm_storeu_si128(out + 11, _mm_and_si128(mask, _mm_srli_epi64(w0, 19)));
+  w1 = _mm_loadu_si128(compressed + 5);
+  _mm_storeu_si128(out + 12,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 44),
+                                                    _mm_slli_epi64(w1, 20))));
+  _mm_storeu_si128(out + 13, _mm_and_si128(mask, _mm_srli_epi64(w1, 5)));
+  _mm_storeu_si128(out + 14, _mm_and_si128(mask, _mm_srli_epi64(w1, 30)));
+  w0 = _mm_loadu_si128(compressed + 6);
+  _mm_storeu_si128(out + 15,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 55),
+                                                    _mm_slli_epi64(w0, 9))));
+  _mm_storeu_si128(out + 16, _mm_and_si128(mask, _mm_srli_epi64(w0, 16)));
+  w1 = _mm_loadu_si128(compressed + 7);
+  _mm_storeu_si128(out + 17,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 41),
+                                                    _mm_slli_epi64(w1, 23))));
+  _mm_storeu_si128(out + 18, _mm_and_si128(mask, _mm_srli_epi64(w1, 2)));
+  _mm_storeu_si128(out + 19, _mm_and_si128(mask, _mm_srli_epi64(w1, 27)));
+  w0 = _mm_loadu_si128(compressed + 8);
+  _mm_storeu_si128(out + 20,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 52),
+                                                    _mm_slli_epi64(w0, 12))));
+  _mm_storeu_si128(out + 21, _mm_and_si128(mask, _mm_srli_epi64(w0, 13)));
+  _mm_storeu_si128(out + 22, _mm_and_si128(mask, _mm_srli_epi64(w0, 38)));
+  w1 = _mm_loadu_si128(compressed + 9);
+  _mm_storeu_si128(out + 23,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 63),
+                                                    _mm_slli_epi64(w1, 1))));
+  _mm_storeu_si128(out + 24, _mm_and_si128(mask, _mm_srli_epi64(w1, 24)));
+  w0 = _mm_loadu_si128(compressed + 10);
+  _mm_storeu_si128(out + 25,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 49),
+                                                    _mm_slli_epi64(w0, 15))));
+  _mm_storeu_si128(out + 26, _mm_and_si128(mask, _mm_srli_epi64(w0, 10)));
+  _mm_storeu_si128(out + 27, _mm_and_si128(mask, _mm_srli_epi64(w0, 35)));
+  w1 = _mm_loadu_si128(compressed + 11);
+  _mm_storeu_si128(out + 28,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 60),
+                                                    _mm_slli_epi64(w1, 4))));
+  _mm_storeu_si128(out + 29, _mm_and_si128(mask, _mm_srli_epi64(w1, 21)));
+  w0 = _mm_loadu_si128(compressed + 12);
+  _mm_storeu_si128(out + 30,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 46),
+                                                    _mm_slli_epi64(w0, 18))));
+  _mm_storeu_si128(out + 31, _mm_and_si128(mask, _mm_srli_epi64(w0, 7)));
+}
+
+/* we packed 64 26-bit values, touching 13 128-bit words, using 208 bytes */
+static void simdunpackblock26(const __m128i *compressed, u64 *pout) {
+  /* we are going to access  13 128-bit words */
+  __m128i w0, w1;
+  __m128i *out = (__m128i *)pout;
+  const __m128i mask = _mm_set1_epi64x(67108863);
+  w0 = _mm_loadu_si128(compressed);
+  _mm_storeu_si128(out + 0, _mm_and_si128(mask, w0));
+  _mm_storeu_si128(out + 1, _mm_and_si128(mask, _mm_srli_epi64(w0, 26)));
+  w1 = _mm_loadu_si128(compressed + 1);
+  _mm_storeu_si128(out + 2,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 52),
+                                                    _mm_slli_epi64(w1, 12))));
+  _mm_storeu_si128(out + 3, _mm_and_si128(mask, _mm_srli_epi64(w1, 14)));
+  w0 = _mm_loadu_si128(compressed + 2);
+  _mm_storeu_si128(out + 4,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 40),
+                                                    _mm_slli_epi64(w0, 24))));
+  _mm_storeu_si128(out + 5, _mm_and_si128(mask, _mm_srli_epi64(w0, 2)));
+  _mm_storeu_si128(out + 6, _mm_and_si128(mask, _mm_srli_epi64(w0, 28)));
+  w1 = _mm_loadu_si128(compressed + 3);
+  _mm_storeu_si128(out + 7,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 54),
+                                                    _mm_slli_epi64(w1, 10))));
+  _mm_storeu_si128(out + 8, _mm_and_si128(mask, _mm_srli_epi64(w1, 16)));
+  w0 = _mm_loadu_si128(compressed + 4);
+  _mm_storeu_si128(out + 9,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 42),
+                                                    _mm_slli_epi64(w0, 22))));
+  _mm_storeu_si128(out + 10, _mm_and_si128(mask, _mm_srli_epi64(w0, 4)));
+  _mm_storeu_si128(out + 11, _mm_and_si128(mask, _mm_srli_epi64(w0, 30)));
+  w1 = _mm_loadu_si128(compressed + 5);
+  _mm_storeu_si128(out + 12,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 56),
+                                                    _mm_slli_epi64(w1, 8))));
+  _mm_storeu_si128(out + 13, _mm_and_si128(mask, _mm_srli_epi64(w1, 18)));
+  w0 = _mm_loadu_si128(compressed + 6);
+  _mm_storeu_si128(out + 14,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 44),
+                                                    _mm_slli_epi64(w0, 20))));
+  _mm_storeu_si128(out + 15, _mm_and_si128(mask, _mm_srli_epi64(w0, 6)));
+  _mm_storeu_si128(out + 16, _mm_and_si128(mask, _mm_srli_epi64(w0, 32)));
+  w1 = _mm_loadu_si128(compressed + 7);
+  _mm_storeu_si128(out + 17,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 58),
+                                                    _mm_slli_epi64(w1, 6))));
+  _mm_storeu_si128(out + 18, _mm_and_si128(mask, _mm_srli_epi64(w1, 20)));
+  w0 = _mm_loadu_si128(compressed + 8);
+  _mm_storeu_si128(out + 19,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 46),
+                                                    _mm_slli_epi64(w0, 18))));
+  _mm_storeu_si128(out + 20, _mm_and_si128(mask, _mm_srli_epi64(w0, 8)));
+  _mm_storeu_si128(out + 21, _mm_and_si128(mask, _mm_srli_epi64(w0, 34)));
+  w1 = _mm_loadu_si128(compressed + 9);
+  _mm_storeu_si128(out + 22,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 60),
+                                                    _mm_slli_epi64(w1, 4))));
+  _mm_storeu_si128(out + 23, _mm_and_si128(mask, _mm_srli_epi64(w1, 22)));
+  w0 = _mm_loadu_si128(compressed + 10);
+  _mm_storeu_si128(out + 24,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 48),
+                                                    _mm_slli_epi64(w0, 16))));
+  _mm_storeu_si128(out + 25, _mm_and_si128(mask, _mm_srli_epi64(w0, 10)));
+  _mm_storeu_si128(out + 26, _mm_and_si128(mask, _mm_srli_epi64(w0, 36)));
+  w1 = _mm_loadu_si128(compressed + 11);
+  _mm_storeu_si128(out + 27,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 62),
+                                                    _mm_slli_epi64(w1, 2))));
+  _mm_storeu_si128(out + 28, _mm_and_si128(mask, _mm_srli_epi64(w1, 24)));
+  w0 = _mm_loadu_si128(compressed + 12);
+  _mm_storeu_si128(out + 29,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 50),
+                                                    _mm_slli_epi64(w0, 14))));
+  _mm_storeu_si128(out + 30, _mm_and_si128(mask, _mm_srli_epi64(w0, 12)));
+  _mm_storeu_si128(out + 31, _mm_srli_epi64(w0, 38));
+}
+
+/* we packed 64 27-bit values, touching 14 128-bit words, using 224 bytes */
+static void simdunpackblock27(const __m128i *compressed, u64 *pout) {
+  /* we are going to access  14 128-bit words */
+  __m128i w0, w1;
+  __m128i *out = (__m128i *)pout;
+  const __m128i mask = _mm_set1_epi64x(134217727);
+  w0 = _mm_loadu_si128(compressed);
+  _mm_storeu_si128(out + 0, _mm_and_si128(mask, w0));
+  _mm_storeu_si128(out + 1, _mm_and_si128(mask, _mm_srli_epi64(w0, 27)));
+  w1 = _mm_loadu_si128(compressed + 1);
+  _mm_storeu_si128(out + 2,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 54),
+                                                    _mm_slli_epi64(w1, 10))));
+  _mm_storeu_si128(out + 3, _mm_and_si128(mask, _mm_srli_epi64(w1, 17)));
+  w0 = _mm_loadu_si128(compressed + 2);
+  _mm_storeu_si128(out + 4,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 44),
+                                                    _mm_slli_epi64(w0, 20))));
+  _mm_storeu_si128(out + 5, _mm_and_si128(mask, _mm_srli_epi64(w0, 7)));
+  _mm_storeu_si128(out + 6, _mm_and_si128(mask, _mm_srli_epi64(w0, 34)));
+  w1 = _mm_loadu_si128(compressed + 3);
+  _mm_storeu_si128(out + 7,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 61),
+                                                    _mm_slli_epi64(w1, 3))));
+  _mm_storeu_si128(out + 8, _mm_and_si128(mask, _mm_srli_epi64(w1, 24)));
+  w0 = _mm_loadu_si128(compressed + 4);
+  _mm_storeu_si128(out + 9,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 51),
+                                                    _mm_slli_epi64(w0, 13))));
+  _mm_storeu_si128(out + 10, _mm_and_si128(mask, _mm_srli_epi64(w0, 14)));
+  w1 = _mm_loadu_si128(compressed + 5);
+  _mm_storeu_si128(out + 11,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 41),
+                                                    _mm_slli_epi64(w1, 23))));
+  _mm_storeu_si128(out + 12, _mm_and_si128(mask, _mm_srli_epi64(w1, 4)));
+  _mm_storeu_si128(out + 13, _mm_and_si128(mask, _mm_srli_epi64(w1, 31)));
+  w0 = _mm_loadu_si128(compressed + 6);
+  _mm_storeu_si128(out + 14,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 58),
+                                                    _mm_slli_epi64(w0, 6))));
+  _mm_storeu_si128(out + 15, _mm_and_si128(mask, _mm_srli_epi64(w0, 21)));
+  w1 = _mm_loadu_si128(compressed + 7);
+  _mm_storeu_si128(out + 16,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 48),
+                                                    _mm_slli_epi64(w1, 16))));
+  _mm_storeu_si128(out + 17, _mm_and_si128(mask, _mm_srli_epi64(w1, 11)));
+  w0 = _mm_loadu_si128(compressed + 8);
+  _mm_storeu_si128(out + 18,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 38),
+                                                    _mm_slli_epi64(w0, 26))));
+  _mm_storeu_si128(out + 19, _mm_and_si128(mask, _mm_srli_epi64(w0, 1)));
+  _mm_storeu_si128(out + 20, _mm_and_si128(mask, _mm_srli_epi64(w0, 28)));
+  w1 = _mm_loadu_si128(compressed + 9);
+  _mm_storeu_si128(out + 21,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 55),
+                                                    _mm_slli_epi64(w1, 9))));
+  _mm_storeu_si128(out + 22, _mm_and_si128(mask, _mm_srli_epi64(w1, 18)));
+  w0 = _mm_loadu_si128(compressed + 10);
+  _mm_storeu_si128(out + 23,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 45),
+                                                    _mm_slli_epi64(w0, 19))));
+  _mm_storeu_si128(out + 24, _mm_and_si128(mask, _mm_srli_epi64(w0, 8)));
+  _mm_storeu_si128(out + 25, _mm_and_si128(mask, _mm_srli_epi64(w0, 35)));
+  w1 = _mm_loadu_si128(compressed + 11);
+  _mm_storeu_si128(out + 26,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 62),
+                                                    _mm_slli_epi64(w1, 2))));
+  _mm_storeu_si128(out + 27, _mm_and_si128(mask, _mm_srli_epi64(w1, 25)));
+  w0 = _mm_loadu_si128(compressed + 12);
+  _mm_storeu_si128(out + 28,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 52),
+                                                    _mm_slli_epi64(w0, 12))));
+  _mm_storeu_si128(out + 29, _mm_and_si128(mask, _mm_srli_epi64(w0, 15)));
+  w1 = _mm_loadu_si128(compressed + 13);
+  _mm_storeu_si128(out + 30,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 42),
+                                                    _mm_slli_epi64(w1, 22))));
+  _mm_storeu_si128(out + 31, _mm_and_si128(mask, _mm_srli_epi64(w1, 5)));
+}
+
+/* we packed 64 28-bit values, touching 14 128-bit words, using 224 bytes */
+static void simdunpackblock28(const __m128i *compressed, u64 *pout) {
+  /* we are going to access  14 128-bit words */
+  __m128i w0, w1;
+  __m128i *out = (__m128i *)pout;
+  const __m128i mask = _mm_set1_epi64x(268435455);
+  w0 = _mm_loadu_si128(compressed);
+  _mm_storeu_si128(out + 0, _mm_and_si128(mask, w0));
+  _mm_storeu_si128(out + 1, _mm_and_si128(mask, _mm_srli_epi64(w0, 28)));
+  w1 = _mm_loadu_si128(compressed + 1);
+  _mm_storeu_si128(out + 2,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 56),
+                                                    _mm_slli_epi64(w1, 8))));
+  _mm_storeu_si128(out + 3, _mm_and_si128(mask, _mm_srli_epi64(w1, 20)));
+  w0 = _mm_loadu_si128(compressed + 2);
+  _mm_storeu_si128(out + 4,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 48),
+                                                    _mm_slli_epi64(w0, 16))));
+  _mm_storeu_si128(out + 5, _mm_and_si128(mask, _mm_srli_epi64(w0, 12)));
+  w1 = _mm_loadu_si128(compressed + 3);
+  _mm_storeu_si128(out + 6,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 40),
+                                                    _mm_slli_epi64(w1, 24))));
+  _mm_storeu_si128(out + 7, _mm_and_si128(mask, _mm_srli_epi64(w1, 4)));
+  _mm_storeu_si128(out + 8, _mm_and_si128(mask, _mm_srli_epi64(w1, 32)));
+  w0 = _mm_loadu_si128(compressed + 4);
+  _mm_storeu_si128(out + 9,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 60),
+                                                    _mm_slli_epi64(w0, 4))));
+  _mm_storeu_si128(out + 10, _mm_and_si128(mask, _mm_srli_epi64(w0, 24)));
+  w1 = _mm_loadu_si128(compressed + 5);
+  _mm_storeu_si128(out + 11,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 52),
+                                                    _mm_slli_epi64(w1, 12))));
+  _mm_storeu_si128(out + 12, _mm_and_si128(mask, _mm_srli_epi64(w1, 16)));
+  w0 = _mm_loadu_si128(compressed + 6);
+  _mm_storeu_si128(out + 13,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 44),
+                                                    _mm_slli_epi64(w0, 20))));
+  _mm_storeu_si128(out + 14, _mm_and_si128(mask, _mm_srli_epi64(w0, 8)));
+  _mm_storeu_si128(out + 15, _mm_srli_epi64(w0, 36));
+  w1 = _mm_loadu_si128(compressed + 7);
+  _mm_storeu_si128(out + 16, _mm_and_si128(mask, w1));
+  _mm_storeu_si128(out + 17, _mm_and_si128(mask, _mm_srli_epi64(w1, 28)));
+  w0 = _mm_loadu_si128(compressed + 8);
+  _mm_storeu_si128(out + 18,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 56),
+                                                    _mm_slli_epi64(w0, 8))));
+  _mm_storeu_si128(out + 19, _mm_and_si128(mask, _mm_srli_epi64(w0, 20)));
+  w1 = _mm_loadu_si128(compressed + 9);
+  _mm_storeu_si128(out + 20,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 48),
+                                                    _mm_slli_epi64(w1, 16))));
+  _mm_storeu_si128(out + 21, _mm_and_si128(mask, _mm_srli_epi64(w1, 12)));
+  w0 = _mm_loadu_si128(compressed + 10);
+  _mm_storeu_si128(out + 22,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 40),
+                                                    _mm_slli_epi64(w0, 24))));
+  _mm_storeu_si128(out + 23, _mm_and_si128(mask, _mm_srli_epi64(w0, 4)));
+  _mm_storeu_si128(out + 24, _mm_and_si128(mask, _mm_srli_epi64(w0, 32)));
+  w1 = _mm_loadu_si128(compressed + 11);
+  _mm_storeu_si128(out + 25,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 60),
+                                                    _mm_slli_epi64(w1, 4))));
+  _mm_storeu_si128(out + 26, _mm_and_si128(mask, _mm_srli_epi64(w1, 24)));
+  w0 = _mm_loadu_si128(compressed + 12);
+  _mm_storeu_si128(out + 27,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 52),
+                                                    _mm_slli_epi64(w0, 12))));
+  _mm_storeu_si128(out + 28, _mm_and_si128(mask, _mm_srli_epi64(w0, 16)));
+  w1 = _mm_loadu_si128(compressed + 13);
+  _mm_storeu_si128(out + 29,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 44),
+                                                    _mm_slli_epi64(w1, 20))));
+  _mm_storeu_si128(out + 30, _mm_and_si128(mask, _mm_srli_epi64(w1, 8)));
+  _mm_storeu_si128(out + 31, _mm_srli_epi64(w1, 36));
+}
+
+/* we packed 64 29-bit values, touching 15 128-bit words, using 240 bytes */
+static void simdunpackblock29(const __m128i *compressed, u64 *pout) {
+  /* we are going to access  15 128-bit words */
+  __m128i w0, w1;
+  __m128i *out = (__m128i *)pout;
+  const __m128i mask = _mm_set1_epi64x(536870911);
+  w0 = _mm_loadu_si128(compressed);
+  _mm_storeu_si128(out + 0, _mm_and_si128(mask, w0));
+  _mm_storeu_si128(out + 1, _mm_and_si128(mask, _mm_srli_epi64(w0, 29)));
+  w1 = _mm_loadu_si128(compressed + 1);
+  _mm_storeu_si128(out + 2,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 58),
+                                                    _mm_slli_epi64(w1, 6))));
+  _mm_storeu_si128(out + 3, _mm_and_si128(mask, _mm_srli_epi64(w1, 23)));
+  w0 = _mm_loadu_si128(compressed + 2);
+  _mm_storeu_si128(out + 4,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 52),
+                                                    _mm_slli_epi64(w0, 12))));
+  _mm_storeu_si128(out + 5, _mm_and_si128(mask, _mm_srli_epi64(w0, 17)));
+  w1 = _mm_loadu_si128(compressed + 3);
+  _mm_storeu_si128(out + 6,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 46),
+                                                    _mm_slli_epi64(w1, 18))));
+  _mm_storeu_si128(out + 7, _mm_and_si128(mask, _mm_srli_epi64(w1, 11)));
+  w0 = _mm_loadu_si128(compressed + 4);
+  _mm_storeu_si128(out + 8,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 40),
+                                                    _mm_slli_epi64(w0, 24))));
+  _mm_storeu_si128(out + 9, _mm_and_si128(mask, _mm_srli_epi64(w0, 5)));
+  _mm_storeu_si128(out + 10, _mm_and_si128(mask, _mm_srli_epi64(w0, 34)));
+  w1 = _mm_loadu_si128(compressed + 5);
+  _mm_storeu_si128(out + 11,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 63),
+                                                    _mm_slli_epi64(w1, 1))));
+  _mm_storeu_si128(out + 12, _mm_and_si128(mask, _mm_srli_epi64(w1, 28)));
+  w0 = _mm_loadu_si128(compressed + 6);
+  _mm_storeu_si128(out + 13,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 57),
+                                                    _mm_slli_epi64(w0, 7))));
+  _mm_storeu_si128(out + 14, _mm_and_si128(mask, _mm_srli_epi64(w0, 22)));
+  w1 = _mm_loadu_si128(compressed + 7);
+  _mm_storeu_si128(out + 15,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 51),
+                                                    _mm_slli_epi64(w1, 13))));
+  _mm_storeu_si128(out + 16, _mm_and_si128(mask, _mm_srli_epi64(w1, 16)));
+  w0 = _mm_loadu_si128(compressed + 8);
+  _mm_storeu_si128(out + 17,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 45),
+                                                    _mm_slli_epi64(w0, 19))));
+  _mm_storeu_si128(out + 18, _mm_and_si128(mask, _mm_srli_epi64(w0, 10)));
+  w1 = _mm_loadu_si128(compressed + 9);
+  _mm_storeu_si128(out + 19,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 39),
+                                                    _mm_slli_epi64(w1, 25))));
+  _mm_storeu_si128(out + 20, _mm_and_si128(mask, _mm_srli_epi64(w1, 4)));
+  _mm_storeu_si128(out + 21, _mm_and_si128(mask, _mm_srli_epi64(w1, 33)));
+  w0 = _mm_loadu_si128(compressed + 10);
+  _mm_storeu_si128(out + 22,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 62),
+                                                    _mm_slli_epi64(w0, 2))));
+  _mm_storeu_si128(out + 23, _mm_and_si128(mask, _mm_srli_epi64(w0, 27)));
+  w1 = _mm_loadu_si128(compressed + 11);
+  _mm_storeu_si128(out + 24,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 56),
+                                                    _mm_slli_epi64(w1, 8))));
+  _mm_storeu_si128(out + 25, _mm_and_si128(mask, _mm_srli_epi64(w1, 21)));
+  w0 = _mm_loadu_si128(compressed + 12);
+  _mm_storeu_si128(out + 26,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 50),
+                                                    _mm_slli_epi64(w0, 14))));
+  _mm_storeu_si128(out + 27, _mm_and_si128(mask, _mm_srli_epi64(w0, 15)));
+  w1 = _mm_loadu_si128(compressed + 13);
+  _mm_storeu_si128(out + 28,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 44),
+                                                    _mm_slli_epi64(w1, 20))));
+  _mm_storeu_si128(out + 29, _mm_and_si128(mask, _mm_srli_epi64(w1, 9)));
+  w0 = _mm_loadu_si128(compressed + 14);
+  _mm_storeu_si128(out + 30,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 38),
+                                                    _mm_slli_epi64(w0, 26))));
+  _mm_storeu_si128(out + 31, _mm_and_si128(mask, _mm_srli_epi64(w0, 3)));
+}
+
+/* we packed 64 30-bit values, touching 15 128-bit words, using 240 bytes */
+static void simdunpackblock30(const __m128i *compressed, u64 *pout) {
+  /* we are going to access  15 128-bit words */
+  __m128i w0, w1;
+  __m128i *out = (__m128i *)pout;
+  const __m128i mask = _mm_set1_epi64x(1073741823);
+  w0 = _mm_loadu_si128(compressed);
+  _mm_storeu_si128(out + 0, _mm_and_si128(mask, w0));
+  _mm_storeu_si128(out + 1, _mm_and_si128(mask, _mm_srli_epi64(w0, 30)));
+  w1 = _mm_loadu_si128(compressed + 1);
+  _mm_storeu_si128(out + 2,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 60),
+                                                    _mm_slli_epi64(w1, 4))));
+  _mm_storeu_si128(out + 3, _mm_and_si128(mask, _mm_srli_epi64(w1, 26)));
+  w0 = _mm_loadu_si128(compressed + 2);
+  _mm_storeu_si128(out + 4,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 56),
+                                                    _mm_slli_epi64(w0, 8))));
+  _mm_storeu_si128(out + 5, _mm_and_si128(mask, _mm_srli_epi64(w0, 22)));
+  w1 = _mm_loadu_si128(compressed + 3);
+  _mm_storeu_si128(out + 6,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 52),
+                                                    _mm_slli_epi64(w1, 12))));
+  _mm_storeu_si128(out + 7, _mm_and_si128(mask, _mm_srli_epi64(w1, 18)));
+  w0 = _mm_loadu_si128(compressed + 4);
+  _mm_storeu_si128(out + 8,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 48),
+                                                    _mm_slli_epi64(w0, 16))));
+  _mm_storeu_si128(out + 9, _mm_and_si128(mask, _mm_srli_epi64(w0, 14)));
+  w1 = _mm_loadu_si128(compressed + 5);
+  _mm_storeu_si128(out + 10,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 44),
+                                                    _mm_slli_epi64(w1, 20))));
+  _mm_storeu_si128(out + 11, _mm_and_si128(mask, _mm_srli_epi64(w1, 10)));
+  w0 = _mm_loadu_si128(compressed + 6);
+  _mm_storeu_si128(out + 12,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 40),
+                                                    _mm_slli_epi64(w0, 24))));
+  _mm_storeu_si128(out + 13, _mm_and_si128(mask, _mm_srli_epi64(w0, 6)));
+  w1 = _mm_loadu_si128(compressed + 7);
+  _mm_storeu_si128(out + 14,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 36),
+                                                    _mm_slli_epi64(w1, 28))));
+  _mm_storeu_si128(out + 15, _mm_and_si128(mask, _mm_srli_epi64(w1, 2)));
+  _mm_storeu_si128(out + 16, _mm_and_si128(mask, _mm_srli_epi64(w1, 32)));
+  w0 = _mm_loadu_si128(compressed + 8);
+  _mm_storeu_si128(out + 17,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 62),
+                                                    _mm_slli_epi64(w0, 2))));
+  _mm_storeu_si128(out + 18, _mm_and_si128(mask, _mm_srli_epi64(w0, 28)));
+  w1 = _mm_loadu_si128(compressed + 9);
+  _mm_storeu_si128(out + 19,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 58),
+                                                    _mm_slli_epi64(w1, 6))));
+  _mm_storeu_si128(out + 20, _mm_and_si128(mask, _mm_srli_epi64(w1, 24)));
+  w0 = _mm_loadu_si128(compressed + 10);
+  _mm_storeu_si128(out + 21,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 54),
+                                                    _mm_slli_epi64(w0, 10))));
+  _mm_storeu_si128(out + 22, _mm_and_si128(mask, _mm_srli_epi64(w0, 20)));
+  w1 = _mm_loadu_si128(compressed + 11);
+  _mm_storeu_si128(out + 23,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 50),
+                                                    _mm_slli_epi64(w1, 14))));
+  _mm_storeu_si128(out + 24, _mm_and_si128(mask, _mm_srli_epi64(w1, 16)));
+  w0 = _mm_loadu_si128(compressed + 12);
+  _mm_storeu_si128(out + 25,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 46),
+                                                    _mm_slli_epi64(w0, 18))));
+  _mm_storeu_si128(out + 26, _mm_and_si128(mask, _mm_srli_epi64(w0, 12)));
+  w1 = _mm_loadu_si128(compressed + 13);
+  _mm_storeu_si128(out + 27,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 42),
+                                                    _mm_slli_epi64(w1, 22))));
+  _mm_storeu_si128(out + 28, _mm_and_si128(mask, _mm_srli_epi64(w1, 8)));
+  w0 = _mm_loadu_si128(compressed + 14);
+  _mm_storeu_si128(out + 29,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 38),
+                                                    _mm_slli_epi64(w0, 26))));
+  _mm_storeu_si128(out + 30, _mm_and_si128(mask, _mm_srli_epi64(w0, 4)));
+  _mm_storeu_si128(out + 31, _mm_srli_epi64(w0, 34));
+}
+
+/* we packed 64 31-bit values, touching 16 128-bit words, using 256 bytes */
+static void simdunpackblock31(const __m128i *compressed, u64 *pout) {
+  /* we are going to access  16 128-bit words */
+  __m128i w0, w1;
+  __m128i *out = (__m128i *)pout;
+  const __m128i mask = _mm_set1_epi64x(2147483647);
+  w0 = _mm_loadu_si128(compressed);
+  _mm_storeu_si128(out + 0, _mm_and_si128(mask, w0));
+  _mm_storeu_si128(out + 1, _mm_and_si128(mask, _mm_srli_epi64(w0, 31)));
+  w1 = _mm_loadu_si128(compressed + 1);
+  _mm_storeu_si128(out + 2,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 62),
+                                                    _mm_slli_epi64(w1, 2))));
+  _mm_storeu_si128(out + 3, _mm_and_si128(mask, _mm_srli_epi64(w1, 29)));
+  w0 = _mm_loadu_si128(compressed + 2);
+  _mm_storeu_si128(out + 4,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 60),
+                                                    _mm_slli_epi64(w0, 4))));
+  _mm_storeu_si128(out + 5, _mm_and_si128(mask, _mm_srli_epi64(w0, 27)));
+  w1 = _mm_loadu_si128(compressed + 3);
+  _mm_storeu_si128(out + 6,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 58),
+                                                    _mm_slli_epi64(w1, 6))));
+  _mm_storeu_si128(out + 7, _mm_and_si128(mask, _mm_srli_epi64(w1, 25)));
+  w0 = _mm_loadu_si128(compressed + 4);
+  _mm_storeu_si128(out + 8,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 56),
+                                                    _mm_slli_epi64(w0, 8))));
+  _mm_storeu_si128(out + 9, _mm_and_si128(mask, _mm_srli_epi64(w0, 23)));
+  w1 = _mm_loadu_si128(compressed + 5);
+  _mm_storeu_si128(out + 10,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 54),
+                                                    _mm_slli_epi64(w1, 10))));
+  _mm_storeu_si128(out + 11, _mm_and_si128(mask, _mm_srli_epi64(w1, 21)));
+  w0 = _mm_loadu_si128(compressed + 6);
+  _mm_storeu_si128(out + 12,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 52),
+                                                    _mm_slli_epi64(w0, 12))));
+  _mm_storeu_si128(out + 13, _mm_and_si128(mask, _mm_srli_epi64(w0, 19)));
+  w1 = _mm_loadu_si128(compressed + 7);
+  _mm_storeu_si128(out + 14,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 50),
+                                                    _mm_slli_epi64(w1, 14))));
+  _mm_storeu_si128(out + 15, _mm_and_si128(mask, _mm_srli_epi64(w1, 17)));
+  w0 = _mm_loadu_si128(compressed + 8);
+  _mm_storeu_si128(out + 16,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 48),
+                                                    _mm_slli_epi64(w0, 16))));
+  _mm_storeu_si128(out + 17, _mm_and_si128(mask, _mm_srli_epi64(w0, 15)));
+  w1 = _mm_loadu_si128(compressed + 9);
+  _mm_storeu_si128(out + 18,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 46),
+                                                    _mm_slli_epi64(w1, 18))));
+  _mm_storeu_si128(out + 19, _mm_and_si128(mask, _mm_srli_epi64(w1, 13)));
+  w0 = _mm_loadu_si128(compressed + 10);
+  _mm_storeu_si128(out + 20,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 44),
+                                                    _mm_slli_epi64(w0, 20))));
+  _mm_storeu_si128(out + 21, _mm_and_si128(mask, _mm_srli_epi64(w0, 11)));
+  w1 = _mm_loadu_si128(compressed + 11);
+  _mm_storeu_si128(out + 22,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 42),
+                                                    _mm_slli_epi64(w1, 22))));
+  _mm_storeu_si128(out + 23, _mm_and_si128(mask, _mm_srli_epi64(w1, 9)));
+  w0 = _mm_loadu_si128(compressed + 12);
+  _mm_storeu_si128(out + 24,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 40),
+                                                    _mm_slli_epi64(w0, 24))));
+  _mm_storeu_si128(out + 25, _mm_and_si128(mask, _mm_srli_epi64(w0, 7)));
+  w1 = _mm_loadu_si128(compressed + 13);
+  _mm_storeu_si128(out + 26,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 38),
+                                                    _mm_slli_epi64(w1, 26))));
+  _mm_storeu_si128(out + 27, _mm_and_si128(mask, _mm_srli_epi64(w1, 5)));
+  w0 = _mm_loadu_si128(compressed + 14);
+  _mm_storeu_si128(out + 28,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 36),
+                                                    _mm_slli_epi64(w0, 28))));
+  _mm_storeu_si128(out + 29, _mm_and_si128(mask, _mm_srli_epi64(w0, 3)));
+  w1 = _mm_loadu_si128(compressed + 15);
+  _mm_storeu_si128(out + 30,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 34),
+                                                    _mm_slli_epi64(w1, 30))));
+  _mm_storeu_si128(out + 31, _mm_and_si128(mask, _mm_srli_epi64(w1, 1)));
+}
+
+/* we packed 64 32-bit values, touching 16 128-bit words, using 256 bytes */
+static void simdunpackblock32(const __m128i *compressed, u64 *pout) {
+  /* we are going to access  16 128-bit words */
+  __m128i w0, w1;
+  __m128i *out = (__m128i *)pout;
+  const __m128i mask = _mm_set1_epi64x(4294967295);
+  w0 = _mm_loadu_si128(compressed);
+  _mm_storeu_si128(out + 0, _mm_and_si128(mask, w0));
+  _mm_storeu_si128(out + 1, _mm_srli_epi64(w0, 32));
+  w1 = _mm_loadu_si128(compressed + 1);
+  _mm_storeu_si128(out + 2, _mm_and_si128(mask, w1));
+  _mm_storeu_si128(out + 3, _mm_srli_epi64(w1, 32));
+  w0 = _mm_loadu_si128(compressed + 2);
+  _mm_storeu_si128(out + 4, _mm_and_si128(mask, w0));
+  _mm_storeu_si128(out + 5, _mm_srli_epi64(w0, 32));
+  w1 = _mm_loadu_si128(compressed + 3);
+  _mm_storeu_si128(out + 6, _mm_and_si128(mask, w1));
+  _mm_storeu_si128(out + 7, _mm_srli_epi64(w1, 32));
+  w0 = _mm_loadu_si128(compressed + 4);
+  _mm_storeu_si128(out + 8, _mm_and_si128(mask, w0));
+  _mm_storeu_si128(out + 9, _mm_srli_epi64(w0, 32));
+  w1 = _mm_loadu_si128(compressed + 5);
+  _mm_storeu_si128(out + 10, _mm_and_si128(mask, w1));
+  _mm_storeu_si128(out + 11, _mm_srli_epi64(w1, 32));
+  w0 = _mm_loadu_si128(compressed + 6);
+  _mm_storeu_si128(out + 12, _mm_and_si128(mask, w0));
+  _mm_storeu_si128(out + 13, _mm_srli_epi64(w0, 32));
+  w1 = _mm_loadu_si128(compressed + 7);
+  _mm_storeu_si128(out + 14, _mm_and_si128(mask, w1));
+  _mm_storeu_si128(out + 15, _mm_srli_epi64(w1, 32));
+  w0 = _mm_loadu_si128(compressed + 8);
+  _mm_storeu_si128(out + 16, _mm_and_si128(mask, w0));
+  _mm_storeu_si128(out + 17, _mm_srli_epi64(w0, 32));
+  w1 = _mm_loadu_si128(compressed + 9);
+  _mm_storeu_si128(out + 18, _mm_and_si128(mask, w1));
+  _mm_storeu_si128(out + 19, _mm_srli_epi64(w1, 32));
+  w0 = _mm_loadu_si128(compressed + 10);
+  _mm_storeu_si128(out + 20, _mm_and_si128(mask, w0));
+  _mm_storeu_si128(out + 21, _mm_srli_epi64(w0, 32));
+  w1 = _mm_loadu_si128(compressed + 11);
+  _mm_storeu_si128(out + 22, _mm_and_si128(mask, w1));
+  _mm_storeu_si128(out + 23, _mm_srli_epi64(w1, 32));
+  w0 = _mm_loadu_si128(compressed + 12);
+  _mm_storeu_si128(out + 24, _mm_and_si128(mask, w0));
+  _mm_storeu_si128(out + 25, _mm_srli_epi64(w0, 32));
+  w1 = _mm_loadu_si128(compressed + 13);
+  _mm_storeu_si128(out + 26, _mm_and_si128(mask, w1));
+  _mm_storeu_si128(out + 27, _mm_srli_epi64(w1, 32));
+  w0 = _mm_loadu_si128(compressed + 14);
+  _mm_storeu_si128(out + 28, _mm_and_si128(mask, w0));
+  _mm_storeu_si128(out + 29, _mm_srli_epi64(w0, 32));
+  w1 = _mm_loadu_si128(compressed + 15);
+  _mm_storeu_si128(out + 30, _mm_and_si128(mask, w1));
+  _mm_storeu_si128(out + 31, _mm_srli_epi64(w1, 32));
+}
+
+/* we packed 64 33-bit values, touching 17 128-bit words, using 272 bytes */
+static void simdunpackblock33(const __m128i *compressed, u64 *pout) {
+  /* we are going to access  17 128-bit words */
+  __m128i w0, w1;
+  __m128i *out = (__m128i *)pout;
+  const __m128i mask = _mm_set1_epi64x(8589934591);
+  w0 = _mm_loadu_si128(compressed);
+  _mm_storeu_si128(out + 0, _mm_and_si128(mask, w0));
+  w1 = _mm_loadu_si128(compressed + 1);
+  _mm_storeu_si128(out + 1,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 33),
+                                                    _mm_slli_epi64(w1, 31))));
+  _mm_storeu_si128(out + 2, _mm_and_si128(mask, _mm_srli_epi64(w1, 2)));
+  w0 = _mm_loadu_si128(compressed + 2);
+  _mm_storeu_si128(out + 3,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 35),
+                                                    _mm_slli_epi64(w0, 29))));
+  _mm_storeu_si128(out + 4, _mm_and_si128(mask, _mm_srli_epi64(w0, 4)));
+  w1 = _mm_loadu_si128(compressed + 3);
+  _mm_storeu_si128(out + 5,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 37),
+                                                    _mm_slli_epi64(w1, 27))));
+  _mm_storeu_si128(out + 6, _mm_and_si128(mask, _mm_srli_epi64(w1, 6)));
+  w0 = _mm_loadu_si128(compressed + 4);
+  _mm_storeu_si128(out + 7,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 39),
+                                                    _mm_slli_epi64(w0, 25))));
+  _mm_storeu_si128(out + 8, _mm_and_si128(mask, _mm_srli_epi64(w0, 8)));
+  w1 = _mm_loadu_si128(compressed + 5);
+  _mm_storeu_si128(out + 9,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 41),
+                                                    _mm_slli_epi64(w1, 23))));
+  _mm_storeu_si128(out + 10, _mm_and_si128(mask, _mm_srli_epi64(w1, 10)));
+  w0 = _mm_loadu_si128(compressed + 6);
+  _mm_storeu_si128(out + 11,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 43),
+                                                    _mm_slli_epi64(w0, 21))));
+  _mm_storeu_si128(out + 12, _mm_and_si128(mask, _mm_srli_epi64(w0, 12)));
+  w1 = _mm_loadu_si128(compressed + 7);
+  _mm_storeu_si128(out + 13,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 45),
+                                                    _mm_slli_epi64(w1, 19))));
+  _mm_storeu_si128(out + 14, _mm_and_si128(mask, _mm_srli_epi64(w1, 14)));
+  w0 = _mm_loadu_si128(compressed + 8);
+  _mm_storeu_si128(out + 15,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 47),
+                                                    _mm_slli_epi64(w0, 17))));
+  _mm_storeu_si128(out + 16, _mm_and_si128(mask, _mm_srli_epi64(w0, 16)));
+  w1 = _mm_loadu_si128(compressed + 9);
+  _mm_storeu_si128(out + 17,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 49),
+                                                    _mm_slli_epi64(w1, 15))));
+  _mm_storeu_si128(out + 18, _mm_and_si128(mask, _mm_srli_epi64(w1, 18)));
+  w0 = _mm_loadu_si128(compressed + 10);
+  _mm_storeu_si128(out + 19,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 51),
+                                                    _mm_slli_epi64(w0, 13))));
+  _mm_storeu_si128(out + 20, _mm_and_si128(mask, _mm_srli_epi64(w0, 20)));
+  w1 = _mm_loadu_si128(compressed + 11);
+  _mm_storeu_si128(out + 21,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 53),
+                                                    _mm_slli_epi64(w1, 11))));
+  _mm_storeu_si128(out + 22, _mm_and_si128(mask, _mm_srli_epi64(w1, 22)));
+  w0 = _mm_loadu_si128(compressed + 12);
+  _mm_storeu_si128(out + 23,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 55),
+                                                    _mm_slli_epi64(w0, 9))));
+  _mm_storeu_si128(out + 24, _mm_and_si128(mask, _mm_srli_epi64(w0, 24)));
+  w1 = _mm_loadu_si128(compressed + 13);
+  _mm_storeu_si128(out + 25,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 57),
+                                                    _mm_slli_epi64(w1, 7))));
+  _mm_storeu_si128(out + 26, _mm_and_si128(mask, _mm_srli_epi64(w1, 26)));
+  w0 = _mm_loadu_si128(compressed + 14);
+  _mm_storeu_si128(out + 27,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 59),
+                                                    _mm_slli_epi64(w0, 5))));
+  _mm_storeu_si128(out + 28, _mm_and_si128(mask, _mm_srli_epi64(w0, 28)));
+  w1 = _mm_loadu_si128(compressed + 15);
+  _mm_storeu_si128(out + 29,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 61),
+                                                    _mm_slli_epi64(w1, 3))));
+  _mm_storeu_si128(out + 30, _mm_and_si128(mask, _mm_srli_epi64(w1, 30)));
+  w0 = _mm_loadu_si128(compressed + 16);
+  _mm_storeu_si128(out + 31,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 63),
+                                                    _mm_slli_epi64(w0, 1))));
+}
+
+/* we packed 64 34-bit values, touching 17 128-bit words, using 272 bytes */
+static void simdunpackblock34(const __m128i *compressed, u64 *pout) {
+  /* we are going to access  17 128-bit words */
+  __m128i w0, w1;
+  __m128i *out = (__m128i *)pout;
+  const __m128i mask = _mm_set1_epi64x(17179869183);
+  w0 = _mm_loadu_si128(compressed);
+  _mm_storeu_si128(out + 0, _mm_and_si128(mask, w0));
+  w1 = _mm_loadu_si128(compressed + 1);
+  _mm_storeu_si128(out + 1,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 34),
+                                                    _mm_slli_epi64(w1, 30))));
+  _mm_storeu_si128(out + 2, _mm_and_si128(mask, _mm_srli_epi64(w1, 4)));
+  w0 = _mm_loadu_si128(compressed + 2);
+  _mm_storeu_si128(out + 3,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 38),
+                                                    _mm_slli_epi64(w0, 26))));
+  _mm_storeu_si128(out + 4, _mm_and_si128(mask, _mm_srli_epi64(w0, 8)));
+  w1 = _mm_loadu_si128(compressed + 3);
+  _mm_storeu_si128(out + 5,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 42),
+                                                    _mm_slli_epi64(w1, 22))));
+  _mm_storeu_si128(out + 6, _mm_and_si128(mask, _mm_srli_epi64(w1, 12)));
+  w0 = _mm_loadu_si128(compressed + 4);
+  _mm_storeu_si128(out + 7,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 46),
+                                                    _mm_slli_epi64(w0, 18))));
+  _mm_storeu_si128(out + 8, _mm_and_si128(mask, _mm_srli_epi64(w0, 16)));
+  w1 = _mm_loadu_si128(compressed + 5);
+  _mm_storeu_si128(out + 9,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 50),
+                                                    _mm_slli_epi64(w1, 14))));
+  _mm_storeu_si128(out + 10, _mm_and_si128(mask, _mm_srli_epi64(w1, 20)));
+  w0 = _mm_loadu_si128(compressed + 6);
+  _mm_storeu_si128(out + 11,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 54),
+                                                    _mm_slli_epi64(w0, 10))));
+  _mm_storeu_si128(out + 12, _mm_and_si128(mask, _mm_srli_epi64(w0, 24)));
+  w1 = _mm_loadu_si128(compressed + 7);
+  _mm_storeu_si128(out + 13,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 58),
+                                                    _mm_slli_epi64(w1, 6))));
+  _mm_storeu_si128(out + 14, _mm_and_si128(mask, _mm_srli_epi64(w1, 28)));
+  w0 = _mm_loadu_si128(compressed + 8);
+  _mm_storeu_si128(out + 15,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 62),
+                                                    _mm_slli_epi64(w0, 2))));
+  w1 = _mm_loadu_si128(compressed + 9);
+  _mm_storeu_si128(out + 16,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 32),
+                                                    _mm_slli_epi64(w1, 32))));
+  _mm_storeu_si128(out + 17, _mm_and_si128(mask, _mm_srli_epi64(w1, 2)));
+  w0 = _mm_loadu_si128(compressed + 10);
+  _mm_storeu_si128(out + 18,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 36),
+                                                    _mm_slli_epi64(w0, 28))));
+  _mm_storeu_si128(out + 19, _mm_and_si128(mask, _mm_srli_epi64(w0, 6)));
+  w1 = _mm_loadu_si128(compressed + 11);
+  _mm_storeu_si128(out + 20,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 40),
+                                                    _mm_slli_epi64(w1, 24))));
+  _mm_storeu_si128(out + 21, _mm_and_si128(mask, _mm_srli_epi64(w1, 10)));
+  w0 = _mm_loadu_si128(compressed + 12);
+  _mm_storeu_si128(out + 22,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 44),
+                                                    _mm_slli_epi64(w0, 20))));
+  _mm_storeu_si128(out + 23, _mm_and_si128(mask, _mm_srli_epi64(w0, 14)));
+  w1 = _mm_loadu_si128(compressed + 13);
+  _mm_storeu_si128(out + 24,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 48),
+                                                    _mm_slli_epi64(w1, 16))));
+  _mm_storeu_si128(out + 25, _mm_and_si128(mask, _mm_srli_epi64(w1, 18)));
+  w0 = _mm_loadu_si128(compressed + 14);
+  _mm_storeu_si128(out + 26,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 52),
+                                                    _mm_slli_epi64(w0, 12))));
+  _mm_storeu_si128(out + 27, _mm_and_si128(mask, _mm_srli_epi64(w0, 22)));
+  w1 = _mm_loadu_si128(compressed + 15);
+  _mm_storeu_si128(out + 28,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 56),
+                                                    _mm_slli_epi64(w1, 8))));
+  _mm_storeu_si128(out + 29, _mm_and_si128(mask, _mm_srli_epi64(w1, 26)));
+  w0 = _mm_loadu_si128(compressed + 16);
+  _mm_storeu_si128(out + 30,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 60),
+                                                    _mm_slli_epi64(w0, 4))));
+  _mm_storeu_si128(out + 31, _mm_srli_epi64(w0, 30));
+}
+
+/* we packed 64 35-bit values, touching 18 128-bit words, using 288 bytes */
+static void simdunpackblock35(const __m128i *compressed, u64 *pout) {
+  /* we are going to access  18 128-bit words */
+  __m128i w0, w1;
+  __m128i *out = (__m128i *)pout;
+  const __m128i mask = _mm_set1_epi64x(34359738367);
+  w0 = _mm_loadu_si128(compressed);
+  _mm_storeu_si128(out + 0, _mm_and_si128(mask, w0));
+  w1 = _mm_loadu_si128(compressed + 1);
+  _mm_storeu_si128(out + 1,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 35),
+                                                    _mm_slli_epi64(w1, 29))));
+  _mm_storeu_si128(out + 2, _mm_and_si128(mask, _mm_srli_epi64(w1, 6)));
+  w0 = _mm_loadu_si128(compressed + 2);
+  _mm_storeu_si128(out + 3,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 41),
+                                                    _mm_slli_epi64(w0, 23))));
+  _mm_storeu_si128(out + 4, _mm_and_si128(mask, _mm_srli_epi64(w0, 12)));
+  w1 = _mm_loadu_si128(compressed + 3);
+  _mm_storeu_si128(out + 5,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 47),
+                                                    _mm_slli_epi64(w1, 17))));
+  _mm_storeu_si128(out + 6, _mm_and_si128(mask, _mm_srli_epi64(w1, 18)));
+  w0 = _mm_loadu_si128(compressed + 4);
+  _mm_storeu_si128(out + 7,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 53),
+                                                    _mm_slli_epi64(w0, 11))));
+  _mm_storeu_si128(out + 8, _mm_and_si128(mask, _mm_srli_epi64(w0, 24)));
+  w1 = _mm_loadu_si128(compressed + 5);
+  _mm_storeu_si128(out + 9,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 59),
+                                                    _mm_slli_epi64(w1, 5))));
+  w0 = _mm_loadu_si128(compressed + 6);
+  _mm_storeu_si128(out + 10,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 30),
+                                                    _mm_slli_epi64(w0, 34))));
+  _mm_storeu_si128(out + 11, _mm_and_si128(mask, _mm_srli_epi64(w0, 1)));
+  w1 = _mm_loadu_si128(compressed + 7);
+  _mm_storeu_si128(out + 12,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 36),
+                                                    _mm_slli_epi64(w1, 28))));
+  _mm_storeu_si128(out + 13, _mm_and_si128(mask, _mm_srli_epi64(w1, 7)));
+  w0 = _mm_loadu_si128(compressed + 8);
+  _mm_storeu_si128(out + 14,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 42),
+                                                    _mm_slli_epi64(w0, 22))));
+  _mm_storeu_si128(out + 15, _mm_and_si128(mask, _mm_srli_epi64(w0, 13)));
+  w1 = _mm_loadu_si128(compressed + 9);
+  _mm_storeu_si128(out + 16,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 48),
+                                                    _mm_slli_epi64(w1, 16))));
+  _mm_storeu_si128(out + 17, _mm_and_si128(mask, _mm_srli_epi64(w1, 19)));
+  w0 = _mm_loadu_si128(compressed + 10);
+  _mm_storeu_si128(out + 18,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 54),
+                                                    _mm_slli_epi64(w0, 10))));
+  _mm_storeu_si128(out + 19, _mm_and_si128(mask, _mm_srli_epi64(w0, 25)));
+  w1 = _mm_loadu_si128(compressed + 11);
+  _mm_storeu_si128(out + 20,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 60),
+                                                    _mm_slli_epi64(w1, 4))));
+  w0 = _mm_loadu_si128(compressed + 12);
+  _mm_storeu_si128(out + 21,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 31),
+                                                    _mm_slli_epi64(w0, 33))));
+  _mm_storeu_si128(out + 22, _mm_and_si128(mask, _mm_srli_epi64(w0, 2)));
+  w1 = _mm_loadu_si128(compressed + 13);
+  _mm_storeu_si128(out + 23,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 37),
+                                                    _mm_slli_epi64(w1, 27))));
+  _mm_storeu_si128(out + 24, _mm_and_si128(mask, _mm_srli_epi64(w1, 8)));
+  w0 = _mm_loadu_si128(compressed + 14);
+  _mm_storeu_si128(out + 25,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 43),
+                                                    _mm_slli_epi64(w0, 21))));
+  _mm_storeu_si128(out + 26, _mm_and_si128(mask, _mm_srli_epi64(w0, 14)));
+  w1 = _mm_loadu_si128(compressed + 15);
+  _mm_storeu_si128(out + 27,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 49),
+                                                    _mm_slli_epi64(w1, 15))));
+  _mm_storeu_si128(out + 28, _mm_and_si128(mask, _mm_srli_epi64(w1, 20)));
+  w0 = _mm_loadu_si128(compressed + 16);
+  _mm_storeu_si128(out + 29,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 55),
+                                                    _mm_slli_epi64(w0, 9))));
+  _mm_storeu_si128(out + 30, _mm_and_si128(mask, _mm_srli_epi64(w0, 26)));
+  w1 = _mm_loadu_si128(compressed + 17);
+  _mm_storeu_si128(out + 31,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 61),
+                                                    _mm_slli_epi64(w1, 3))));
+}
+
+/* we packed 64 36-bit values, touching 18 128-bit words, using 288 bytes */
+static void simdunpackblock36(const __m128i *compressed, u64 *pout) {
+  /* we are going to access  18 128-bit words */
+  __m128i w0, w1;
+  __m128i *out = (__m128i *)pout;
+  const __m128i mask = _mm_set1_epi64x(68719476735);
+  w0 = _mm_loadu_si128(compressed);
+  _mm_storeu_si128(out + 0, _mm_and_si128(mask, w0));
+  w1 = _mm_loadu_si128(compressed + 1);
+  _mm_storeu_si128(out + 1,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 36),
+                                                    _mm_slli_epi64(w1, 28))));
+  _mm_storeu_si128(out + 2, _mm_and_si128(mask, _mm_srli_epi64(w1, 8)));
+  w0 = _mm_loadu_si128(compressed + 2);
+  _mm_storeu_si128(out + 3,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 44),
+                                                    _mm_slli_epi64(w0, 20))));
+  _mm_storeu_si128(out + 4, _mm_and_si128(mask, _mm_srli_epi64(w0, 16)));
+  w1 = _mm_loadu_si128(compressed + 3);
+  _mm_storeu_si128(out + 5,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 52),
+                                                    _mm_slli_epi64(w1, 12))));
+  _mm_storeu_si128(out + 6, _mm_and_si128(mask, _mm_srli_epi64(w1, 24)));
+  w0 = _mm_loadu_si128(compressed + 4);
+  _mm_storeu_si128(out + 7,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 60),
+                                                    _mm_slli_epi64(w0, 4))));
+  w1 = _mm_loadu_si128(compressed + 5);
+  _mm_storeu_si128(out + 8,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 32),
+                                                    _mm_slli_epi64(w1, 32))));
+  _mm_storeu_si128(out + 9, _mm_and_si128(mask, _mm_srli_epi64(w1, 4)));
+  w0 = _mm_loadu_si128(compressed + 6);
+  _mm_storeu_si128(out + 10,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 40),
+                                                    _mm_slli_epi64(w0, 24))));
+  _mm_storeu_si128(out + 11, _mm_and_si128(mask, _mm_srli_epi64(w0, 12)));
+  w1 = _mm_loadu_si128(compressed + 7);
+  _mm_storeu_si128(out + 12,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 48),
+                                                    _mm_slli_epi64(w1, 16))));
+  _mm_storeu_si128(out + 13, _mm_and_si128(mask, _mm_srli_epi64(w1, 20)));
+  w0 = _mm_loadu_si128(compressed + 8);
+  _mm_storeu_si128(out + 14,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 56),
+                                                    _mm_slli_epi64(w0, 8))));
+  _mm_storeu_si128(out + 15, _mm_srli_epi64(w0, 28));
+  w1 = _mm_loadu_si128(compressed + 9);
+  _mm_storeu_si128(out + 16, _mm_and_si128(mask, w1));
+  w0 = _mm_loadu_si128(compressed + 10);
+  _mm_storeu_si128(out + 17,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 36),
+                                                    _mm_slli_epi64(w0, 28))));
+  _mm_storeu_si128(out + 18, _mm_and_si128(mask, _mm_srli_epi64(w0, 8)));
+  w1 = _mm_loadu_si128(compressed + 11);
+  _mm_storeu_si128(out + 19,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 44),
+                                                    _mm_slli_epi64(w1, 20))));
+  _mm_storeu_si128(out + 20, _mm_and_si128(mask, _mm_srli_epi64(w1, 16)));
+  w0 = _mm_loadu_si128(compressed + 12);
+  _mm_storeu_si128(out + 21,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 52),
+                                                    _mm_slli_epi64(w0, 12))));
+  _mm_storeu_si128(out + 22, _mm_and_si128(mask, _mm_srli_epi64(w0, 24)));
+  w1 = _mm_loadu_si128(compressed + 13);
+  _mm_storeu_si128(out + 23,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 60),
+                                                    _mm_slli_epi64(w1, 4))));
+  w0 = _mm_loadu_si128(compressed + 14);
+  _mm_storeu_si128(out + 24,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 32),
+                                                    _mm_slli_epi64(w0, 32))));
+  _mm_storeu_si128(out + 25, _mm_and_si128(mask, _mm_srli_epi64(w0, 4)));
+  w1 = _mm_loadu_si128(compressed + 15);
+  _mm_storeu_si128(out + 26,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 40),
+                                                    _mm_slli_epi64(w1, 24))));
+  _mm_storeu_si128(out + 27, _mm_and_si128(mask, _mm_srli_epi64(w1, 12)));
+  w0 = _mm_loadu_si128(compressed + 16);
+  _mm_storeu_si128(out + 28,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 48),
+                                                    _mm_slli_epi64(w0, 16))));
+  _mm_storeu_si128(out + 29, _mm_and_si128(mask, _mm_srli_epi64(w0, 20)));
+  w1 = _mm_loadu_si128(compressed + 17);
+  _mm_storeu_si128(out + 30,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 56),
+                                                    _mm_slli_epi64(w1, 8))));
+  _mm_storeu_si128(out + 31, _mm_srli_epi64(w1, 28));
+}
+
+/* we packed 64 37-bit values, touching 19 128-bit words, using 304 bytes */
+static void simdunpackblock37(const __m128i *compressed, u64 *pout) {
+  /* we are going to access  19 128-bit words */
+  __m128i w0, w1;
+  __m128i *out = (__m128i *)pout;
+  const __m128i mask = _mm_set1_epi64x(137438953471);
+  w0 = _mm_loadu_si128(compressed);
+  _mm_storeu_si128(out + 0, _mm_and_si128(mask, w0));
+  w1 = _mm_loadu_si128(compressed + 1);
+  _mm_storeu_si128(out + 1,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 37),
+                                                    _mm_slli_epi64(w1, 27))));
+  _mm_storeu_si128(out + 2, _mm_and_si128(mask, _mm_srli_epi64(w1, 10)));
+  w0 = _mm_loadu_si128(compressed + 2);
+  _mm_storeu_si128(out + 3,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 47),
+                                                    _mm_slli_epi64(w0, 17))));
+  _mm_storeu_si128(out + 4, _mm_and_si128(mask, _mm_srli_epi64(w0, 20)));
+  w1 = _mm_loadu_si128(compressed + 3);
+  _mm_storeu_si128(out + 5,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 57),
+                                                    _mm_slli_epi64(w1, 7))));
+  w0 = _mm_loadu_si128(compressed + 4);
+  _mm_storeu_si128(out + 6,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 30),
+                                                    _mm_slli_epi64(w0, 34))));
+  _mm_storeu_si128(out + 7, _mm_and_si128(mask, _mm_srli_epi64(w0, 3)));
+  w1 = _mm_loadu_si128(compressed + 5);
+  _mm_storeu_si128(out + 8,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 40),
+                                                    _mm_slli_epi64(w1, 24))));
+  _mm_storeu_si128(out + 9, _mm_and_si128(mask, _mm_srli_epi64(w1, 13)));
+  w0 = _mm_loadu_si128(compressed + 6);
+  _mm_storeu_si128(out + 10,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 50),
+                                                    _mm_slli_epi64(w0, 14))));
+  _mm_storeu_si128(out + 11, _mm_and_si128(mask, _mm_srli_epi64(w0, 23)));
+  w1 = _mm_loadu_si128(compressed + 7);
+  _mm_storeu_si128(out + 12,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 60),
+                                                    _mm_slli_epi64(w1, 4))));
+  w0 = _mm_loadu_si128(compressed + 8);
+  _mm_storeu_si128(out + 13,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 33),
+                                                    _mm_slli_epi64(w0, 31))));
+  _mm_storeu_si128(out + 14, _mm_and_si128(mask, _mm_srli_epi64(w0, 6)));
+  w1 = _mm_loadu_si128(compressed + 9);
+  _mm_storeu_si128(out + 15,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 43),
+                                                    _mm_slli_epi64(w1, 21))));
+  _mm_storeu_si128(out + 16, _mm_and_si128(mask, _mm_srli_epi64(w1, 16)));
+  w0 = _mm_loadu_si128(compressed + 10);
+  _mm_storeu_si128(out + 17,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 53),
+                                                    _mm_slli_epi64(w0, 11))));
+  _mm_storeu_si128(out + 18, _mm_and_si128(mask, _mm_srli_epi64(w0, 26)));
+  w1 = _mm_loadu_si128(compressed + 11);
+  _mm_storeu_si128(out + 19,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 63),
+                                                    _mm_slli_epi64(w1, 1))));
+  w0 = _mm_loadu_si128(compressed + 12);
+  _mm_storeu_si128(out + 20,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 36),
+                                                    _mm_slli_epi64(w0, 28))));
+  _mm_storeu_si128(out + 21, _mm_and_si128(mask, _mm_srli_epi64(w0, 9)));
+  w1 = _mm_loadu_si128(compressed + 13);
+  _mm_storeu_si128(out + 22,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 46),
+                                                    _mm_slli_epi64(w1, 18))));
+  _mm_storeu_si128(out + 23, _mm_and_si128(mask, _mm_srli_epi64(w1, 19)));
+  w0 = _mm_loadu_si128(compressed + 14);
+  _mm_storeu_si128(out + 24,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 56),
+                                                    _mm_slli_epi64(w0, 8))));
+  w1 = _mm_loadu_si128(compressed + 15);
+  _mm_storeu_si128(out + 25,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 29),
+                                                    _mm_slli_epi64(w1, 35))));
+  _mm_storeu_si128(out + 26, _mm_and_si128(mask, _mm_srli_epi64(w1, 2)));
+  w0 = _mm_loadu_si128(compressed + 16);
+  _mm_storeu_si128(out + 27,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 39),
+                                                    _mm_slli_epi64(w0, 25))));
+  _mm_storeu_si128(out + 28, _mm_and_si128(mask, _mm_srli_epi64(w0, 12)));
+  w1 = _mm_loadu_si128(compressed + 17);
+  _mm_storeu_si128(out + 29,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 49),
+                                                    _mm_slli_epi64(w1, 15))));
+  _mm_storeu_si128(out + 30, _mm_and_si128(mask, _mm_srli_epi64(w1, 22)));
+  w0 = _mm_loadu_si128(compressed + 18);
+  _mm_storeu_si128(out + 31,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 59),
+                                                    _mm_slli_epi64(w0, 5))));
+}
+
+/* we packed 64 38-bit values, touching 19 128-bit words, using 304 bytes */
+static void simdunpackblock38(const __m128i *compressed, u64 *pout) {
+  /* we are going to access  19 128-bit words */
+  __m128i w0, w1;
+  __m128i *out = (__m128i *)pout;
+  const __m128i mask = _mm_set1_epi64x(274877906943);
+  w0 = _mm_loadu_si128(compressed);
+  _mm_storeu_si128(out + 0, _mm_and_si128(mask, w0));
+  w1 = _mm_loadu_si128(compressed + 1);
+  _mm_storeu_si128(out + 1,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 38),
+                                                    _mm_slli_epi64(w1, 26))));
+  _mm_storeu_si128(out + 2, _mm_and_si128(mask, _mm_srli_epi64(w1, 12)));
+  w0 = _mm_loadu_si128(compressed + 2);
+  _mm_storeu_si128(out + 3,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 50),
+                                                    _mm_slli_epi64(w0, 14))));
+  _mm_storeu_si128(out + 4, _mm_and_si128(mask, _mm_srli_epi64(w0, 24)));
+  w1 = _mm_loadu_si128(compressed + 3);
+  _mm_storeu_si128(out + 5,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 62),
+                                                    _mm_slli_epi64(w1, 2))));
+  w0 = _mm_loadu_si128(compressed + 4);
+  _mm_storeu_si128(out + 6,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 36),
+                                                    _mm_slli_epi64(w0, 28))));
+  _mm_storeu_si128(out + 7, _mm_and_si128(mask, _mm_srli_epi64(w0, 10)));
+  w1 = _mm_loadu_si128(compressed + 5);
+  _mm_storeu_si128(out + 8,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 48),
+                                                    _mm_slli_epi64(w1, 16))));
+  _mm_storeu_si128(out + 9, _mm_and_si128(mask, _mm_srli_epi64(w1, 22)));
+  w0 = _mm_loadu_si128(compressed + 6);
+  _mm_storeu_si128(out + 10,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 60),
+                                                    _mm_slli_epi64(w0, 4))));
+  w1 = _mm_loadu_si128(compressed + 7);
+  _mm_storeu_si128(out + 11,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 34),
+                                                    _mm_slli_epi64(w1, 30))));
+  _mm_storeu_si128(out + 12, _mm_and_si128(mask, _mm_srli_epi64(w1, 8)));
+  w0 = _mm_loadu_si128(compressed + 8);
+  _mm_storeu_si128(out + 13,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 46),
+                                                    _mm_slli_epi64(w0, 18))));
+  _mm_storeu_si128(out + 14, _mm_and_si128(mask, _mm_srli_epi64(w0, 20)));
+  w1 = _mm_loadu_si128(compressed + 9);
+  _mm_storeu_si128(out + 15,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 58),
+                                                    _mm_slli_epi64(w1, 6))));
+  w0 = _mm_loadu_si128(compressed + 10);
+  _mm_storeu_si128(out + 16,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 32),
+                                                    _mm_slli_epi64(w0, 32))));
+  _mm_storeu_si128(out + 17, _mm_and_si128(mask, _mm_srli_epi64(w0, 6)));
+  w1 = _mm_loadu_si128(compressed + 11);
+  _mm_storeu_si128(out + 18,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 44),
+                                                    _mm_slli_epi64(w1, 20))));
+  _mm_storeu_si128(out + 19, _mm_and_si128(mask, _mm_srli_epi64(w1, 18)));
+  w0 = _mm_loadu_si128(compressed + 12);
+  _mm_storeu_si128(out + 20,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 56),
+                                                    _mm_slli_epi64(w0, 8))));
+  w1 = _mm_loadu_si128(compressed + 13);
+  _mm_storeu_si128(out + 21,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 30),
+                                                    _mm_slli_epi64(w1, 34))));
+  _mm_storeu_si128(out + 22, _mm_and_si128(mask, _mm_srli_epi64(w1, 4)));
+  w0 = _mm_loadu_si128(compressed + 14);
+  _mm_storeu_si128(out + 23,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 42),
+                                                    _mm_slli_epi64(w0, 22))));
+  _mm_storeu_si128(out + 24, _mm_and_si128(mask, _mm_srli_epi64(w0, 16)));
+  w1 = _mm_loadu_si128(compressed + 15);
+  _mm_storeu_si128(out + 25,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 54),
+                                                    _mm_slli_epi64(w1, 10))));
+  w0 = _mm_loadu_si128(compressed + 16);
+  _mm_storeu_si128(out + 26,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 28),
+                                                    _mm_slli_epi64(w0, 36))));
+  _mm_storeu_si128(out + 27, _mm_and_si128(mask, _mm_srli_epi64(w0, 2)));
+  w1 = _mm_loadu_si128(compressed + 17);
+  _mm_storeu_si128(out + 28,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 40),
+                                                    _mm_slli_epi64(w1, 24))));
+  _mm_storeu_si128(out + 29, _mm_and_si128(mask, _mm_srli_epi64(w1, 14)));
+  w0 = _mm_loadu_si128(compressed + 18);
+  _mm_storeu_si128(out + 30,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 52),
+                                                    _mm_slli_epi64(w0, 12))));
+  _mm_storeu_si128(out + 31, _mm_srli_epi64(w0, 26));
+}
+
+/* we packed 64 39-bit values, touching 20 128-bit words, using 320 bytes */
+static void simdunpackblock39(const __m128i *compressed, u64 *pout) {
+  /* we are going to access  20 128-bit words */
+  __m128i w0, w1;
+  __m128i *out = (__m128i *)pout;
+  const __m128i mask = _mm_set1_epi64x(549755813887);
+  w0 = _mm_loadu_si128(compressed);
+  _mm_storeu_si128(out + 0, _mm_and_si128(mask, w0));
+  w1 = _mm_loadu_si128(compressed + 1);
+  _mm_storeu_si128(out + 1,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 39),
+                                                    _mm_slli_epi64(w1, 25))));
+  _mm_storeu_si128(out + 2, _mm_and_si128(mask, _mm_srli_epi64(w1, 14)));
+  w0 = _mm_loadu_si128(compressed + 2);
+  _mm_storeu_si128(out + 3,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 53),
+                                                    _mm_slli_epi64(w0, 11))));
+  w1 = _mm_loadu_si128(compressed + 3);
+  _mm_storeu_si128(out + 4,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 28),
+                                                    _mm_slli_epi64(w1, 36))));
+  _mm_storeu_si128(out + 5, _mm_and_si128(mask, _mm_srli_epi64(w1, 3)));
+  w0 = _mm_loadu_si128(compressed + 4);
+  _mm_storeu_si128(out + 6,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 42),
+                                                    _mm_slli_epi64(w0, 22))));
+  _mm_storeu_si128(out + 7, _mm_and_si128(mask, _mm_srli_epi64(w0, 17)));
+  w1 = _mm_loadu_si128(compressed + 5);
+  _mm_storeu_si128(out + 8,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 56),
+                                                    _mm_slli_epi64(w1, 8))));
+  w0 = _mm_loadu_si128(compressed + 6);
+  _mm_storeu_si128(out + 9,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 31),
+                                                    _mm_slli_epi64(w0, 33))));
+  _mm_storeu_si128(out + 10, _mm_and_si128(mask, _mm_srli_epi64(w0, 6)));
+  w1 = _mm_loadu_si128(compressed + 7);
+  _mm_storeu_si128(out + 11,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 45),
+                                                    _mm_slli_epi64(w1, 19))));
+  _mm_storeu_si128(out + 12, _mm_and_si128(mask, _mm_srli_epi64(w1, 20)));
+  w0 = _mm_loadu_si128(compressed + 8);
+  _mm_storeu_si128(out + 13,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 59),
+                                                    _mm_slli_epi64(w0, 5))));
+  w1 = _mm_loadu_si128(compressed + 9);
+  _mm_storeu_si128(out + 14,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 34),
+                                                    _mm_slli_epi64(w1, 30))));
+  _mm_storeu_si128(out + 15, _mm_and_si128(mask, _mm_srli_epi64(w1, 9)));
+  w0 = _mm_loadu_si128(compressed + 10);
+  _mm_storeu_si128(out + 16,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 48),
+                                                    _mm_slli_epi64(w0, 16))));
+  _mm_storeu_si128(out + 17, _mm_and_si128(mask, _mm_srli_epi64(w0, 23)));
+  w1 = _mm_loadu_si128(compressed + 11);
+  _mm_storeu_si128(out + 18,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 62),
+                                                    _mm_slli_epi64(w1, 2))));
+  w0 = _mm_loadu_si128(compressed + 12);
+  _mm_storeu_si128(out + 19,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 37),
+                                                    _mm_slli_epi64(w0, 27))));
+  _mm_storeu_si128(out + 20, _mm_and_si128(mask, _mm_srli_epi64(w0, 12)));
+  w1 = _mm_loadu_si128(compressed + 13);
+  _mm_storeu_si128(out + 21,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 51),
+                                                    _mm_slli_epi64(w1, 13))));
+  w0 = _mm_loadu_si128(compressed + 14);
+  _mm_storeu_si128(out + 22,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 26),
+                                                    _mm_slli_epi64(w0, 38))));
+  _mm_storeu_si128(out + 23, _mm_and_si128(mask, _mm_srli_epi64(w0, 1)));
+  w1 = _mm_loadu_si128(compressed + 15);
+  _mm_storeu_si128(out + 24,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 40),
+                                                    _mm_slli_epi64(w1, 24))));
+  _mm_storeu_si128(out + 25, _mm_and_si128(mask, _mm_srli_epi64(w1, 15)));
+  w0 = _mm_loadu_si128(compressed + 16);
+  _mm_storeu_si128(out + 26,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 54),
+                                                    _mm_slli_epi64(w0, 10))));
+  w1 = _mm_loadu_si128(compressed + 17);
+  _mm_storeu_si128(out + 27,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 29),
+                                                    _mm_slli_epi64(w1, 35))));
+  _mm_storeu_si128(out + 28, _mm_and_si128(mask, _mm_srli_epi64(w1, 4)));
+  w0 = _mm_loadu_si128(compressed + 18);
+  _mm_storeu_si128(out + 29,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 43),
+                                                    _mm_slli_epi64(w0, 21))));
+  _mm_storeu_si128(out + 30, _mm_and_si128(mask, _mm_srli_epi64(w0, 18)));
+  w1 = _mm_loadu_si128(compressed + 19);
+  _mm_storeu_si128(out + 31,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 57),
+                                                    _mm_slli_epi64(w1, 7))));
+}
+
+/* we packed 64 40-bit values, touching 20 128-bit words, using 320 bytes */
+static void simdunpackblock40(const __m128i *compressed, u64 *pout) {
+  /* we are going to access  20 128-bit words */
+  __m128i w0, w1;
+  __m128i *out = (__m128i *)pout;
+  const __m128i mask = _mm_set1_epi64x(1099511627775);
+  w0 = _mm_loadu_si128(compressed);
+  _mm_storeu_si128(out + 0, _mm_and_si128(mask, w0));
+  w1 = _mm_loadu_si128(compressed + 1);
+  _mm_storeu_si128(out + 1,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 40),
+                                                    _mm_slli_epi64(w1, 24))));
+  _mm_storeu_si128(out + 2, _mm_and_si128(mask, _mm_srli_epi64(w1, 16)));
+  w0 = _mm_loadu_si128(compressed + 2);
+  _mm_storeu_si128(out + 3,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 56),
+                                                    _mm_slli_epi64(w0, 8))));
+  w1 = _mm_loadu_si128(compressed + 3);
+  _mm_storeu_si128(out + 4,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 32),
+                                                    _mm_slli_epi64(w1, 32))));
+  _mm_storeu_si128(out + 5, _mm_and_si128(mask, _mm_srli_epi64(w1, 8)));
+  w0 = _mm_loadu_si128(compressed + 4);
+  _mm_storeu_si128(out + 6,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 48),
+                                                    _mm_slli_epi64(w0, 16))));
+  _mm_storeu_si128(out + 7, _mm_srli_epi64(w0, 24));
+  w1 = _mm_loadu_si128(compressed + 5);
+  _mm_storeu_si128(out + 8, _mm_and_si128(mask, w1));
+  w0 = _mm_loadu_si128(compressed + 6);
+  _mm_storeu_si128(out + 9,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 40),
+                                                    _mm_slli_epi64(w0, 24))));
+  _mm_storeu_si128(out + 10, _mm_and_si128(mask, _mm_srli_epi64(w0, 16)));
+  w1 = _mm_loadu_si128(compressed + 7);
+  _mm_storeu_si128(out + 11,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 56),
+                                                    _mm_slli_epi64(w1, 8))));
+  w0 = _mm_loadu_si128(compressed + 8);
+  _mm_storeu_si128(out + 12,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 32),
+                                                    _mm_slli_epi64(w0, 32))));
+  _mm_storeu_si128(out + 13, _mm_and_si128(mask, _mm_srli_epi64(w0, 8)));
+  w1 = _mm_loadu_si128(compressed + 9);
+  _mm_storeu_si128(out + 14,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 48),
+                                                    _mm_slli_epi64(w1, 16))));
+  _mm_storeu_si128(out + 15, _mm_srli_epi64(w1, 24));
+  w0 = _mm_loadu_si128(compressed + 10);
+  _mm_storeu_si128(out + 16, _mm_and_si128(mask, w0));
+  w1 = _mm_loadu_si128(compressed + 11);
+  _mm_storeu_si128(out + 17,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 40),
+                                                    _mm_slli_epi64(w1, 24))));
+  _mm_storeu_si128(out + 18, _mm_and_si128(mask, _mm_srli_epi64(w1, 16)));
+  w0 = _mm_loadu_si128(compressed + 12);
+  _mm_storeu_si128(out + 19,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 56),
+                                                    _mm_slli_epi64(w0, 8))));
+  w1 = _mm_loadu_si128(compressed + 13);
+  _mm_storeu_si128(out + 20,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 32),
+                                                    _mm_slli_epi64(w1, 32))));
+  _mm_storeu_si128(out + 21, _mm_and_si128(mask, _mm_srli_epi64(w1, 8)));
+  w0 = _mm_loadu_si128(compressed + 14);
+  _mm_storeu_si128(out + 22,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 48),
+                                                    _mm_slli_epi64(w0, 16))));
+  _mm_storeu_si128(out + 23, _mm_srli_epi64(w0, 24));
+  w1 = _mm_loadu_si128(compressed + 15);
+  _mm_storeu_si128(out + 24, _mm_and_si128(mask, w1));
+  w0 = _mm_loadu_si128(compressed + 16);
+  _mm_storeu_si128(out + 25,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 40),
+                                                    _mm_slli_epi64(w0, 24))));
+  _mm_storeu_si128(out + 26, _mm_and_si128(mask, _mm_srli_epi64(w0, 16)));
+  w1 = _mm_loadu_si128(compressed + 17);
+  _mm_storeu_si128(out + 27,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 56),
+                                                    _mm_slli_epi64(w1, 8))));
+  w0 = _mm_loadu_si128(compressed + 18);
+  _mm_storeu_si128(out + 28,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 32),
+                                                    _mm_slli_epi64(w0, 32))));
+  _mm_storeu_si128(out + 29, _mm_and_si128(mask, _mm_srli_epi64(w0, 8)));
+  w1 = _mm_loadu_si128(compressed + 19);
+  _mm_storeu_si128(out + 30,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 48),
+                                                    _mm_slli_epi64(w1, 16))));
+  _mm_storeu_si128(out + 31, _mm_srli_epi64(w1, 24));
+}
+
+/* we packed 64 41-bit values, touching 21 128-bit words, using 336 bytes */
+static void simdunpackblock41(const __m128i *compressed, u64 *pout) {
+  /* we are going to access  21 128-bit words */
+  __m128i w0, w1;
+  __m128i *out = (__m128i *)pout;
+  const __m128i mask = _mm_set1_epi64x(2199023255551);
+  w0 = _mm_loadu_si128(compressed);
+  _mm_storeu_si128(out + 0, _mm_and_si128(mask, w0));
+  w1 = _mm_loadu_si128(compressed + 1);
+  _mm_storeu_si128(out + 1,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 41),
+                                                    _mm_slli_epi64(w1, 23))));
+  _mm_storeu_si128(out + 2, _mm_and_si128(mask, _mm_srli_epi64(w1, 18)));
+  w0 = _mm_loadu_si128(compressed + 2);
+  _mm_storeu_si128(out + 3,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 59),
+                                                    _mm_slli_epi64(w0, 5))));
+  w1 = _mm_loadu_si128(compressed + 3);
+  _mm_storeu_si128(out + 4,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 36),
+                                                    _mm_slli_epi64(w1, 28))));
+  _mm_storeu_si128(out + 5, _mm_and_si128(mask, _mm_srli_epi64(w1, 13)));
+  w0 = _mm_loadu_si128(compressed + 4);
+  _mm_storeu_si128(out + 6,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 54),
+                                                    _mm_slli_epi64(w0, 10))));
+  w1 = _mm_loadu_si128(compressed + 5);
+  _mm_storeu_si128(out + 7,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 31),
+                                                    _mm_slli_epi64(w1, 33))));
+  _mm_storeu_si128(out + 8, _mm_and_si128(mask, _mm_srli_epi64(w1, 8)));
+  w0 = _mm_loadu_si128(compressed + 6);
+  _mm_storeu_si128(out + 9,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 49),
+                                                    _mm_slli_epi64(w0, 15))));
+  w1 = _mm_loadu_si128(compressed + 7);
+  _mm_storeu_si128(out + 10,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 26),
+                                                    _mm_slli_epi64(w1, 38))));
+  _mm_storeu_si128(out + 11, _mm_and_si128(mask, _mm_srli_epi64(w1, 3)));
+  w0 = _mm_loadu_si128(compressed + 8);
+  _mm_storeu_si128(out + 12,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 44),
+                                                    _mm_slli_epi64(w0, 20))));
+  _mm_storeu_si128(out + 13, _mm_and_si128(mask, _mm_srli_epi64(w0, 21)));
+  w1 = _mm_loadu_si128(compressed + 9);
+  _mm_storeu_si128(out + 14,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 62),
+                                                    _mm_slli_epi64(w1, 2))));
+  w0 = _mm_loadu_si128(compressed + 10);
+  _mm_storeu_si128(out + 15,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 39),
+                                                    _mm_slli_epi64(w0, 25))));
+  _mm_storeu_si128(out + 16, _mm_and_si128(mask, _mm_srli_epi64(w0, 16)));
+  w1 = _mm_loadu_si128(compressed + 11);
+  _mm_storeu_si128(out + 17,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 57),
+                                                    _mm_slli_epi64(w1, 7))));
+  w0 = _mm_loadu_si128(compressed + 12);
+  _mm_storeu_si128(out + 18,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 34),
+                                                    _mm_slli_epi64(w0, 30))));
+  _mm_storeu_si128(out + 19, _mm_and_si128(mask, _mm_srli_epi64(w0, 11)));
+  w1 = _mm_loadu_si128(compressed + 13);
+  _mm_storeu_si128(out + 20,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 52),
+                                                    _mm_slli_epi64(w1, 12))));
+  w0 = _mm_loadu_si128(compressed + 14);
+  _mm_storeu_si128(out + 21,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 29),
+                                                    _mm_slli_epi64(w0, 35))));
+  _mm_storeu_si128(out + 22, _mm_and_si128(mask, _mm_srli_epi64(w0, 6)));
+  w1 = _mm_loadu_si128(compressed + 15);
+  _mm_storeu_si128(out + 23,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 47),
+                                                    _mm_slli_epi64(w1, 17))));
+  w0 = _mm_loadu_si128(compressed + 16);
+  _mm_storeu_si128(out + 24,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 24),
+                                                    _mm_slli_epi64(w0, 40))));
+  _mm_storeu_si128(out + 25, _mm_and_si128(mask, _mm_srli_epi64(w0, 1)));
+  w1 = _mm_loadu_si128(compressed + 17);
+  _mm_storeu_si128(out + 26,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 42),
+                                                    _mm_slli_epi64(w1, 22))));
+  _mm_storeu_si128(out + 27, _mm_and_si128(mask, _mm_srli_epi64(w1, 19)));
+  w0 = _mm_loadu_si128(compressed + 18);
+  _mm_storeu_si128(out + 28,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 60),
+                                                    _mm_slli_epi64(w0, 4))));
+  w1 = _mm_loadu_si128(compressed + 19);
+  _mm_storeu_si128(out + 29,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 37),
+                                                    _mm_slli_epi64(w1, 27))));
+  _mm_storeu_si128(out + 30, _mm_and_si128(mask, _mm_srli_epi64(w1, 14)));
+  w0 = _mm_loadu_si128(compressed + 20);
+  _mm_storeu_si128(out + 31,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 55),
+                                                    _mm_slli_epi64(w0, 9))));
+}
+
+/* we packed 64 42-bit values, touching 21 128-bit words, using 336 bytes */
+static void simdunpackblock42(const __m128i *compressed, u64 *pout) {
+  /* we are going to access  21 128-bit words */
+  __m128i w0, w1;
+  __m128i *out = (__m128i *)pout;
+  const __m128i mask = _mm_set1_epi64x(4398046511103);
+  w0 = _mm_loadu_si128(compressed);
+  _mm_storeu_si128(out + 0, _mm_and_si128(mask, w0));
+  w1 = _mm_loadu_si128(compressed + 1);
+  _mm_storeu_si128(out + 1,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 42),
+                                                    _mm_slli_epi64(w1, 22))));
+  _mm_storeu_si128(out + 2, _mm_and_si128(mask, _mm_srli_epi64(w1, 20)));
+  w0 = _mm_loadu_si128(compressed + 2);
+  _mm_storeu_si128(out + 3,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 62),
+                                                    _mm_slli_epi64(w0, 2))));
+  w1 = _mm_loadu_si128(compressed + 3);
+  _mm_storeu_si128(out + 4,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 40),
+                                                    _mm_slli_epi64(w1, 24))));
+  _mm_storeu_si128(out + 5, _mm_and_si128(mask, _mm_srli_epi64(w1, 18)));
+  w0 = _mm_loadu_si128(compressed + 4);
+  _mm_storeu_si128(out + 6,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 60),
+                                                    _mm_slli_epi64(w0, 4))));
+  w1 = _mm_loadu_si128(compressed + 5);
+  _mm_storeu_si128(out + 7,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 38),
+                                                    _mm_slli_epi64(w1, 26))));
+  _mm_storeu_si128(out + 8, _mm_and_si128(mask, _mm_srli_epi64(w1, 16)));
+  w0 = _mm_loadu_si128(compressed + 6);
+  _mm_storeu_si128(out + 9,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 58),
+                                                    _mm_slli_epi64(w0, 6))));
+  w1 = _mm_loadu_si128(compressed + 7);
+  _mm_storeu_si128(out + 10,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 36),
+                                                    _mm_slli_epi64(w1, 28))));
+  _mm_storeu_si128(out + 11, _mm_and_si128(mask, _mm_srli_epi64(w1, 14)));
+  w0 = _mm_loadu_si128(compressed + 8);
+  _mm_storeu_si128(out + 12,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 56),
+                                                    _mm_slli_epi64(w0, 8))));
+  w1 = _mm_loadu_si128(compressed + 9);
+  _mm_storeu_si128(out + 13,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 34),
+                                                    _mm_slli_epi64(w1, 30))));
+  _mm_storeu_si128(out + 14, _mm_and_si128(mask, _mm_srli_epi64(w1, 12)));
+  w0 = _mm_loadu_si128(compressed + 10);
+  _mm_storeu_si128(out + 15,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 54),
+                                                    _mm_slli_epi64(w0, 10))));
+  w1 = _mm_loadu_si128(compressed + 11);
+  _mm_storeu_si128(out + 16,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 32),
+                                                    _mm_slli_epi64(w1, 32))));
+  _mm_storeu_si128(out + 17, _mm_and_si128(mask, _mm_srli_epi64(w1, 10)));
+  w0 = _mm_loadu_si128(compressed + 12);
+  _mm_storeu_si128(out + 18,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 52),
+                                                    _mm_slli_epi64(w0, 12))));
+  w1 = _mm_loadu_si128(compressed + 13);
+  _mm_storeu_si128(out + 19,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 30),
+                                                    _mm_slli_epi64(w1, 34))));
+  _mm_storeu_si128(out + 20, _mm_and_si128(mask, _mm_srli_epi64(w1, 8)));
+  w0 = _mm_loadu_si128(compressed + 14);
+  _mm_storeu_si128(out + 21,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 50),
+                                                    _mm_slli_epi64(w0, 14))));
+  w1 = _mm_loadu_si128(compressed + 15);
+  _mm_storeu_si128(out + 22,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 28),
+                                                    _mm_slli_epi64(w1, 36))));
+  _mm_storeu_si128(out + 23, _mm_and_si128(mask, _mm_srli_epi64(w1, 6)));
+  w0 = _mm_loadu_si128(compressed + 16);
+  _mm_storeu_si128(out + 24,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 48),
+                                                    _mm_slli_epi64(w0, 16))));
+  w1 = _mm_loadu_si128(compressed + 17);
+  _mm_storeu_si128(out + 25,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 26),
+                                                    _mm_slli_epi64(w1, 38))));
+  _mm_storeu_si128(out + 26, _mm_and_si128(mask, _mm_srli_epi64(w1, 4)));
+  w0 = _mm_loadu_si128(compressed + 18);
+  _mm_storeu_si128(out + 27,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 46),
+                                                    _mm_slli_epi64(w0, 18))));
+  w1 = _mm_loadu_si128(compressed + 19);
+  _mm_storeu_si128(out + 28,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 24),
+                                                    _mm_slli_epi64(w1, 40))));
+  _mm_storeu_si128(out + 29, _mm_and_si128(mask, _mm_srli_epi64(w1, 2)));
+  w0 = _mm_loadu_si128(compressed + 20);
+  _mm_storeu_si128(out + 30,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 44),
+                                                    _mm_slli_epi64(w0, 20))));
+  _mm_storeu_si128(out + 31, _mm_srli_epi64(w0, 22));
+}
+
+/* we packed 64 43-bit values, touching 22 128-bit words, using 352 bytes */
+static void simdunpackblock43(const __m128i *compressed, u64 *pout) {
+  /* we are going to access  22 128-bit words */
+  __m128i w0, w1;
+  __m128i *out = (__m128i *)pout;
+  const __m128i mask = _mm_set1_epi64x(8796093022207);
+  w0 = _mm_loadu_si128(compressed);
+  _mm_storeu_si128(out + 0, _mm_and_si128(mask, w0));
+  w1 = _mm_loadu_si128(compressed + 1);
+  _mm_storeu_si128(out + 1,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 43),
+                                                    _mm_slli_epi64(w1, 21))));
+  w0 = _mm_loadu_si128(compressed + 2);
+  _mm_storeu_si128(out + 2,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 22),
+                                                    _mm_slli_epi64(w0, 42))));
+  _mm_storeu_si128(out + 3, _mm_and_si128(mask, _mm_srli_epi64(w0, 1)));
+  w1 = _mm_loadu_si128(compressed + 3);
+  _mm_storeu_si128(out + 4,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 44),
+                                                    _mm_slli_epi64(w1, 20))));
+  w0 = _mm_loadu_si128(compressed + 4);
+  _mm_storeu_si128(out + 5,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 23),
+                                                    _mm_slli_epi64(w0, 41))));
+  _mm_storeu_si128(out + 6, _mm_and_si128(mask, _mm_srli_epi64(w0, 2)));
+  w1 = _mm_loadu_si128(compressed + 5);
+  _mm_storeu_si128(out + 7,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 45),
+                                                    _mm_slli_epi64(w1, 19))));
+  w0 = _mm_loadu_si128(compressed + 6);
+  _mm_storeu_si128(out + 8,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 24),
+                                                    _mm_slli_epi64(w0, 40))));
+  _mm_storeu_si128(out + 9, _mm_and_si128(mask, _mm_srli_epi64(w0, 3)));
+  w1 = _mm_loadu_si128(compressed + 7);
+  _mm_storeu_si128(out + 10,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 46),
+                                                    _mm_slli_epi64(w1, 18))));
+  w0 = _mm_loadu_si128(compressed + 8);
+  _mm_storeu_si128(out + 11,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 25),
+                                                    _mm_slli_epi64(w0, 39))));
+  _mm_storeu_si128(out + 12, _mm_and_si128(mask, _mm_srli_epi64(w0, 4)));
+  w1 = _mm_loadu_si128(compressed + 9);
+  _mm_storeu_si128(out + 13,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 47),
+                                                    _mm_slli_epi64(w1, 17))));
+  w0 = _mm_loadu_si128(compressed + 10);
+  _mm_storeu_si128(out + 14,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 26),
+                                                    _mm_slli_epi64(w0, 38))));
+  _mm_storeu_si128(out + 15, _mm_and_si128(mask, _mm_srli_epi64(w0, 5)));
+  w1 = _mm_loadu_si128(compressed + 11);
+  _mm_storeu_si128(out + 16,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 48),
+                                                    _mm_slli_epi64(w1, 16))));
+  w0 = _mm_loadu_si128(compressed + 12);
+  _mm_storeu_si128(out + 17,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 27),
+                                                    _mm_slli_epi64(w0, 37))));
+  _mm_storeu_si128(out + 18, _mm_and_si128(mask, _mm_srli_epi64(w0, 6)));
+  w1 = _mm_loadu_si128(compressed + 13);
+  _mm_storeu_si128(out + 19,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 49),
+                                                    _mm_slli_epi64(w1, 15))));
+  w0 = _mm_loadu_si128(compressed + 14);
+  _mm_storeu_si128(out + 20,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 28),
+                                                    _mm_slli_epi64(w0, 36))));
+  _mm_storeu_si128(out + 21, _mm_and_si128(mask, _mm_srli_epi64(w0, 7)));
+  w1 = _mm_loadu_si128(compressed + 15);
+  _mm_storeu_si128(out + 22,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 50),
+                                                    _mm_slli_epi64(w1, 14))));
+  w0 = _mm_loadu_si128(compressed + 16);
+  _mm_storeu_si128(out + 23,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 29),
+                                                    _mm_slli_epi64(w0, 35))));
+  _mm_storeu_si128(out + 24, _mm_and_si128(mask, _mm_srli_epi64(w0, 8)));
+  w1 = _mm_loadu_si128(compressed + 17);
+  _mm_storeu_si128(out + 25,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 51),
+                                                    _mm_slli_epi64(w1, 13))));
+  w0 = _mm_loadu_si128(compressed + 18);
+  _mm_storeu_si128(out + 26,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 30),
+                                                    _mm_slli_epi64(w0, 34))));
+  _mm_storeu_si128(out + 27, _mm_and_si128(mask, _mm_srli_epi64(w0, 9)));
+  w1 = _mm_loadu_si128(compressed + 19);
+  _mm_storeu_si128(out + 28,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 52),
+                                                    _mm_slli_epi64(w1, 12))));
+  w0 = _mm_loadu_si128(compressed + 20);
+  _mm_storeu_si128(out + 29,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 31),
+                                                    _mm_slli_epi64(w0, 33))));
+  _mm_storeu_si128(out + 30, _mm_and_si128(mask, _mm_srli_epi64(w0, 10)));
+  w1 = _mm_loadu_si128(compressed + 21);
+  _mm_storeu_si128(out + 31,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 53),
+                                                    _mm_slli_epi64(w1, 11))));
+}
+
+/* we packed 64 44-bit values, touching 22 128-bit words, using 352 bytes */
+static void simdunpackblock44(const __m128i *compressed, u64 *pout) {
+  /* we are going to access  22 128-bit words */
+  __m128i w0, w1;
+  __m128i *out = (__m128i *)pout;
+  const __m128i mask = _mm_set1_epi64x(17592186044415);
+  w0 = _mm_loadu_si128(compressed);
+  _mm_storeu_si128(out + 0, _mm_and_si128(mask, w0));
+  w1 = _mm_loadu_si128(compressed + 1);
+  _mm_storeu_si128(out + 1,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 44),
+                                                    _mm_slli_epi64(w1, 20))));
+  w0 = _mm_loadu_si128(compressed + 2);
+  _mm_storeu_si128(out + 2,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 24),
+                                                    _mm_slli_epi64(w0, 40))));
+  _mm_storeu_si128(out + 3, _mm_and_si128(mask, _mm_srli_epi64(w0, 4)));
+  w1 = _mm_loadu_si128(compressed + 3);
+  _mm_storeu_si128(out + 4,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 48),
+                                                    _mm_slli_epi64(w1, 16))));
+  w0 = _mm_loadu_si128(compressed + 4);
+  _mm_storeu_si128(out + 5,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 28),
+                                                    _mm_slli_epi64(w0, 36))));
+  _mm_storeu_si128(out + 6, _mm_and_si128(mask, _mm_srli_epi64(w0, 8)));
+  w1 = _mm_loadu_si128(compressed + 5);
+  _mm_storeu_si128(out + 7,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 52),
+                                                    _mm_slli_epi64(w1, 12))));
+  w0 = _mm_loadu_si128(compressed + 6);
+  _mm_storeu_si128(out + 8,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 32),
+                                                    _mm_slli_epi64(w0, 32))));
+  _mm_storeu_si128(out + 9, _mm_and_si128(mask, _mm_srli_epi64(w0, 12)));
+  w1 = _mm_loadu_si128(compressed + 7);
+  _mm_storeu_si128(out + 10,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 56),
+                                                    _mm_slli_epi64(w1, 8))));
+  w0 = _mm_loadu_si128(compressed + 8);
+  _mm_storeu_si128(out + 11,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 36),
+                                                    _mm_slli_epi64(w0, 28))));
+  _mm_storeu_si128(out + 12, _mm_and_si128(mask, _mm_srli_epi64(w0, 16)));
+  w1 = _mm_loadu_si128(compressed + 9);
+  _mm_storeu_si128(out + 13,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 60),
+                                                    _mm_slli_epi64(w1, 4))));
+  w0 = _mm_loadu_si128(compressed + 10);
+  _mm_storeu_si128(out + 14,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 40),
+                                                    _mm_slli_epi64(w0, 24))));
+  _mm_storeu_si128(out + 15, _mm_srli_epi64(w0, 20));
+  w1 = _mm_loadu_si128(compressed + 11);
+  _mm_storeu_si128(out + 16, _mm_and_si128(mask, w1));
+  w0 = _mm_loadu_si128(compressed + 12);
+  _mm_storeu_si128(out + 17,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 44),
+                                                    _mm_slli_epi64(w0, 20))));
+  w1 = _mm_loadu_si128(compressed + 13);
+  _mm_storeu_si128(out + 18,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 24),
+                                                    _mm_slli_epi64(w1, 40))));
+  _mm_storeu_si128(out + 19, _mm_and_si128(mask, _mm_srli_epi64(w1, 4)));
+  w0 = _mm_loadu_si128(compressed + 14);
+  _mm_storeu_si128(out + 20,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 48),
+                                                    _mm_slli_epi64(w0, 16))));
+  w1 = _mm_loadu_si128(compressed + 15);
+  _mm_storeu_si128(out + 21,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 28),
+                                                    _mm_slli_epi64(w1, 36))));
+  _mm_storeu_si128(out + 22, _mm_and_si128(mask, _mm_srli_epi64(w1, 8)));
+  w0 = _mm_loadu_si128(compressed + 16);
+  _mm_storeu_si128(out + 23,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 52),
+                                                    _mm_slli_epi64(w0, 12))));
+  w1 = _mm_loadu_si128(compressed + 17);
+  _mm_storeu_si128(out + 24,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 32),
+                                                    _mm_slli_epi64(w1, 32))));
+  _mm_storeu_si128(out + 25, _mm_and_si128(mask, _mm_srli_epi64(w1, 12)));
+  w0 = _mm_loadu_si128(compressed + 18);
+  _mm_storeu_si128(out + 26,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 56),
+                                                    _mm_slli_epi64(w0, 8))));
+  w1 = _mm_loadu_si128(compressed + 19);
+  _mm_storeu_si128(out + 27,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 36),
+                                                    _mm_slli_epi64(w1, 28))));
+  _mm_storeu_si128(out + 28, _mm_and_si128(mask, _mm_srli_epi64(w1, 16)));
+  w0 = _mm_loadu_si128(compressed + 20);
+  _mm_storeu_si128(out + 29,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 60),
+                                                    _mm_slli_epi64(w0, 4))));
+  w1 = _mm_loadu_si128(compressed + 21);
+  _mm_storeu_si128(out + 30,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 40),
+                                                    _mm_slli_epi64(w1, 24))));
+  _mm_storeu_si128(out + 31, _mm_srli_epi64(w1, 20));
+}
+
+/* we packed 64 45-bit values, touching 23 128-bit words, using 368 bytes */
+static void simdunpackblock45(const __m128i *compressed, u64 *pout) {
+  /* we are going to access  23 128-bit words */
+  __m128i w0, w1;
+  __m128i *out = (__m128i *)pout;
+  const __m128i mask = _mm_set1_epi64x(35184372088831);
+  w0 = _mm_loadu_si128(compressed);
+  _mm_storeu_si128(out + 0, _mm_and_si128(mask, w0));
+  w1 = _mm_loadu_si128(compressed + 1);
+  _mm_storeu_si128(out + 1,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 45),
+                                                    _mm_slli_epi64(w1, 19))));
+  w0 = _mm_loadu_si128(compressed + 2);
+  _mm_storeu_si128(out + 2,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 26),
+                                                    _mm_slli_epi64(w0, 38))));
+  _mm_storeu_si128(out + 3, _mm_and_si128(mask, _mm_srli_epi64(w0, 7)));
+  w1 = _mm_loadu_si128(compressed + 3);
+  _mm_storeu_si128(out + 4,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 52),
+                                                    _mm_slli_epi64(w1, 12))));
+  w0 = _mm_loadu_si128(compressed + 4);
+  _mm_storeu_si128(out + 5,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 33),
+                                                    _mm_slli_epi64(w0, 31))));
+  _mm_storeu_si128(out + 6, _mm_and_si128(mask, _mm_srli_epi64(w0, 14)));
+  w1 = _mm_loadu_si128(compressed + 5);
+  _mm_storeu_si128(out + 7,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 59),
+                                                    _mm_slli_epi64(w1, 5))));
+  w0 = _mm_loadu_si128(compressed + 6);
+  _mm_storeu_si128(out + 8,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 40),
+                                                    _mm_slli_epi64(w0, 24))));
+  w1 = _mm_loadu_si128(compressed + 7);
+  _mm_storeu_si128(out + 9,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 21),
+                                                    _mm_slli_epi64(w1, 43))));
+  _mm_storeu_si128(out + 10, _mm_and_si128(mask, _mm_srli_epi64(w1, 2)));
+  w0 = _mm_loadu_si128(compressed + 8);
+  _mm_storeu_si128(out + 11,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 47),
+                                                    _mm_slli_epi64(w0, 17))));
+  w1 = _mm_loadu_si128(compressed + 9);
+  _mm_storeu_si128(out + 12,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 28),
+                                                    _mm_slli_epi64(w1, 36))));
+  _mm_storeu_si128(out + 13, _mm_and_si128(mask, _mm_srli_epi64(w1, 9)));
+  w0 = _mm_loadu_si128(compressed + 10);
+  _mm_storeu_si128(out + 14,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 54),
+                                                    _mm_slli_epi64(w0, 10))));
+  w1 = _mm_loadu_si128(compressed + 11);
+  _mm_storeu_si128(out + 15,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 35),
+                                                    _mm_slli_epi64(w1, 29))));
+  _mm_storeu_si128(out + 16, _mm_and_si128(mask, _mm_srli_epi64(w1, 16)));
+  w0 = _mm_loadu_si128(compressed + 12);
+  _mm_storeu_si128(out + 17,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 61),
+                                                    _mm_slli_epi64(w0, 3))));
+  w1 = _mm_loadu_si128(compressed + 13);
+  _mm_storeu_si128(out + 18,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 42),
+                                                    _mm_slli_epi64(w1, 22))));
+  w0 = _mm_loadu_si128(compressed + 14);
+  _mm_storeu_si128(out + 19,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 23),
+                                                    _mm_slli_epi64(w0, 41))));
+  _mm_storeu_si128(out + 20, _mm_and_si128(mask, _mm_srli_epi64(w0, 4)));
+  w1 = _mm_loadu_si128(compressed + 15);
+  _mm_storeu_si128(out + 21,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 49),
+                                                    _mm_slli_epi64(w1, 15))));
+  w0 = _mm_loadu_si128(compressed + 16);
+  _mm_storeu_si128(out + 22,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 30),
+                                                    _mm_slli_epi64(w0, 34))));
+  _mm_storeu_si128(out + 23, _mm_and_si128(mask, _mm_srli_epi64(w0, 11)));
+  w1 = _mm_loadu_si128(compressed + 17);
+  _mm_storeu_si128(out + 24,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 56),
+                                                    _mm_slli_epi64(w1, 8))));
+  w0 = _mm_loadu_si128(compressed + 18);
+  _mm_storeu_si128(out + 25,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 37),
+                                                    _mm_slli_epi64(w0, 27))));
+  _mm_storeu_si128(out + 26, _mm_and_si128(mask, _mm_srli_epi64(w0, 18)));
+  w1 = _mm_loadu_si128(compressed + 19);
+  _mm_storeu_si128(out + 27,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 63),
+                                                    _mm_slli_epi64(w1, 1))));
+  w0 = _mm_loadu_si128(compressed + 20);
+  _mm_storeu_si128(out + 28,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 44),
+                                                    _mm_slli_epi64(w0, 20))));
+  w1 = _mm_loadu_si128(compressed + 21);
+  _mm_storeu_si128(out + 29,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 25),
+                                                    _mm_slli_epi64(w1, 39))));
+  _mm_storeu_si128(out + 30, _mm_and_si128(mask, _mm_srli_epi64(w1, 6)));
+  w0 = _mm_loadu_si128(compressed + 22);
+  _mm_storeu_si128(out + 31,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 51),
+                                                    _mm_slli_epi64(w0, 13))));
+}
+
+/* we packed 64 46-bit values, touching 23 128-bit words, using 368 bytes */
+static void simdunpackblock46(const __m128i *compressed, u64 *pout) {
+  /* we are going to access  23 128-bit words */
+  __m128i w0, w1;
+  __m128i *out = (__m128i *)pout;
+  const __m128i mask = _mm_set1_epi64x(70368744177663);
+  w0 = _mm_loadu_si128(compressed);
+  _mm_storeu_si128(out + 0, _mm_and_si128(mask, w0));
+  w1 = _mm_loadu_si128(compressed + 1);
+  _mm_storeu_si128(out + 1,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 46),
+                                                    _mm_slli_epi64(w1, 18))));
+  w0 = _mm_loadu_si128(compressed + 2);
+  _mm_storeu_si128(out + 2,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 28),
+                                                    _mm_slli_epi64(w0, 36))));
+  _mm_storeu_si128(out + 3, _mm_and_si128(mask, _mm_srli_epi64(w0, 10)));
+  w1 = _mm_loadu_si128(compressed + 3);
+  _mm_storeu_si128(out + 4,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 56),
+                                                    _mm_slli_epi64(w1, 8))));
+  w0 = _mm_loadu_si128(compressed + 4);
+  _mm_storeu_si128(out + 5,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 38),
+                                                    _mm_slli_epi64(w0, 26))));
+  w1 = _mm_loadu_si128(compressed + 5);
+  _mm_storeu_si128(out + 6,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 20),
+                                                    _mm_slli_epi64(w1, 44))));
+  _mm_storeu_si128(out + 7, _mm_and_si128(mask, _mm_srli_epi64(w1, 2)));
+  w0 = _mm_loadu_si128(compressed + 6);
+  _mm_storeu_si128(out + 8,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 48),
+                                                    _mm_slli_epi64(w0, 16))));
+  w1 = _mm_loadu_si128(compressed + 7);
+  _mm_storeu_si128(out + 9,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 30),
+                                                    _mm_slli_epi64(w1, 34))));
+  _mm_storeu_si128(out + 10, _mm_and_si128(mask, _mm_srli_epi64(w1, 12)));
+  w0 = _mm_loadu_si128(compressed + 8);
+  _mm_storeu_si128(out + 11,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 58),
+                                                    _mm_slli_epi64(w0, 6))));
+  w1 = _mm_loadu_si128(compressed + 9);
+  _mm_storeu_si128(out + 12,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 40),
+                                                    _mm_slli_epi64(w1, 24))));
+  w0 = _mm_loadu_si128(compressed + 10);
+  _mm_storeu_si128(out + 13,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 22),
+                                                    _mm_slli_epi64(w0, 42))));
+  _mm_storeu_si128(out + 14, _mm_and_si128(mask, _mm_srli_epi64(w0, 4)));
+  w1 = _mm_loadu_si128(compressed + 11);
+  _mm_storeu_si128(out + 15,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 50),
+                                                    _mm_slli_epi64(w1, 14))));
+  w0 = _mm_loadu_si128(compressed + 12);
+  _mm_storeu_si128(out + 16,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 32),
+                                                    _mm_slli_epi64(w0, 32))));
+  _mm_storeu_si128(out + 17, _mm_and_si128(mask, _mm_srli_epi64(w0, 14)));
+  w1 = _mm_loadu_si128(compressed + 13);
+  _mm_storeu_si128(out + 18,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 60),
+                                                    _mm_slli_epi64(w1, 4))));
+  w0 = _mm_loadu_si128(compressed + 14);
+  _mm_storeu_si128(out + 19,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 42),
+                                                    _mm_slli_epi64(w0, 22))));
+  w1 = _mm_loadu_si128(compressed + 15);
+  _mm_storeu_si128(out + 20,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 24),
+                                                    _mm_slli_epi64(w1, 40))));
+  _mm_storeu_si128(out + 21, _mm_and_si128(mask, _mm_srli_epi64(w1, 6)));
+  w0 = _mm_loadu_si128(compressed + 16);
+  _mm_storeu_si128(out + 22,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 52),
+                                                    _mm_slli_epi64(w0, 12))));
+  w1 = _mm_loadu_si128(compressed + 17);
+  _mm_storeu_si128(out + 23,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 34),
+                                                    _mm_slli_epi64(w1, 30))));
+  _mm_storeu_si128(out + 24, _mm_and_si128(mask, _mm_srli_epi64(w1, 16)));
+  w0 = _mm_loadu_si128(compressed + 18);
+  _mm_storeu_si128(out + 25,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 62),
+                                                    _mm_slli_epi64(w0, 2))));
+  w1 = _mm_loadu_si128(compressed + 19);
+  _mm_storeu_si128(out + 26,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 44),
+                                                    _mm_slli_epi64(w1, 20))));
+  w0 = _mm_loadu_si128(compressed + 20);
+  _mm_storeu_si128(out + 27,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 26),
+                                                    _mm_slli_epi64(w0, 38))));
+  _mm_storeu_si128(out + 28, _mm_and_si128(mask, _mm_srli_epi64(w0, 8)));
+  w1 = _mm_loadu_si128(compressed + 21);
+  _mm_storeu_si128(out + 29,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 54),
+                                                    _mm_slli_epi64(w1, 10))));
+  w0 = _mm_loadu_si128(compressed + 22);
+  _mm_storeu_si128(out + 30,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 36),
+                                                    _mm_slli_epi64(w0, 28))));
+  _mm_storeu_si128(out + 31, _mm_srli_epi64(w0, 18));
+}
+
+/* we packed 64 47-bit values, touching 24 128-bit words, using 384 bytes */
+static void simdunpackblock47(const __m128i *compressed, u64 *pout) {
+  /* we are going to access  24 128-bit words */
+  __m128i w0, w1;
+  __m128i *out = (__m128i *)pout;
+  const __m128i mask = _mm_set1_epi64x(140737488355327);
+  w0 = _mm_loadu_si128(compressed);
+  _mm_storeu_si128(out + 0, _mm_and_si128(mask, w0));
+  w1 = _mm_loadu_si128(compressed + 1);
+  _mm_storeu_si128(out + 1,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 47),
+                                                    _mm_slli_epi64(w1, 17))));
+  w0 = _mm_loadu_si128(compressed + 2);
+  _mm_storeu_si128(out + 2,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 30),
+                                                    _mm_slli_epi64(w0, 34))));
+  _mm_storeu_si128(out + 3, _mm_and_si128(mask, _mm_srli_epi64(w0, 13)));
+  w1 = _mm_loadu_si128(compressed + 3);
+  _mm_storeu_si128(out + 4,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 60),
+                                                    _mm_slli_epi64(w1, 4))));
+  w0 = _mm_loadu_si128(compressed + 4);
+  _mm_storeu_si128(out + 5,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 43),
+                                                    _mm_slli_epi64(w0, 21))));
+  w1 = _mm_loadu_si128(compressed + 5);
+  _mm_storeu_si128(out + 6,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 26),
+                                                    _mm_slli_epi64(w1, 38))));
+  _mm_storeu_si128(out + 7, _mm_and_si128(mask, _mm_srli_epi64(w1, 9)));
+  w0 = _mm_loadu_si128(compressed + 6);
+  _mm_storeu_si128(out + 8,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 56),
+                                                    _mm_slli_epi64(w0, 8))));
+  w1 = _mm_loadu_si128(compressed + 7);
+  _mm_storeu_si128(out + 9,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 39),
+                                                    _mm_slli_epi64(w1, 25))));
+  w0 = _mm_loadu_si128(compressed + 8);
+  _mm_storeu_si128(out + 10,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 22),
+                                                    _mm_slli_epi64(w0, 42))));
+  _mm_storeu_si128(out + 11, _mm_and_si128(mask, _mm_srli_epi64(w0, 5)));
+  w1 = _mm_loadu_si128(compressed + 9);
+  _mm_storeu_si128(out + 12,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 52),
+                                                    _mm_slli_epi64(w1, 12))));
+  w0 = _mm_loadu_si128(compressed + 10);
+  _mm_storeu_si128(out + 13,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 35),
+                                                    _mm_slli_epi64(w0, 29))));
+  w1 = _mm_loadu_si128(compressed + 11);
+  _mm_storeu_si128(out + 14,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 18),
+                                                    _mm_slli_epi64(w1, 46))));
+  _mm_storeu_si128(out + 15, _mm_and_si128(mask, _mm_srli_epi64(w1, 1)));
+  w0 = _mm_loadu_si128(compressed + 12);
+  _mm_storeu_si128(out + 16,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 48),
+                                                    _mm_slli_epi64(w0, 16))));
+  w1 = _mm_loadu_si128(compressed + 13);
+  _mm_storeu_si128(out + 17,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 31),
+                                                    _mm_slli_epi64(w1, 33))));
+  _mm_storeu_si128(out + 18, _mm_and_si128(mask, _mm_srli_epi64(w1, 14)));
+  w0 = _mm_loadu_si128(compressed + 14);
+  _mm_storeu_si128(out + 19,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 61),
+                                                    _mm_slli_epi64(w0, 3))));
+  w1 = _mm_loadu_si128(compressed + 15);
+  _mm_storeu_si128(out + 20,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 44),
+                                                    _mm_slli_epi64(w1, 20))));
+  w0 = _mm_loadu_si128(compressed + 16);
+  _mm_storeu_si128(out + 21,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 27),
+                                                    _mm_slli_epi64(w0, 37))));
+  _mm_storeu_si128(out + 22, _mm_and_si128(mask, _mm_srli_epi64(w0, 10)));
+  w1 = _mm_loadu_si128(compressed + 17);
+  _mm_storeu_si128(out + 23,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 57),
+                                                    _mm_slli_epi64(w1, 7))));
+  w0 = _mm_loadu_si128(compressed + 18);
+  _mm_storeu_si128(out + 24,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 40),
+                                                    _mm_slli_epi64(w0, 24))));
+  w1 = _mm_loadu_si128(compressed + 19);
+  _mm_storeu_si128(out + 25,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 23),
+                                                    _mm_slli_epi64(w1, 41))));
+  _mm_storeu_si128(out + 26, _mm_and_si128(mask, _mm_srli_epi64(w1, 6)));
+  w0 = _mm_loadu_si128(compressed + 20);
+  _mm_storeu_si128(out + 27,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 53),
+                                                    _mm_slli_epi64(w0, 11))));
+  w1 = _mm_loadu_si128(compressed + 21);
+  _mm_storeu_si128(out + 28,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 36),
+                                                    _mm_slli_epi64(w1, 28))));
+  w0 = _mm_loadu_si128(compressed + 22);
+  _mm_storeu_si128(out + 29,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 19),
+                                                    _mm_slli_epi64(w0, 45))));
+  _mm_storeu_si128(out + 30, _mm_and_si128(mask, _mm_srli_epi64(w0, 2)));
+  w1 = _mm_loadu_si128(compressed + 23);
+  _mm_storeu_si128(out + 31,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 49),
+                                                    _mm_slli_epi64(w1, 15))));
+}
+
+/* we packed 64 48-bit values, touching 24 128-bit words, using 384 bytes */
+static void simdunpackblock48(const __m128i *compressed, u64 *pout) {
+  /* we are going to access  24 128-bit words */
+  __m128i w0, w1;
+  __m128i *out = (__m128i *)pout;
+  const __m128i mask = _mm_set1_epi64x(281474976710655);
+  w0 = _mm_loadu_si128(compressed);
+  _mm_storeu_si128(out + 0, _mm_and_si128(mask, w0));
+  w1 = _mm_loadu_si128(compressed + 1);
+  _mm_storeu_si128(out + 1,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 48),
+                                                    _mm_slli_epi64(w1, 16))));
+  w0 = _mm_loadu_si128(compressed + 2);
+  _mm_storeu_si128(out + 2,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 32),
+                                                    _mm_slli_epi64(w0, 32))));
+  _mm_storeu_si128(out + 3, _mm_srli_epi64(w0, 16));
+  w1 = _mm_loadu_si128(compressed + 3);
+  _mm_storeu_si128(out + 4, _mm_and_si128(mask, w1));
+  w0 = _mm_loadu_si128(compressed + 4);
+  _mm_storeu_si128(out + 5,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 48),
+                                                    _mm_slli_epi64(w0, 16))));
+  w1 = _mm_loadu_si128(compressed + 5);
+  _mm_storeu_si128(out + 6,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 32),
+                                                    _mm_slli_epi64(w1, 32))));
+  _mm_storeu_si128(out + 7, _mm_srli_epi64(w1, 16));
+  w0 = _mm_loadu_si128(compressed + 6);
+  _mm_storeu_si128(out + 8, _mm_and_si128(mask, w0));
+  w1 = _mm_loadu_si128(compressed + 7);
+  _mm_storeu_si128(out + 9,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 48),
+                                                    _mm_slli_epi64(w1, 16))));
+  w0 = _mm_loadu_si128(compressed + 8);
+  _mm_storeu_si128(out + 10,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 32),
+                                                    _mm_slli_epi64(w0, 32))));
+  _mm_storeu_si128(out + 11, _mm_srli_epi64(w0, 16));
+  w1 = _mm_loadu_si128(compressed + 9);
+  _mm_storeu_si128(out + 12, _mm_and_si128(mask, w1));
+  w0 = _mm_loadu_si128(compressed + 10);
+  _mm_storeu_si128(out + 13,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 48),
+                                                    _mm_slli_epi64(w0, 16))));
+  w1 = _mm_loadu_si128(compressed + 11);
+  _mm_storeu_si128(out + 14,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 32),
+                                                    _mm_slli_epi64(w1, 32))));
+  _mm_storeu_si128(out + 15, _mm_srli_epi64(w1, 16));
+  w0 = _mm_loadu_si128(compressed + 12);
+  _mm_storeu_si128(out + 16, _mm_and_si128(mask, w0));
+  w1 = _mm_loadu_si128(compressed + 13);
+  _mm_storeu_si128(out + 17,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 48),
+                                                    _mm_slli_epi64(w1, 16))));
+  w0 = _mm_loadu_si128(compressed + 14);
+  _mm_storeu_si128(out + 18,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 32),
+                                                    _mm_slli_epi64(w0, 32))));
+  _mm_storeu_si128(out + 19, _mm_srli_epi64(w0, 16));
+  w1 = _mm_loadu_si128(compressed + 15);
+  _mm_storeu_si128(out + 20, _mm_and_si128(mask, w1));
+  w0 = _mm_loadu_si128(compressed + 16);
+  _mm_storeu_si128(out + 21,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 48),
+                                                    _mm_slli_epi64(w0, 16))));
+  w1 = _mm_loadu_si128(compressed + 17);
+  _mm_storeu_si128(out + 22,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 32),
+                                                    _mm_slli_epi64(w1, 32))));
+  _mm_storeu_si128(out + 23, _mm_srli_epi64(w1, 16));
+  w0 = _mm_loadu_si128(compressed + 18);
+  _mm_storeu_si128(out + 24, _mm_and_si128(mask, w0));
+  w1 = _mm_loadu_si128(compressed + 19);
+  _mm_storeu_si128(out + 25,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 48),
+                                                    _mm_slli_epi64(w1, 16))));
+  w0 = _mm_loadu_si128(compressed + 20);
+  _mm_storeu_si128(out + 26,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 32),
+                                                    _mm_slli_epi64(w0, 32))));
+  _mm_storeu_si128(out + 27, _mm_srli_epi64(w0, 16));
+  w1 = _mm_loadu_si128(compressed + 21);
+  _mm_storeu_si128(out + 28, _mm_and_si128(mask, w1));
+  w0 = _mm_loadu_si128(compressed + 22);
+  _mm_storeu_si128(out + 29,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 48),
+                                                    _mm_slli_epi64(w0, 16))));
+  w1 = _mm_loadu_si128(compressed + 23);
+  _mm_storeu_si128(out + 30,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 32),
+                                                    _mm_slli_epi64(w1, 32))));
+  _mm_storeu_si128(out + 31, _mm_srli_epi64(w1, 16));
+}
+
+/* we packed 64 49-bit values, touching 25 128-bit words, using 400 bytes */
+static void simdunpackblock49(const __m128i *compressed, u64 *pout) {
+  /* we are going to access  25 128-bit words */
+  __m128i w0, w1;
+  __m128i *out = (__m128i *)pout;
+  const __m128i mask = _mm_set1_epi64x(562949953421311);
+  w0 = _mm_loadu_si128(compressed);
+  _mm_storeu_si128(out + 0, _mm_and_si128(mask, w0));
+  w1 = _mm_loadu_si128(compressed + 1);
+  _mm_storeu_si128(out + 1,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 49),
+                                                    _mm_slli_epi64(w1, 15))));
+  w0 = _mm_loadu_si128(compressed + 2);
+  _mm_storeu_si128(out + 2,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 34),
+                                                    _mm_slli_epi64(w0, 30))));
+  w1 = _mm_loadu_si128(compressed + 3);
+  _mm_storeu_si128(out + 3,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 19),
+                                                    _mm_slli_epi64(w1, 45))));
+  _mm_storeu_si128(out + 4, _mm_and_si128(mask, _mm_srli_epi64(w1, 4)));
+  w0 = _mm_loadu_si128(compressed + 4);
+  _mm_storeu_si128(out + 5,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 53),
+                                                    _mm_slli_epi64(w0, 11))));
+  w1 = _mm_loadu_si128(compressed + 5);
+  _mm_storeu_si128(out + 6,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 38),
+                                                    _mm_slli_epi64(w1, 26))));
+  w0 = _mm_loadu_si128(compressed + 6);
+  _mm_storeu_si128(out + 7,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 23),
+                                                    _mm_slli_epi64(w0, 41))));
+  _mm_storeu_si128(out + 8, _mm_and_si128(mask, _mm_srli_epi64(w0, 8)));
+  w1 = _mm_loadu_si128(compressed + 7);
+  _mm_storeu_si128(out + 9,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 57),
+                                                    _mm_slli_epi64(w1, 7))));
+  w0 = _mm_loadu_si128(compressed + 8);
+  _mm_storeu_si128(out + 10,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 42),
+                                                    _mm_slli_epi64(w0, 22))));
+  w1 = _mm_loadu_si128(compressed + 9);
+  _mm_storeu_si128(out + 11,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 27),
+                                                    _mm_slli_epi64(w1, 37))));
+  _mm_storeu_si128(out + 12, _mm_and_si128(mask, _mm_srli_epi64(w1, 12)));
+  w0 = _mm_loadu_si128(compressed + 10);
+  _mm_storeu_si128(out + 13,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 61),
+                                                    _mm_slli_epi64(w0, 3))));
+  w1 = _mm_loadu_si128(compressed + 11);
+  _mm_storeu_si128(out + 14,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 46),
+                                                    _mm_slli_epi64(w1, 18))));
+  w0 = _mm_loadu_si128(compressed + 12);
+  _mm_storeu_si128(out + 15,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 31),
+                                                    _mm_slli_epi64(w0, 33))));
+  w1 = _mm_loadu_si128(compressed + 13);
+  _mm_storeu_si128(out + 16,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 16),
+                                                    _mm_slli_epi64(w1, 48))));
+  _mm_storeu_si128(out + 17, _mm_and_si128(mask, _mm_srli_epi64(w1, 1)));
+  w0 = _mm_loadu_si128(compressed + 14);
+  _mm_storeu_si128(out + 18,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 50),
+                                                    _mm_slli_epi64(w0, 14))));
+  w1 = _mm_loadu_si128(compressed + 15);
+  _mm_storeu_si128(out + 19,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 35),
+                                                    _mm_slli_epi64(w1, 29))));
+  w0 = _mm_loadu_si128(compressed + 16);
+  _mm_storeu_si128(out + 20,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 20),
+                                                    _mm_slli_epi64(w0, 44))));
+  _mm_storeu_si128(out + 21, _mm_and_si128(mask, _mm_srli_epi64(w0, 5)));
+  w1 = _mm_loadu_si128(compressed + 17);
+  _mm_storeu_si128(out + 22,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 54),
+                                                    _mm_slli_epi64(w1, 10))));
+  w0 = _mm_loadu_si128(compressed + 18);
+  _mm_storeu_si128(out + 23,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 39),
+                                                    _mm_slli_epi64(w0, 25))));
+  w1 = _mm_loadu_si128(compressed + 19);
+  _mm_storeu_si128(out + 24,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 24),
+                                                    _mm_slli_epi64(w1, 40))));
+  _mm_storeu_si128(out + 25, _mm_and_si128(mask, _mm_srli_epi64(w1, 9)));
+  w0 = _mm_loadu_si128(compressed + 20);
+  _mm_storeu_si128(out + 26,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 58),
+                                                    _mm_slli_epi64(w0, 6))));
+  w1 = _mm_loadu_si128(compressed + 21);
+  _mm_storeu_si128(out + 27,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 43),
+                                                    _mm_slli_epi64(w1, 21))));
+  w0 = _mm_loadu_si128(compressed + 22);
+  _mm_storeu_si128(out + 28,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 28),
+                                                    _mm_slli_epi64(w0, 36))));
+  _mm_storeu_si128(out + 29, _mm_and_si128(mask, _mm_srli_epi64(w0, 13)));
+  w1 = _mm_loadu_si128(compressed + 23);
+  _mm_storeu_si128(out + 30,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 62),
+                                                    _mm_slli_epi64(w1, 2))));
+  w0 = _mm_loadu_si128(compressed + 24);
+  _mm_storeu_si128(out + 31,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 47),
+                                                    _mm_slli_epi64(w0, 17))));
+}
+
+/* we packed 64 50-bit values, touching 25 128-bit words, using 400 bytes */
+static void simdunpackblock50(const __m128i *compressed, u64 *pout) {
+  /* we are going to access  25 128-bit words */
+  __m128i w0, w1;
+  __m128i *out = (__m128i *)pout;
+  const __m128i mask = _mm_set1_epi64x(1125899906842623);
+  w0 = _mm_loadu_si128(compressed);
+  _mm_storeu_si128(out + 0, _mm_and_si128(mask, w0));
+  w1 = _mm_loadu_si128(compressed + 1);
+  _mm_storeu_si128(out + 1,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 50),
+                                                    _mm_slli_epi64(w1, 14))));
+  w0 = _mm_loadu_si128(compressed + 2);
+  _mm_storeu_si128(out + 2,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 36),
+                                                    _mm_slli_epi64(w0, 28))));
+  w1 = _mm_loadu_si128(compressed + 3);
+  _mm_storeu_si128(out + 3,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 22),
+                                                    _mm_slli_epi64(w1, 42))));
+  _mm_storeu_si128(out + 4, _mm_and_si128(mask, _mm_srli_epi64(w1, 8)));
+  w0 = _mm_loadu_si128(compressed + 4);
+  _mm_storeu_si128(out + 5,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 58),
+                                                    _mm_slli_epi64(w0, 6))));
+  w1 = _mm_loadu_si128(compressed + 5);
+  _mm_storeu_si128(out + 6,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 44),
+                                                    _mm_slli_epi64(w1, 20))));
+  w0 = _mm_loadu_si128(compressed + 6);
+  _mm_storeu_si128(out + 7,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 30),
+                                                    _mm_slli_epi64(w0, 34))));
+  w1 = _mm_loadu_si128(compressed + 7);
+  _mm_storeu_si128(out + 8,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 16),
+                                                    _mm_slli_epi64(w1, 48))));
+  _mm_storeu_si128(out + 9, _mm_and_si128(mask, _mm_srli_epi64(w1, 2)));
+  w0 = _mm_loadu_si128(compressed + 8);
+  _mm_storeu_si128(out + 10,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 52),
+                                                    _mm_slli_epi64(w0, 12))));
+  w1 = _mm_loadu_si128(compressed + 9);
+  _mm_storeu_si128(out + 11,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 38),
+                                                    _mm_slli_epi64(w1, 26))));
+  w0 = _mm_loadu_si128(compressed + 10);
+  _mm_storeu_si128(out + 12,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 24),
+                                                    _mm_slli_epi64(w0, 40))));
+  _mm_storeu_si128(out + 13, _mm_and_si128(mask, _mm_srli_epi64(w0, 10)));
+  w1 = _mm_loadu_si128(compressed + 11);
+  _mm_storeu_si128(out + 14,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 60),
+                                                    _mm_slli_epi64(w1, 4))));
+  w0 = _mm_loadu_si128(compressed + 12);
+  _mm_storeu_si128(out + 15,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 46),
+                                                    _mm_slli_epi64(w0, 18))));
+  w1 = _mm_loadu_si128(compressed + 13);
+  _mm_storeu_si128(out + 16,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 32),
+                                                    _mm_slli_epi64(w1, 32))));
+  w0 = _mm_loadu_si128(compressed + 14);
+  _mm_storeu_si128(out + 17,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 18),
+                                                    _mm_slli_epi64(w0, 46))));
+  _mm_storeu_si128(out + 18, _mm_and_si128(mask, _mm_srli_epi64(w0, 4)));
+  w1 = _mm_loadu_si128(compressed + 15);
+  _mm_storeu_si128(out + 19,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 54),
+                                                    _mm_slli_epi64(w1, 10))));
+  w0 = _mm_loadu_si128(compressed + 16);
+  _mm_storeu_si128(out + 20,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 40),
+                                                    _mm_slli_epi64(w0, 24))));
+  w1 = _mm_loadu_si128(compressed + 17);
+  _mm_storeu_si128(out + 21,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 26),
+                                                    _mm_slli_epi64(w1, 38))));
+  _mm_storeu_si128(out + 22, _mm_and_si128(mask, _mm_srli_epi64(w1, 12)));
+  w0 = _mm_loadu_si128(compressed + 18);
+  _mm_storeu_si128(out + 23,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 62),
+                                                    _mm_slli_epi64(w0, 2))));
+  w1 = _mm_loadu_si128(compressed + 19);
+  _mm_storeu_si128(out + 24,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 48),
+                                                    _mm_slli_epi64(w1, 16))));
+  w0 = _mm_loadu_si128(compressed + 20);
+  _mm_storeu_si128(out + 25,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 34),
+                                                    _mm_slli_epi64(w0, 30))));
+  w1 = _mm_loadu_si128(compressed + 21);
+  _mm_storeu_si128(out + 26,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 20),
+                                                    _mm_slli_epi64(w1, 44))));
+  _mm_storeu_si128(out + 27, _mm_and_si128(mask, _mm_srli_epi64(w1, 6)));
+  w0 = _mm_loadu_si128(compressed + 22);
+  _mm_storeu_si128(out + 28,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 56),
+                                                    _mm_slli_epi64(w0, 8))));
+  w1 = _mm_loadu_si128(compressed + 23);
+  _mm_storeu_si128(out + 29,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 42),
+                                                    _mm_slli_epi64(w1, 22))));
+  w0 = _mm_loadu_si128(compressed + 24);
+  _mm_storeu_si128(out + 30,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 28),
+                                                    _mm_slli_epi64(w0, 36))));
+  _mm_storeu_si128(out + 31, _mm_srli_epi64(w0, 14));
+}
+
+/* we packed 64 51-bit values, touching 26 128-bit words, using 416 bytes */
+static void simdunpackblock51(const __m128i *compressed, u64 *pout) {
+  /* we are going to access  26 128-bit words */
+  __m128i w0, w1;
+  __m128i *out = (__m128i *)pout;
+  const __m128i mask = _mm_set1_epi64x(2251799813685247);
+  w0 = _mm_loadu_si128(compressed);
+  _mm_storeu_si128(out + 0, _mm_and_si128(mask, w0));
+  w1 = _mm_loadu_si128(compressed + 1);
+  _mm_storeu_si128(out + 1,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 51),
+                                                    _mm_slli_epi64(w1, 13))));
+  w0 = _mm_loadu_si128(compressed + 2);
+  _mm_storeu_si128(out + 2,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 38),
+                                                    _mm_slli_epi64(w0, 26))));
+  w1 = _mm_loadu_si128(compressed + 3);
+  _mm_storeu_si128(out + 3,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 25),
+                                                    _mm_slli_epi64(w1, 39))));
+  _mm_storeu_si128(out + 4, _mm_and_si128(mask, _mm_srli_epi64(w1, 12)));
+  w0 = _mm_loadu_si128(compressed + 4);
+  _mm_storeu_si128(out + 5,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 63),
+                                                    _mm_slli_epi64(w0, 1))));
+  w1 = _mm_loadu_si128(compressed + 5);
+  _mm_storeu_si128(out + 6,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 50),
+                                                    _mm_slli_epi64(w1, 14))));
+  w0 = _mm_loadu_si128(compressed + 6);
+  _mm_storeu_si128(out + 7,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 37),
+                                                    _mm_slli_epi64(w0, 27))));
+  w1 = _mm_loadu_si128(compressed + 7);
+  _mm_storeu_si128(out + 8,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 24),
+                                                    _mm_slli_epi64(w1, 40))));
+  _mm_storeu_si128(out + 9, _mm_and_si128(mask, _mm_srli_epi64(w1, 11)));
+  w0 = _mm_loadu_si128(compressed + 8);
+  _mm_storeu_si128(out + 10,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 62),
+                                                    _mm_slli_epi64(w0, 2))));
+  w1 = _mm_loadu_si128(compressed + 9);
+  _mm_storeu_si128(out + 11,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 49),
+                                                    _mm_slli_epi64(w1, 15))));
+  w0 = _mm_loadu_si128(compressed + 10);
+  _mm_storeu_si128(out + 12,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 36),
+                                                    _mm_slli_epi64(w0, 28))));
+  w1 = _mm_loadu_si128(compressed + 11);
+  _mm_storeu_si128(out + 13,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 23),
+                                                    _mm_slli_epi64(w1, 41))));
+  _mm_storeu_si128(out + 14, _mm_and_si128(mask, _mm_srli_epi64(w1, 10)));
+  w0 = _mm_loadu_si128(compressed + 12);
+  _mm_storeu_si128(out + 15,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 61),
+                                                    _mm_slli_epi64(w0, 3))));
+  w1 = _mm_loadu_si128(compressed + 13);
+  _mm_storeu_si128(out + 16,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 48),
+                                                    _mm_slli_epi64(w1, 16))));
+  w0 = _mm_loadu_si128(compressed + 14);
+  _mm_storeu_si128(out + 17,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 35),
+                                                    _mm_slli_epi64(w0, 29))));
+  w1 = _mm_loadu_si128(compressed + 15);
+  _mm_storeu_si128(out + 18,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 22),
+                                                    _mm_slli_epi64(w1, 42))));
+  _mm_storeu_si128(out + 19, _mm_and_si128(mask, _mm_srli_epi64(w1, 9)));
+  w0 = _mm_loadu_si128(compressed + 16);
+  _mm_storeu_si128(out + 20,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 60),
+                                                    _mm_slli_epi64(w0, 4))));
+  w1 = _mm_loadu_si128(compressed + 17);
+  _mm_storeu_si128(out + 21,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 47),
+                                                    _mm_slli_epi64(w1, 17))));
+  w0 = _mm_loadu_si128(compressed + 18);
+  _mm_storeu_si128(out + 22,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 34),
+                                                    _mm_slli_epi64(w0, 30))));
+  w1 = _mm_loadu_si128(compressed + 19);
+  _mm_storeu_si128(out + 23,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 21),
+                                                    _mm_slli_epi64(w1, 43))));
+  _mm_storeu_si128(out + 24, _mm_and_si128(mask, _mm_srli_epi64(w1, 8)));
+  w0 = _mm_loadu_si128(compressed + 20);
+  _mm_storeu_si128(out + 25,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 59),
+                                                    _mm_slli_epi64(w0, 5))));
+  w1 = _mm_loadu_si128(compressed + 21);
+  _mm_storeu_si128(out + 26,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 46),
+                                                    _mm_slli_epi64(w1, 18))));
+  w0 = _mm_loadu_si128(compressed + 22);
+  _mm_storeu_si128(out + 27,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 33),
+                                                    _mm_slli_epi64(w0, 31))));
+  w1 = _mm_loadu_si128(compressed + 23);
+  _mm_storeu_si128(out + 28,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 20),
+                                                    _mm_slli_epi64(w1, 44))));
+  _mm_storeu_si128(out + 29, _mm_and_si128(mask, _mm_srli_epi64(w1, 7)));
+  w0 = _mm_loadu_si128(compressed + 24);
+  _mm_storeu_si128(out + 30,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 58),
+                                                    _mm_slli_epi64(w0, 6))));
+  w1 = _mm_loadu_si128(compressed + 25);
+  _mm_storeu_si128(out + 31,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 45),
+                                                    _mm_slli_epi64(w1, 19))));
+}
+
+/* we packed 64 52-bit values, touching 26 128-bit words, using 416 bytes */
+static void simdunpackblock52(const __m128i *compressed, u64 *pout) {
+  /* we are going to access  26 128-bit words */
+  __m128i w0, w1;
+  __m128i *out = (__m128i *)pout;
+  const __m128i mask = _mm_set1_epi64x(4503599627370495);
+  w0 = _mm_loadu_si128(compressed);
+  _mm_storeu_si128(out + 0, _mm_and_si128(mask, w0));
+  w1 = _mm_loadu_si128(compressed + 1);
+  _mm_storeu_si128(out + 1,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 52),
+                                                    _mm_slli_epi64(w1, 12))));
+  w0 = _mm_loadu_si128(compressed + 2);
+  _mm_storeu_si128(out + 2,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 40),
+                                                    _mm_slli_epi64(w0, 24))));
+  w1 = _mm_loadu_si128(compressed + 3);
+  _mm_storeu_si128(out + 3,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 28),
+                                                    _mm_slli_epi64(w1, 36))));
+  w0 = _mm_loadu_si128(compressed + 4);
+  _mm_storeu_si128(out + 4,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 16),
+                                                    _mm_slli_epi64(w0, 48))));
+  _mm_storeu_si128(out + 5, _mm_and_si128(mask, _mm_srli_epi64(w0, 4)));
+  w1 = _mm_loadu_si128(compressed + 5);
+  _mm_storeu_si128(out + 6,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 56),
+                                                    _mm_slli_epi64(w1, 8))));
+  w0 = _mm_loadu_si128(compressed + 6);
+  _mm_storeu_si128(out + 7,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 44),
+                                                    _mm_slli_epi64(w0, 20))));
+  w1 = _mm_loadu_si128(compressed + 7);
+  _mm_storeu_si128(out + 8,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 32),
+                                                    _mm_slli_epi64(w1, 32))));
+  w0 = _mm_loadu_si128(compressed + 8);
+  _mm_storeu_si128(out + 9,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 20),
+                                                    _mm_slli_epi64(w0, 44))));
+  _mm_storeu_si128(out + 10, _mm_and_si128(mask, _mm_srli_epi64(w0, 8)));
+  w1 = _mm_loadu_si128(compressed + 9);
+  _mm_storeu_si128(out + 11,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 60),
+                                                    _mm_slli_epi64(w1, 4))));
+  w0 = _mm_loadu_si128(compressed + 10);
+  _mm_storeu_si128(out + 12,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 48),
+                                                    _mm_slli_epi64(w0, 16))));
+  w1 = _mm_loadu_si128(compressed + 11);
+  _mm_storeu_si128(out + 13,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 36),
+                                                    _mm_slli_epi64(w1, 28))));
+  w0 = _mm_loadu_si128(compressed + 12);
+  _mm_storeu_si128(out + 14,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 24),
+                                                    _mm_slli_epi64(w0, 40))));
+  _mm_storeu_si128(out + 15, _mm_srli_epi64(w0, 12));
+  w1 = _mm_loadu_si128(compressed + 13);
+  _mm_storeu_si128(out + 16, _mm_and_si128(mask, w1));
+  w0 = _mm_loadu_si128(compressed + 14);
+  _mm_storeu_si128(out + 17,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 52),
+                                                    _mm_slli_epi64(w0, 12))));
+  w1 = _mm_loadu_si128(compressed + 15);
+  _mm_storeu_si128(out + 18,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 40),
+                                                    _mm_slli_epi64(w1, 24))));
+  w0 = _mm_loadu_si128(compressed + 16);
+  _mm_storeu_si128(out + 19,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 28),
+                                                    _mm_slli_epi64(w0, 36))));
+  w1 = _mm_loadu_si128(compressed + 17);
+  _mm_storeu_si128(out + 20,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 16),
+                                                    _mm_slli_epi64(w1, 48))));
+  _mm_storeu_si128(out + 21, _mm_and_si128(mask, _mm_srli_epi64(w1, 4)));
+  w0 = _mm_loadu_si128(compressed + 18);
+  _mm_storeu_si128(out + 22,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 56),
+                                                    _mm_slli_epi64(w0, 8))));
+  w1 = _mm_loadu_si128(compressed + 19);
+  _mm_storeu_si128(out + 23,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 44),
+                                                    _mm_slli_epi64(w1, 20))));
+  w0 = _mm_loadu_si128(compressed + 20);
+  _mm_storeu_si128(out + 24,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 32),
+                                                    _mm_slli_epi64(w0, 32))));
+  w1 = _mm_loadu_si128(compressed + 21);
+  _mm_storeu_si128(out + 25,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 20),
+                                                    _mm_slli_epi64(w1, 44))));
+  _mm_storeu_si128(out + 26, _mm_and_si128(mask, _mm_srli_epi64(w1, 8)));
+  w0 = _mm_loadu_si128(compressed + 22);
+  _mm_storeu_si128(out + 27,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 60),
+                                                    _mm_slli_epi64(w0, 4))));
+  w1 = _mm_loadu_si128(compressed + 23);
+  _mm_storeu_si128(out + 28,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 48),
+                                                    _mm_slli_epi64(w1, 16))));
+  w0 = _mm_loadu_si128(compressed + 24);
+  _mm_storeu_si128(out + 29,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 36),
+                                                    _mm_slli_epi64(w0, 28))));
+  w1 = _mm_loadu_si128(compressed + 25);
+  _mm_storeu_si128(out + 30,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 24),
+                                                    _mm_slli_epi64(w1, 40))));
+  _mm_storeu_si128(out + 31, _mm_srli_epi64(w1, 12));
+}
+
+/* we packed 64 53-bit values, touching 27 128-bit words, using 432 bytes */
+static void simdunpackblock53(const __m128i *compressed, u64 *pout) {
+  /* we are going to access  27 128-bit words */
+  __m128i w0, w1;
+  __m128i *out = (__m128i *)pout;
+  const __m128i mask = _mm_set1_epi64x(9007199254740991);
+  w0 = _mm_loadu_si128(compressed);
+  _mm_storeu_si128(out + 0, _mm_and_si128(mask, w0));
+  w1 = _mm_loadu_si128(compressed + 1);
+  _mm_storeu_si128(out + 1,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 53),
+                                                    _mm_slli_epi64(w1, 11))));
+  w0 = _mm_loadu_si128(compressed + 2);
+  _mm_storeu_si128(out + 2,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 42),
+                                                    _mm_slli_epi64(w0, 22))));
+  w1 = _mm_loadu_si128(compressed + 3);
+  _mm_storeu_si128(out + 3,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 31),
+                                                    _mm_slli_epi64(w1, 33))));
+  w0 = _mm_loadu_si128(compressed + 4);
+  _mm_storeu_si128(out + 4,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 20),
+                                                    _mm_slli_epi64(w0, 44))));
+  _mm_storeu_si128(out + 5, _mm_and_si128(mask, _mm_srli_epi64(w0, 9)));
+  w1 = _mm_loadu_si128(compressed + 5);
+  _mm_storeu_si128(out + 6,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 62),
+                                                    _mm_slli_epi64(w1, 2))));
+  w0 = _mm_loadu_si128(compressed + 6);
+  _mm_storeu_si128(out + 7,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 51),
+                                                    _mm_slli_epi64(w0, 13))));
+  w1 = _mm_loadu_si128(compressed + 7);
+  _mm_storeu_si128(out + 8,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 40),
+                                                    _mm_slli_epi64(w1, 24))));
+  w0 = _mm_loadu_si128(compressed + 8);
+  _mm_storeu_si128(out + 9,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 29),
+                                                    _mm_slli_epi64(w0, 35))));
+  w1 = _mm_loadu_si128(compressed + 9);
+  _mm_storeu_si128(out + 10,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 18),
+                                                    _mm_slli_epi64(w1, 46))));
+  _mm_storeu_si128(out + 11, _mm_and_si128(mask, _mm_srli_epi64(w1, 7)));
+  w0 = _mm_loadu_si128(compressed + 10);
+  _mm_storeu_si128(out + 12,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 60),
+                                                    _mm_slli_epi64(w0, 4))));
+  w1 = _mm_loadu_si128(compressed + 11);
+  _mm_storeu_si128(out + 13,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 49),
+                                                    _mm_slli_epi64(w1, 15))));
+  w0 = _mm_loadu_si128(compressed + 12);
+  _mm_storeu_si128(out + 14,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 38),
+                                                    _mm_slli_epi64(w0, 26))));
+  w1 = _mm_loadu_si128(compressed + 13);
+  _mm_storeu_si128(out + 15,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 27),
+                                                    _mm_slli_epi64(w1, 37))));
+  w0 = _mm_loadu_si128(compressed + 14);
+  _mm_storeu_si128(out + 16,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 16),
+                                                    _mm_slli_epi64(w0, 48))));
+  _mm_storeu_si128(out + 17, _mm_and_si128(mask, _mm_srli_epi64(w0, 5)));
+  w1 = _mm_loadu_si128(compressed + 15);
+  _mm_storeu_si128(out + 18,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 58),
+                                                    _mm_slli_epi64(w1, 6))));
+  w0 = _mm_loadu_si128(compressed + 16);
+  _mm_storeu_si128(out + 19,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 47),
+                                                    _mm_slli_epi64(w0, 17))));
+  w1 = _mm_loadu_si128(compressed + 17);
+  _mm_storeu_si128(out + 20,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 36),
+                                                    _mm_slli_epi64(w1, 28))));
+  w0 = _mm_loadu_si128(compressed + 18);
+  _mm_storeu_si128(out + 21,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 25),
+                                                    _mm_slli_epi64(w0, 39))));
+  w1 = _mm_loadu_si128(compressed + 19);
+  _mm_storeu_si128(out + 22,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 14),
+                                                    _mm_slli_epi64(w1, 50))));
+  _mm_storeu_si128(out + 23, _mm_and_si128(mask, _mm_srli_epi64(w1, 3)));
+  w0 = _mm_loadu_si128(compressed + 20);
+  _mm_storeu_si128(out + 24,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 56),
+                                                    _mm_slli_epi64(w0, 8))));
+  w1 = _mm_loadu_si128(compressed + 21);
+  _mm_storeu_si128(out + 25,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 45),
+                                                    _mm_slli_epi64(w1, 19))));
+  w0 = _mm_loadu_si128(compressed + 22);
+  _mm_storeu_si128(out + 26,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 34),
+                                                    _mm_slli_epi64(w0, 30))));
+  w1 = _mm_loadu_si128(compressed + 23);
+  _mm_storeu_si128(out + 27,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 23),
+                                                    _mm_slli_epi64(w1, 41))));
+  w0 = _mm_loadu_si128(compressed + 24);
+  _mm_storeu_si128(out + 28,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 12),
+                                                    _mm_slli_epi64(w0, 52))));
+  _mm_storeu_si128(out + 29, _mm_and_si128(mask, _mm_srli_epi64(w0, 1)));
+  w1 = _mm_loadu_si128(compressed + 25);
+  _mm_storeu_si128(out + 30,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 54),
+                                                    _mm_slli_epi64(w1, 10))));
+  w0 = _mm_loadu_si128(compressed + 26);
+  _mm_storeu_si128(out + 31,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 43),
+                                                    _mm_slli_epi64(w0, 21))));
+}
+
+/* we packed 64 54-bit values, touching 27 128-bit words, using 432 bytes */
+static void simdunpackblock54(const __m128i *compressed, u64 *pout) {
+  /* we are going to access  27 128-bit words */
+  __m128i w0, w1;
+  __m128i *out = (__m128i *)pout;
+  const __m128i mask = _mm_set1_epi64x(18014398509481983);
+  w0 = _mm_loadu_si128(compressed);
+  _mm_storeu_si128(out + 0, _mm_and_si128(mask, w0));
+  w1 = _mm_loadu_si128(compressed + 1);
+  _mm_storeu_si128(out + 1,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 54),
+                                                    _mm_slli_epi64(w1, 10))));
+  w0 = _mm_loadu_si128(compressed + 2);
+  _mm_storeu_si128(out + 2,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 44),
+                                                    _mm_slli_epi64(w0, 20))));
+  w1 = _mm_loadu_si128(compressed + 3);
+  _mm_storeu_si128(out + 3,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 34),
+                                                    _mm_slli_epi64(w1, 30))));
+  w0 = _mm_loadu_si128(compressed + 4);
+  _mm_storeu_si128(out + 4,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 24),
+                                                    _mm_slli_epi64(w0, 40))));
+  w1 = _mm_loadu_si128(compressed + 5);
+  _mm_storeu_si128(out + 5,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 14),
+                                                    _mm_slli_epi64(w1, 50))));
+  _mm_storeu_si128(out + 6, _mm_and_si128(mask, _mm_srli_epi64(w1, 4)));
+  w0 = _mm_loadu_si128(compressed + 6);
+  _mm_storeu_si128(out + 7,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 58),
+                                                    _mm_slli_epi64(w0, 6))));
+  w1 = _mm_loadu_si128(compressed + 7);
+  _mm_storeu_si128(out + 8,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 48),
+                                                    _mm_slli_epi64(w1, 16))));
+  w0 = _mm_loadu_si128(compressed + 8);
+  _mm_storeu_si128(out + 9,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 38),
+                                                    _mm_slli_epi64(w0, 26))));
+  w1 = _mm_loadu_si128(compressed + 9);
+  _mm_storeu_si128(out + 10,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 28),
+                                                    _mm_slli_epi64(w1, 36))));
+  w0 = _mm_loadu_si128(compressed + 10);
+  _mm_storeu_si128(out + 11,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 18),
+                                                    _mm_slli_epi64(w0, 46))));
+  _mm_storeu_si128(out + 12, _mm_and_si128(mask, _mm_srli_epi64(w0, 8)));
+  w1 = _mm_loadu_si128(compressed + 11);
+  _mm_storeu_si128(out + 13,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 62),
+                                                    _mm_slli_epi64(w1, 2))));
+  w0 = _mm_loadu_si128(compressed + 12);
+  _mm_storeu_si128(out + 14,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 52),
+                                                    _mm_slli_epi64(w0, 12))));
+  w1 = _mm_loadu_si128(compressed + 13);
+  _mm_storeu_si128(out + 15,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 42),
+                                                    _mm_slli_epi64(w1, 22))));
+  w0 = _mm_loadu_si128(compressed + 14);
+  _mm_storeu_si128(out + 16,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 32),
+                                                    _mm_slli_epi64(w0, 32))));
+  w1 = _mm_loadu_si128(compressed + 15);
+  _mm_storeu_si128(out + 17,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 22),
+                                                    _mm_slli_epi64(w1, 42))));
+  w0 = _mm_loadu_si128(compressed + 16);
+  _mm_storeu_si128(out + 18,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 12),
+                                                    _mm_slli_epi64(w0, 52))));
+  _mm_storeu_si128(out + 19, _mm_and_si128(mask, _mm_srli_epi64(w0, 2)));
+  w1 = _mm_loadu_si128(compressed + 17);
+  _mm_storeu_si128(out + 20,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 56),
+                                                    _mm_slli_epi64(w1, 8))));
+  w0 = _mm_loadu_si128(compressed + 18);
+  _mm_storeu_si128(out + 21,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 46),
+                                                    _mm_slli_epi64(w0, 18))));
+  w1 = _mm_loadu_si128(compressed + 19);
+  _mm_storeu_si128(out + 22,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 36),
+                                                    _mm_slli_epi64(w1, 28))));
+  w0 = _mm_loadu_si128(compressed + 20);
+  _mm_storeu_si128(out + 23,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 26),
+                                                    _mm_slli_epi64(w0, 38))));
+  w1 = _mm_loadu_si128(compressed + 21);
+  _mm_storeu_si128(out + 24,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 16),
+                                                    _mm_slli_epi64(w1, 48))));
+  _mm_storeu_si128(out + 25, _mm_and_si128(mask, _mm_srli_epi64(w1, 6)));
+  w0 = _mm_loadu_si128(compressed + 22);
+  _mm_storeu_si128(out + 26,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 60),
+                                                    _mm_slli_epi64(w0, 4))));
+  w1 = _mm_loadu_si128(compressed + 23);
+  _mm_storeu_si128(out + 27,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 50),
+                                                    _mm_slli_epi64(w1, 14))));
+  w0 = _mm_loadu_si128(compressed + 24);
+  _mm_storeu_si128(out + 28,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 40),
+                                                    _mm_slli_epi64(w0, 24))));
+  w1 = _mm_loadu_si128(compressed + 25);
+  _mm_storeu_si128(out + 29,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 30),
+                                                    _mm_slli_epi64(w1, 34))));
+  w0 = _mm_loadu_si128(compressed + 26);
+  _mm_storeu_si128(out + 30,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 20),
+                                                    _mm_slli_epi64(w0, 44))));
+  _mm_storeu_si128(out + 31, _mm_srli_epi64(w0, 10));
+}
+
+/* we packed 64 55-bit values, touching 28 128-bit words, using 448 bytes */
+static void simdunpackblock55(const __m128i *compressed, u64 *pout) {
+  /* we are going to access  28 128-bit words */
+  __m128i w0, w1;
+  __m128i *out = (__m128i *)pout;
+  const __m128i mask = _mm_set1_epi64x(36028797018963967);
+  w0 = _mm_loadu_si128(compressed);
+  _mm_storeu_si128(out + 0, _mm_and_si128(mask, w0));
+  w1 = _mm_loadu_si128(compressed + 1);
+  _mm_storeu_si128(out + 1,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 55),
+                                                    _mm_slli_epi64(w1, 9))));
+  w0 = _mm_loadu_si128(compressed + 2);
+  _mm_storeu_si128(out + 2,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 46),
+                                                    _mm_slli_epi64(w0, 18))));
+  w1 = _mm_loadu_si128(compressed + 3);
+  _mm_storeu_si128(out + 3,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 37),
+                                                    _mm_slli_epi64(w1, 27))));
+  w0 = _mm_loadu_si128(compressed + 4);
+  _mm_storeu_si128(out + 4,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 28),
+                                                    _mm_slli_epi64(w0, 36))));
+  w1 = _mm_loadu_si128(compressed + 5);
+  _mm_storeu_si128(out + 5,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 19),
+                                                    _mm_slli_epi64(w1, 45))));
+  w0 = _mm_loadu_si128(compressed + 6);
+  _mm_storeu_si128(out + 6,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 10),
+                                                    _mm_slli_epi64(w0, 54))));
+  _mm_storeu_si128(out + 7, _mm_and_si128(mask, _mm_srli_epi64(w0, 1)));
+  w1 = _mm_loadu_si128(compressed + 7);
+  _mm_storeu_si128(out + 8,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 56),
+                                                    _mm_slli_epi64(w1, 8))));
+  w0 = _mm_loadu_si128(compressed + 8);
+  _mm_storeu_si128(out + 9,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 47),
+                                                    _mm_slli_epi64(w0, 17))));
+  w1 = _mm_loadu_si128(compressed + 9);
+  _mm_storeu_si128(out + 10,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 38),
+                                                    _mm_slli_epi64(w1, 26))));
+  w0 = _mm_loadu_si128(compressed + 10);
+  _mm_storeu_si128(out + 11,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 29),
+                                                    _mm_slli_epi64(w0, 35))));
+  w1 = _mm_loadu_si128(compressed + 11);
+  _mm_storeu_si128(out + 12,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 20),
+                                                    _mm_slli_epi64(w1, 44))));
+  w0 = _mm_loadu_si128(compressed + 12);
+  _mm_storeu_si128(out + 13,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 11),
+                                                    _mm_slli_epi64(w0, 53))));
+  _mm_storeu_si128(out + 14, _mm_and_si128(mask, _mm_srli_epi64(w0, 2)));
+  w1 = _mm_loadu_si128(compressed + 13);
+  _mm_storeu_si128(out + 15,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 57),
+                                                    _mm_slli_epi64(w1, 7))));
+  w0 = _mm_loadu_si128(compressed + 14);
+  _mm_storeu_si128(out + 16,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 48),
+                                                    _mm_slli_epi64(w0, 16))));
+  w1 = _mm_loadu_si128(compressed + 15);
+  _mm_storeu_si128(out + 17,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 39),
+                                                    _mm_slli_epi64(w1, 25))));
+  w0 = _mm_loadu_si128(compressed + 16);
+  _mm_storeu_si128(out + 18,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 30),
+                                                    _mm_slli_epi64(w0, 34))));
+  w1 = _mm_loadu_si128(compressed + 17);
+  _mm_storeu_si128(out + 19,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 21),
+                                                    _mm_slli_epi64(w1, 43))));
+  w0 = _mm_loadu_si128(compressed + 18);
+  _mm_storeu_si128(out + 20,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 12),
+                                                    _mm_slli_epi64(w0, 52))));
+  _mm_storeu_si128(out + 21, _mm_and_si128(mask, _mm_srli_epi64(w0, 3)));
+  w1 = _mm_loadu_si128(compressed + 19);
+  _mm_storeu_si128(out + 22,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 58),
+                                                    _mm_slli_epi64(w1, 6))));
+  w0 = _mm_loadu_si128(compressed + 20);
+  _mm_storeu_si128(out + 23,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 49),
+                                                    _mm_slli_epi64(w0, 15))));
+  w1 = _mm_loadu_si128(compressed + 21);
+  _mm_storeu_si128(out + 24,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 40),
+                                                    _mm_slli_epi64(w1, 24))));
+  w0 = _mm_loadu_si128(compressed + 22);
+  _mm_storeu_si128(out + 25,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 31),
+                                                    _mm_slli_epi64(w0, 33))));
+  w1 = _mm_loadu_si128(compressed + 23);
+  _mm_storeu_si128(out + 26,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 22),
+                                                    _mm_slli_epi64(w1, 42))));
+  w0 = _mm_loadu_si128(compressed + 24);
+  _mm_storeu_si128(out + 27,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 13),
+                                                    _mm_slli_epi64(w0, 51))));
+  _mm_storeu_si128(out + 28, _mm_and_si128(mask, _mm_srli_epi64(w0, 4)));
+  w1 = _mm_loadu_si128(compressed + 25);
+  _mm_storeu_si128(out + 29,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 59),
+                                                    _mm_slli_epi64(w1, 5))));
+  w0 = _mm_loadu_si128(compressed + 26);
+  _mm_storeu_si128(out + 30,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 50),
+                                                    _mm_slli_epi64(w0, 14))));
+  w1 = _mm_loadu_si128(compressed + 27);
+  _mm_storeu_si128(out + 31,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 41),
+                                                    _mm_slli_epi64(w1, 23))));
+}
+
+/* we packed 64 56-bit values, touching 28 128-bit words, using 448 bytes */
+static void simdunpackblock56(const __m128i *compressed, u64 *pout) {
+  /* we are going to access  28 128-bit words */
+  __m128i w0, w1;
+  __m128i *out = (__m128i *)pout;
+  const __m128i mask = _mm_set1_epi64x(72057594037927935);
+  w0 = _mm_loadu_si128(compressed);
+  _mm_storeu_si128(out + 0, _mm_and_si128(mask, w0));
+  w1 = _mm_loadu_si128(compressed + 1);
+  _mm_storeu_si128(out + 1,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 56),
+                                                    _mm_slli_epi64(w1, 8))));
+  w0 = _mm_loadu_si128(compressed + 2);
+  _mm_storeu_si128(out + 2,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 48),
+                                                    _mm_slli_epi64(w0, 16))));
+  w1 = _mm_loadu_si128(compressed + 3);
+  _mm_storeu_si128(out + 3,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 40),
+                                                    _mm_slli_epi64(w1, 24))));
+  w0 = _mm_loadu_si128(compressed + 4);
+  _mm_storeu_si128(out + 4,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 32),
+                                                    _mm_slli_epi64(w0, 32))));
+  w1 = _mm_loadu_si128(compressed + 5);
+  _mm_storeu_si128(out + 5,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 24),
+                                                    _mm_slli_epi64(w1, 40))));
+  w0 = _mm_loadu_si128(compressed + 6);
+  _mm_storeu_si128(out + 6,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 16),
+                                                    _mm_slli_epi64(w0, 48))));
+  _mm_storeu_si128(out + 7, _mm_srli_epi64(w0, 8));
+  w1 = _mm_loadu_si128(compressed + 7);
+  _mm_storeu_si128(out + 8, _mm_and_si128(mask, w1));
+  w0 = _mm_loadu_si128(compressed + 8);
+  _mm_storeu_si128(out + 9,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 56),
+                                                    _mm_slli_epi64(w0, 8))));
+  w1 = _mm_loadu_si128(compressed + 9);
+  _mm_storeu_si128(out + 10,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 48),
+                                                    _mm_slli_epi64(w1, 16))));
+  w0 = _mm_loadu_si128(compressed + 10);
+  _mm_storeu_si128(out + 11,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 40),
+                                                    _mm_slli_epi64(w0, 24))));
+  w1 = _mm_loadu_si128(compressed + 11);
+  _mm_storeu_si128(out + 12,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 32),
+                                                    _mm_slli_epi64(w1, 32))));
+  w0 = _mm_loadu_si128(compressed + 12);
+  _mm_storeu_si128(out + 13,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 24),
+                                                    _mm_slli_epi64(w0, 40))));
+  w1 = _mm_loadu_si128(compressed + 13);
+  _mm_storeu_si128(out + 14,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 16),
+                                                    _mm_slli_epi64(w1, 48))));
+  _mm_storeu_si128(out + 15, _mm_srli_epi64(w1, 8));
+  w0 = _mm_loadu_si128(compressed + 14);
+  _mm_storeu_si128(out + 16, _mm_and_si128(mask, w0));
+  w1 = _mm_loadu_si128(compressed + 15);
+  _mm_storeu_si128(out + 17,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 56),
+                                                    _mm_slli_epi64(w1, 8))));
+  w0 = _mm_loadu_si128(compressed + 16);
+  _mm_storeu_si128(out + 18,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 48),
+                                                    _mm_slli_epi64(w0, 16))));
+  w1 = _mm_loadu_si128(compressed + 17);
+  _mm_storeu_si128(out + 19,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 40),
+                                                    _mm_slli_epi64(w1, 24))));
+  w0 = _mm_loadu_si128(compressed + 18);
+  _mm_storeu_si128(out + 20,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 32),
+                                                    _mm_slli_epi64(w0, 32))));
+  w1 = _mm_loadu_si128(compressed + 19);
+  _mm_storeu_si128(out + 21,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 24),
+                                                    _mm_slli_epi64(w1, 40))));
+  w0 = _mm_loadu_si128(compressed + 20);
+  _mm_storeu_si128(out + 22,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 16),
+                                                    _mm_slli_epi64(w0, 48))));
+  _mm_storeu_si128(out + 23, _mm_srli_epi64(w0, 8));
+  w1 = _mm_loadu_si128(compressed + 21);
+  _mm_storeu_si128(out + 24, _mm_and_si128(mask, w1));
+  w0 = _mm_loadu_si128(compressed + 22);
+  _mm_storeu_si128(out + 25,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 56),
+                                                    _mm_slli_epi64(w0, 8))));
+  w1 = _mm_loadu_si128(compressed + 23);
+  _mm_storeu_si128(out + 26,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 48),
+                                                    _mm_slli_epi64(w1, 16))));
+  w0 = _mm_loadu_si128(compressed + 24);
+  _mm_storeu_si128(out + 27,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 40),
+                                                    _mm_slli_epi64(w0, 24))));
+  w1 = _mm_loadu_si128(compressed + 25);
+  _mm_storeu_si128(out + 28,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 32),
+                                                    _mm_slli_epi64(w1, 32))));
+  w0 = _mm_loadu_si128(compressed + 26);
+  _mm_storeu_si128(out + 29,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 24),
+                                                    _mm_slli_epi64(w0, 40))));
+  w1 = _mm_loadu_si128(compressed + 27);
+  _mm_storeu_si128(out + 30,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 16),
+                                                    _mm_slli_epi64(w1, 48))));
+  _mm_storeu_si128(out + 31, _mm_srli_epi64(w1, 8));
+}
+
+/* we packed 64 57-bit values, touching 29 128-bit words, using 464 bytes */
+static void simdunpackblock57(const __m128i *compressed, u64 *pout) {
+  /* we are going to access  29 128-bit words */
+  __m128i w0, w1;
+  __m128i *out = (__m128i *)pout;
+  const __m128i mask = _mm_set1_epi64x(144115188075855871);
+  w0 = _mm_loadu_si128(compressed);
+  _mm_storeu_si128(out + 0, _mm_and_si128(mask, w0));
+  w1 = _mm_loadu_si128(compressed + 1);
+  _mm_storeu_si128(out + 1,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 57),
+                                                    _mm_slli_epi64(w1, 7))));
+  w0 = _mm_loadu_si128(compressed + 2);
+  _mm_storeu_si128(out + 2,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 50),
+                                                    _mm_slli_epi64(w0, 14))));
+  w1 = _mm_loadu_si128(compressed + 3);
+  _mm_storeu_si128(out + 3,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 43),
+                                                    _mm_slli_epi64(w1, 21))));
+  w0 = _mm_loadu_si128(compressed + 4);
+  _mm_storeu_si128(out + 4,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 36),
+                                                    _mm_slli_epi64(w0, 28))));
+  w1 = _mm_loadu_si128(compressed + 5);
+  _mm_storeu_si128(out + 5,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 29),
+                                                    _mm_slli_epi64(w1, 35))));
+  w0 = _mm_loadu_si128(compressed + 6);
+  _mm_storeu_si128(out + 6,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 22),
+                                                    _mm_slli_epi64(w0, 42))));
+  w1 = _mm_loadu_si128(compressed + 7);
+  _mm_storeu_si128(out + 7,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 15),
+                                                    _mm_slli_epi64(w1, 49))));
+  w0 = _mm_loadu_si128(compressed + 8);
+  _mm_storeu_si128(out + 8,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 8),
+                                                    _mm_slli_epi64(w0, 56))));
+  _mm_storeu_si128(out + 9, _mm_and_si128(mask, _mm_srli_epi64(w0, 1)));
+  w1 = _mm_loadu_si128(compressed + 9);
+  _mm_storeu_si128(out + 10,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 58),
+                                                    _mm_slli_epi64(w1, 6))));
+  w0 = _mm_loadu_si128(compressed + 10);
+  _mm_storeu_si128(out + 11,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 51),
+                                                    _mm_slli_epi64(w0, 13))));
+  w1 = _mm_loadu_si128(compressed + 11);
+  _mm_storeu_si128(out + 12,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 44),
+                                                    _mm_slli_epi64(w1, 20))));
+  w0 = _mm_loadu_si128(compressed + 12);
+  _mm_storeu_si128(out + 13,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 37),
+                                                    _mm_slli_epi64(w0, 27))));
+  w1 = _mm_loadu_si128(compressed + 13);
+  _mm_storeu_si128(out + 14,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 30),
+                                                    _mm_slli_epi64(w1, 34))));
+  w0 = _mm_loadu_si128(compressed + 14);
+  _mm_storeu_si128(out + 15,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 23),
+                                                    _mm_slli_epi64(w0, 41))));
+  w1 = _mm_loadu_si128(compressed + 15);
+  _mm_storeu_si128(out + 16,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 16),
+                                                    _mm_slli_epi64(w1, 48))));
+  w0 = _mm_loadu_si128(compressed + 16);
+  _mm_storeu_si128(out + 17,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 9),
+                                                    _mm_slli_epi64(w0, 55))));
+  _mm_storeu_si128(out + 18, _mm_and_si128(mask, _mm_srli_epi64(w0, 2)));
+  w1 = _mm_loadu_si128(compressed + 17);
+  _mm_storeu_si128(out + 19,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 59),
+                                                    _mm_slli_epi64(w1, 5))));
+  w0 = _mm_loadu_si128(compressed + 18);
+  _mm_storeu_si128(out + 20,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 52),
+                                                    _mm_slli_epi64(w0, 12))));
+  w1 = _mm_loadu_si128(compressed + 19);
+  _mm_storeu_si128(out + 21,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 45),
+                                                    _mm_slli_epi64(w1, 19))));
+  w0 = _mm_loadu_si128(compressed + 20);
+  _mm_storeu_si128(out + 22,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 38),
+                                                    _mm_slli_epi64(w0, 26))));
+  w1 = _mm_loadu_si128(compressed + 21);
+  _mm_storeu_si128(out + 23,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 31),
+                                                    _mm_slli_epi64(w1, 33))));
+  w0 = _mm_loadu_si128(compressed + 22);
+  _mm_storeu_si128(out + 24,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 24),
+                                                    _mm_slli_epi64(w0, 40))));
+  w1 = _mm_loadu_si128(compressed + 23);
+  _mm_storeu_si128(out + 25,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 17),
+                                                    _mm_slli_epi64(w1, 47))));
+  w0 = _mm_loadu_si128(compressed + 24);
+  _mm_storeu_si128(out + 26,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 10),
+                                                    _mm_slli_epi64(w0, 54))));
+  _mm_storeu_si128(out + 27, _mm_and_si128(mask, _mm_srli_epi64(w0, 3)));
+  w1 = _mm_loadu_si128(compressed + 25);
+  _mm_storeu_si128(out + 28,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 60),
+                                                    _mm_slli_epi64(w1, 4))));
+  w0 = _mm_loadu_si128(compressed + 26);
+  _mm_storeu_si128(out + 29,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 53),
+                                                    _mm_slli_epi64(w0, 11))));
+  w1 = _mm_loadu_si128(compressed + 27);
+  _mm_storeu_si128(out + 30,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 46),
+                                                    _mm_slli_epi64(w1, 18))));
+  w0 = _mm_loadu_si128(compressed + 28);
+  _mm_storeu_si128(out + 31,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 39),
+                                                    _mm_slli_epi64(w0, 25))));
+}
+
+/* we packed 64 58-bit values, touching 29 128-bit words, using 464 bytes */
+static void simdunpackblock58(const __m128i *compressed, u64 *pout) {
+  /* we are going to access  29 128-bit words */
+  __m128i w0, w1;
+  __m128i *out = (__m128i *)pout;
+  const __m128i mask = _mm_set1_epi64x(288230376151711743);
+  w0 = _mm_loadu_si128(compressed);
+  _mm_storeu_si128(out + 0, _mm_and_si128(mask, w0));
+  w1 = _mm_loadu_si128(compressed + 1);
+  _mm_storeu_si128(out + 1,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 58),
+                                                    _mm_slli_epi64(w1, 6))));
+  w0 = _mm_loadu_si128(compressed + 2);
+  _mm_storeu_si128(out + 2,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 52),
+                                                    _mm_slli_epi64(w0, 12))));
+  w1 = _mm_loadu_si128(compressed + 3);
+  _mm_storeu_si128(out + 3,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 46),
+                                                    _mm_slli_epi64(w1, 18))));
+  w0 = _mm_loadu_si128(compressed + 4);
+  _mm_storeu_si128(out + 4,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 40),
+                                                    _mm_slli_epi64(w0, 24))));
+  w1 = _mm_loadu_si128(compressed + 5);
+  _mm_storeu_si128(out + 5,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 34),
+                                                    _mm_slli_epi64(w1, 30))));
+  w0 = _mm_loadu_si128(compressed + 6);
+  _mm_storeu_si128(out + 6,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 28),
+                                                    _mm_slli_epi64(w0, 36))));
+  w1 = _mm_loadu_si128(compressed + 7);
+  _mm_storeu_si128(out + 7,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 22),
+                                                    _mm_slli_epi64(w1, 42))));
+  w0 = _mm_loadu_si128(compressed + 8);
+  _mm_storeu_si128(out + 8,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 16),
+                                                    _mm_slli_epi64(w0, 48))));
+  w1 = _mm_loadu_si128(compressed + 9);
+  _mm_storeu_si128(out + 9,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 10),
+                                                    _mm_slli_epi64(w1, 54))));
+  _mm_storeu_si128(out + 10, _mm_and_si128(mask, _mm_srli_epi64(w1, 4)));
+  w0 = _mm_loadu_si128(compressed + 10);
+  _mm_storeu_si128(out + 11,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 62),
+                                                    _mm_slli_epi64(w0, 2))));
+  w1 = _mm_loadu_si128(compressed + 11);
+  _mm_storeu_si128(out + 12,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 56),
+                                                    _mm_slli_epi64(w1, 8))));
+  w0 = _mm_loadu_si128(compressed + 12);
+  _mm_storeu_si128(out + 13,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 50),
+                                                    _mm_slli_epi64(w0, 14))));
+  w1 = _mm_loadu_si128(compressed + 13);
+  _mm_storeu_si128(out + 14,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 44),
+                                                    _mm_slli_epi64(w1, 20))));
+  w0 = _mm_loadu_si128(compressed + 14);
+  _mm_storeu_si128(out + 15,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 38),
+                                                    _mm_slli_epi64(w0, 26))));
+  w1 = _mm_loadu_si128(compressed + 15);
+  _mm_storeu_si128(out + 16,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 32),
+                                                    _mm_slli_epi64(w1, 32))));
+  w0 = _mm_loadu_si128(compressed + 16);
+  _mm_storeu_si128(out + 17,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 26),
+                                                    _mm_slli_epi64(w0, 38))));
+  w1 = _mm_loadu_si128(compressed + 17);
+  _mm_storeu_si128(out + 18,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 20),
+                                                    _mm_slli_epi64(w1, 44))));
+  w0 = _mm_loadu_si128(compressed + 18);
+  _mm_storeu_si128(out + 19,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 14),
+                                                    _mm_slli_epi64(w0, 50))));
+  w1 = _mm_loadu_si128(compressed + 19);
+  _mm_storeu_si128(out + 20,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 8),
+                                                    _mm_slli_epi64(w1, 56))));
+  _mm_storeu_si128(out + 21, _mm_and_si128(mask, _mm_srli_epi64(w1, 2)));
+  w0 = _mm_loadu_si128(compressed + 20);
+  _mm_storeu_si128(out + 22,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 60),
+                                                    _mm_slli_epi64(w0, 4))));
+  w1 = _mm_loadu_si128(compressed + 21);
+  _mm_storeu_si128(out + 23,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 54),
+                                                    _mm_slli_epi64(w1, 10))));
+  w0 = _mm_loadu_si128(compressed + 22);
+  _mm_storeu_si128(out + 24,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 48),
+                                                    _mm_slli_epi64(w0, 16))));
+  w1 = _mm_loadu_si128(compressed + 23);
+  _mm_storeu_si128(out + 25,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 42),
+                                                    _mm_slli_epi64(w1, 22))));
+  w0 = _mm_loadu_si128(compressed + 24);
+  _mm_storeu_si128(out + 26,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 36),
+                                                    _mm_slli_epi64(w0, 28))));
+  w1 = _mm_loadu_si128(compressed + 25);
+  _mm_storeu_si128(out + 27,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 30),
+                                                    _mm_slli_epi64(w1, 34))));
+  w0 = _mm_loadu_si128(compressed + 26);
+  _mm_storeu_si128(out + 28,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 24),
+                                                    _mm_slli_epi64(w0, 40))));
+  w1 = _mm_loadu_si128(compressed + 27);
+  _mm_storeu_si128(out + 29,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 18),
+                                                    _mm_slli_epi64(w1, 46))));
+  w0 = _mm_loadu_si128(compressed + 28);
+  _mm_storeu_si128(out + 30,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 12),
+                                                    _mm_slli_epi64(w0, 52))));
+  _mm_storeu_si128(out + 31, _mm_srli_epi64(w0, 6));
+}
+
+/* we packed 64 59-bit values, touching 30 128-bit words, using 480 bytes */
+static void simdunpackblock59(const __m128i *compressed, u64 *pout) {
+  /* we are going to access  30 128-bit words */
+  __m128i w0, w1;
+  __m128i *out = (__m128i *)pout;
+  const __m128i mask = _mm_set1_epi64x(576460752303423487);
+  w0 = _mm_loadu_si128(compressed);
+  _mm_storeu_si128(out + 0, _mm_and_si128(mask, w0));
+  w1 = _mm_loadu_si128(compressed + 1);
+  _mm_storeu_si128(out + 1,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 59),
+                                                    _mm_slli_epi64(w1, 5))));
+  w0 = _mm_loadu_si128(compressed + 2);
+  _mm_storeu_si128(out + 2,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 54),
+                                                    _mm_slli_epi64(w0, 10))));
+  w1 = _mm_loadu_si128(compressed + 3);
+  _mm_storeu_si128(out + 3,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 49),
+                                                    _mm_slli_epi64(w1, 15))));
+  w0 = _mm_loadu_si128(compressed + 4);
+  _mm_storeu_si128(out + 4,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 44),
+                                                    _mm_slli_epi64(w0, 20))));
+  w1 = _mm_loadu_si128(compressed + 5);
+  _mm_storeu_si128(out + 5,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 39),
+                                                    _mm_slli_epi64(w1, 25))));
+  w0 = _mm_loadu_si128(compressed + 6);
+  _mm_storeu_si128(out + 6,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 34),
+                                                    _mm_slli_epi64(w0, 30))));
+  w1 = _mm_loadu_si128(compressed + 7);
+  _mm_storeu_si128(out + 7,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 29),
+                                                    _mm_slli_epi64(w1, 35))));
+  w0 = _mm_loadu_si128(compressed + 8);
+  _mm_storeu_si128(out + 8,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 24),
+                                                    _mm_slli_epi64(w0, 40))));
+  w1 = _mm_loadu_si128(compressed + 9);
+  _mm_storeu_si128(out + 9,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 19),
+                                                    _mm_slli_epi64(w1, 45))));
+  w0 = _mm_loadu_si128(compressed + 10);
+  _mm_storeu_si128(out + 10,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 14),
+                                                    _mm_slli_epi64(w0, 50))));
+  w1 = _mm_loadu_si128(compressed + 11);
+  _mm_storeu_si128(out + 11,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 9),
+                                                    _mm_slli_epi64(w1, 55))));
+  _mm_storeu_si128(out + 12, _mm_and_si128(mask, _mm_srli_epi64(w1, 4)));
+  w0 = _mm_loadu_si128(compressed + 12);
+  _mm_storeu_si128(out + 13,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 63),
+                                                    _mm_slli_epi64(w0, 1))));
+  w1 = _mm_loadu_si128(compressed + 13);
+  _mm_storeu_si128(out + 14,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 58),
+                                                    _mm_slli_epi64(w1, 6))));
+  w0 = _mm_loadu_si128(compressed + 14);
+  _mm_storeu_si128(out + 15,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 53),
+                                                    _mm_slli_epi64(w0, 11))));
+  w1 = _mm_loadu_si128(compressed + 15);
+  _mm_storeu_si128(out + 16,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 48),
+                                                    _mm_slli_epi64(w1, 16))));
+  w0 = _mm_loadu_si128(compressed + 16);
+  _mm_storeu_si128(out + 17,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 43),
+                                                    _mm_slli_epi64(w0, 21))));
+  w1 = _mm_loadu_si128(compressed + 17);
+  _mm_storeu_si128(out + 18,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 38),
+                                                    _mm_slli_epi64(w1, 26))));
+  w0 = _mm_loadu_si128(compressed + 18);
+  _mm_storeu_si128(out + 19,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 33),
+                                                    _mm_slli_epi64(w0, 31))));
+  w1 = _mm_loadu_si128(compressed + 19);
+  _mm_storeu_si128(out + 20,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 28),
+                                                    _mm_slli_epi64(w1, 36))));
+  w0 = _mm_loadu_si128(compressed + 20);
+  _mm_storeu_si128(out + 21,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 23),
+                                                    _mm_slli_epi64(w0, 41))));
+  w1 = _mm_loadu_si128(compressed + 21);
+  _mm_storeu_si128(out + 22,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 18),
+                                                    _mm_slli_epi64(w1, 46))));
+  w0 = _mm_loadu_si128(compressed + 22);
+  _mm_storeu_si128(out + 23,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 13),
+                                                    _mm_slli_epi64(w0, 51))));
+  w1 = _mm_loadu_si128(compressed + 23);
+  _mm_storeu_si128(out + 24,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 8),
+                                                    _mm_slli_epi64(w1, 56))));
+  _mm_storeu_si128(out + 25, _mm_and_si128(mask, _mm_srli_epi64(w1, 3)));
+  w0 = _mm_loadu_si128(compressed + 24);
+  _mm_storeu_si128(out + 26,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 62),
+                                                    _mm_slli_epi64(w0, 2))));
+  w1 = _mm_loadu_si128(compressed + 25);
+  _mm_storeu_si128(out + 27,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 57),
+                                                    _mm_slli_epi64(w1, 7))));
+  w0 = _mm_loadu_si128(compressed + 26);
+  _mm_storeu_si128(out + 28,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 52),
+                                                    _mm_slli_epi64(w0, 12))));
+  w1 = _mm_loadu_si128(compressed + 27);
+  _mm_storeu_si128(out + 29,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 47),
+                                                    _mm_slli_epi64(w1, 17))));
+  w0 = _mm_loadu_si128(compressed + 28);
+  _mm_storeu_si128(out + 30,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 42),
+                                                    _mm_slli_epi64(w0, 22))));
+  w1 = _mm_loadu_si128(compressed + 29);
+  _mm_storeu_si128(out + 31,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 37),
+                                                    _mm_slli_epi64(w1, 27))));
+}
+
+/* we packed 64 60-bit values, touching 30 128-bit words, using 480 bytes */
+static void simdunpackblock60(const __m128i *compressed, u64 *pout) {
+  /* we are going to access  30 128-bit words */
+  __m128i w0, w1;
+  __m128i *out = (__m128i *)pout;
+  const __m128i mask = _mm_set1_epi64x(1152921504606846975);
+  w0 = _mm_loadu_si128(compressed);
+  _mm_storeu_si128(out + 0, _mm_and_si128(mask, w0));
+  w1 = _mm_loadu_si128(compressed + 1);
+  _mm_storeu_si128(out + 1,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 60),
+                                                    _mm_slli_epi64(w1, 4))));
+  w0 = _mm_loadu_si128(compressed + 2);
+  _mm_storeu_si128(out + 2,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 56),
+                                                    _mm_slli_epi64(w0, 8))));
+  w1 = _mm_loadu_si128(compressed + 3);
+  _mm_storeu_si128(out + 3,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 52),
+                                                    _mm_slli_epi64(w1, 12))));
+  w0 = _mm_loadu_si128(compressed + 4);
+  _mm_storeu_si128(out + 4,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 48),
+                                                    _mm_slli_epi64(w0, 16))));
+  w1 = _mm_loadu_si128(compressed + 5);
+  _mm_storeu_si128(out + 5,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 44),
+                                                    _mm_slli_epi64(w1, 20))));
+  w0 = _mm_loadu_si128(compressed + 6);
+  _mm_storeu_si128(out + 6,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 40),
+                                                    _mm_slli_epi64(w0, 24))));
+  w1 = _mm_loadu_si128(compressed + 7);
+  _mm_storeu_si128(out + 7,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 36),
+                                                    _mm_slli_epi64(w1, 28))));
+  w0 = _mm_loadu_si128(compressed + 8);
+  _mm_storeu_si128(out + 8,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 32),
+                                                    _mm_slli_epi64(w0, 32))));
+  w1 = _mm_loadu_si128(compressed + 9);
+  _mm_storeu_si128(out + 9,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 28),
+                                                    _mm_slli_epi64(w1, 36))));
+  w0 = _mm_loadu_si128(compressed + 10);
+  _mm_storeu_si128(out + 10,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 24),
+                                                    _mm_slli_epi64(w0, 40))));
+  w1 = _mm_loadu_si128(compressed + 11);
+  _mm_storeu_si128(out + 11,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 20),
+                                                    _mm_slli_epi64(w1, 44))));
+  w0 = _mm_loadu_si128(compressed + 12);
+  _mm_storeu_si128(out + 12,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 16),
+                                                    _mm_slli_epi64(w0, 48))));
+  w1 = _mm_loadu_si128(compressed + 13);
+  _mm_storeu_si128(out + 13,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 12),
+                                                    _mm_slli_epi64(w1, 52))));
+  w0 = _mm_loadu_si128(compressed + 14);
+  _mm_storeu_si128(out + 14,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 8),
+                                                    _mm_slli_epi64(w0, 56))));
+  _mm_storeu_si128(out + 15, _mm_srli_epi64(w0, 4));
+  w1 = _mm_loadu_si128(compressed + 15);
+  _mm_storeu_si128(out + 16, _mm_and_si128(mask, w1));
+  w0 = _mm_loadu_si128(compressed + 16);
+  _mm_storeu_si128(out + 17,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 60),
+                                                    _mm_slli_epi64(w0, 4))));
+  w1 = _mm_loadu_si128(compressed + 17);
+  _mm_storeu_si128(out + 18,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 56),
+                                                    _mm_slli_epi64(w1, 8))));
+  w0 = _mm_loadu_si128(compressed + 18);
+  _mm_storeu_si128(out + 19,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 52),
+                                                    _mm_slli_epi64(w0, 12))));
+  w1 = _mm_loadu_si128(compressed + 19);
+  _mm_storeu_si128(out + 20,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 48),
+                                                    _mm_slli_epi64(w1, 16))));
+  w0 = _mm_loadu_si128(compressed + 20);
+  _mm_storeu_si128(out + 21,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 44),
+                                                    _mm_slli_epi64(w0, 20))));
+  w1 = _mm_loadu_si128(compressed + 21);
+  _mm_storeu_si128(out + 22,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 40),
+                                                    _mm_slli_epi64(w1, 24))));
+  w0 = _mm_loadu_si128(compressed + 22);
+  _mm_storeu_si128(out + 23,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 36),
+                                                    _mm_slli_epi64(w0, 28))));
+  w1 = _mm_loadu_si128(compressed + 23);
+  _mm_storeu_si128(out + 24,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 32),
+                                                    _mm_slli_epi64(w1, 32))));
+  w0 = _mm_loadu_si128(compressed + 24);
+  _mm_storeu_si128(out + 25,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 28),
+                                                    _mm_slli_epi64(w0, 36))));
+  w1 = _mm_loadu_si128(compressed + 25);
+  _mm_storeu_si128(out + 26,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 24),
+                                                    _mm_slli_epi64(w1, 40))));
+  w0 = _mm_loadu_si128(compressed + 26);
+  _mm_storeu_si128(out + 27,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 20),
+                                                    _mm_slli_epi64(w0, 44))));
+  w1 = _mm_loadu_si128(compressed + 27);
+  _mm_storeu_si128(out + 28,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 16),
+                                                    _mm_slli_epi64(w1, 48))));
+  w0 = _mm_loadu_si128(compressed + 28);
+  _mm_storeu_si128(out + 29,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 12),
+                                                    _mm_slli_epi64(w0, 52))));
+  w1 = _mm_loadu_si128(compressed + 29);
+  _mm_storeu_si128(out + 30,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 8),
+                                                    _mm_slli_epi64(w1, 56))));
+  _mm_storeu_si128(out + 31, _mm_srli_epi64(w1, 4));
+}
+
+/* we packed 64 61-bit values, touching 31 128-bit words, using 496 bytes */
+static void simdunpackblock61(const __m128i *compressed, u64 *pout) {
+  /* we are going to access  31 128-bit words */
+  __m128i w0, w1;
+  __m128i *out = (__m128i *)pout;
+  const __m128i mask = _mm_set1_epi64x(2305843009213693951);
+  w0 = _mm_loadu_si128(compressed);
+  _mm_storeu_si128(out + 0, _mm_and_si128(mask, w0));
+  w1 = _mm_loadu_si128(compressed + 1);
+  _mm_storeu_si128(out + 1,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 61),
+                                                    _mm_slli_epi64(w1, 3))));
+  w0 = _mm_loadu_si128(compressed + 2);
+  _mm_storeu_si128(out + 2,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 58),
+                                                    _mm_slli_epi64(w0, 6))));
+  w1 = _mm_loadu_si128(compressed + 3);
+  _mm_storeu_si128(out + 3,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 55),
+                                                    _mm_slli_epi64(w1, 9))));
+  w0 = _mm_loadu_si128(compressed + 4);
+  _mm_storeu_si128(out + 4,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 52),
+                                                    _mm_slli_epi64(w0, 12))));
+  w1 = _mm_loadu_si128(compressed + 5);
+  _mm_storeu_si128(out + 5,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 49),
+                                                    _mm_slli_epi64(w1, 15))));
+  w0 = _mm_loadu_si128(compressed + 6);
+  _mm_storeu_si128(out + 6,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 46),
+                                                    _mm_slli_epi64(w0, 18))));
+  w1 = _mm_loadu_si128(compressed + 7);
+  _mm_storeu_si128(out + 7,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 43),
+                                                    _mm_slli_epi64(w1, 21))));
+  w0 = _mm_loadu_si128(compressed + 8);
+  _mm_storeu_si128(out + 8,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 40),
+                                                    _mm_slli_epi64(w0, 24))));
+  w1 = _mm_loadu_si128(compressed + 9);
+  _mm_storeu_si128(out + 9,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 37),
+                                                    _mm_slli_epi64(w1, 27))));
+  w0 = _mm_loadu_si128(compressed + 10);
+  _mm_storeu_si128(out + 10,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 34),
+                                                    _mm_slli_epi64(w0, 30))));
+  w1 = _mm_loadu_si128(compressed + 11);
+  _mm_storeu_si128(out + 11,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 31),
+                                                    _mm_slli_epi64(w1, 33))));
+  w0 = _mm_loadu_si128(compressed + 12);
+  _mm_storeu_si128(out + 12,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 28),
+                                                    _mm_slli_epi64(w0, 36))));
+  w1 = _mm_loadu_si128(compressed + 13);
+  _mm_storeu_si128(out + 13,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 25),
+                                                    _mm_slli_epi64(w1, 39))));
+  w0 = _mm_loadu_si128(compressed + 14);
+  _mm_storeu_si128(out + 14,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 22),
+                                                    _mm_slli_epi64(w0, 42))));
+  w1 = _mm_loadu_si128(compressed + 15);
+  _mm_storeu_si128(out + 15,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 19),
+                                                    _mm_slli_epi64(w1, 45))));
+  w0 = _mm_loadu_si128(compressed + 16);
+  _mm_storeu_si128(out + 16,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 16),
+                                                    _mm_slli_epi64(w0, 48))));
+  w1 = _mm_loadu_si128(compressed + 17);
+  _mm_storeu_si128(out + 17,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 13),
+                                                    _mm_slli_epi64(w1, 51))));
+  w0 = _mm_loadu_si128(compressed + 18);
+  _mm_storeu_si128(out + 18,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 10),
+                                                    _mm_slli_epi64(w0, 54))));
+  w1 = _mm_loadu_si128(compressed + 19);
+  _mm_storeu_si128(out + 19,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 7),
+                                                    _mm_slli_epi64(w1, 57))));
+  w0 = _mm_loadu_si128(compressed + 20);
+  _mm_storeu_si128(out + 20,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 4),
+                                                    _mm_slli_epi64(w0, 60))));
+  _mm_storeu_si128(out + 21, _mm_and_si128(mask, _mm_srli_epi64(w0, 1)));
+  w1 = _mm_loadu_si128(compressed + 21);
+  _mm_storeu_si128(out + 22,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 62),
+                                                    _mm_slli_epi64(w1, 2))));
+  w0 = _mm_loadu_si128(compressed + 22);
+  _mm_storeu_si128(out + 23,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 59),
+                                                    _mm_slli_epi64(w0, 5))));
+  w1 = _mm_loadu_si128(compressed + 23);
+  _mm_storeu_si128(out + 24,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 56),
+                                                    _mm_slli_epi64(w1, 8))));
+  w0 = _mm_loadu_si128(compressed + 24);
+  _mm_storeu_si128(out + 25,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 53),
+                                                    _mm_slli_epi64(w0, 11))));
+  w1 = _mm_loadu_si128(compressed + 25);
+  _mm_storeu_si128(out + 26,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 50),
+                                                    _mm_slli_epi64(w1, 14))));
+  w0 = _mm_loadu_si128(compressed + 26);
+  _mm_storeu_si128(out + 27,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 47),
+                                                    _mm_slli_epi64(w0, 17))));
+  w1 = _mm_loadu_si128(compressed + 27);
+  _mm_storeu_si128(out + 28,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 44),
+                                                    _mm_slli_epi64(w1, 20))));
+  w0 = _mm_loadu_si128(compressed + 28);
+  _mm_storeu_si128(out + 29,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 41),
+                                                    _mm_slli_epi64(w0, 23))));
+  w1 = _mm_loadu_si128(compressed + 29);
+  _mm_storeu_si128(out + 30,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 38),
+                                                    _mm_slli_epi64(w1, 26))));
+  w0 = _mm_loadu_si128(compressed + 30);
+  _mm_storeu_si128(out + 31,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 35),
+                                                    _mm_slli_epi64(w0, 29))));
+}
+
+/* we packed 64 62-bit values, touching 31 128-bit words, using 496 bytes */
+static void simdunpackblock62(const __m128i *compressed, u64 *pout) {
+  /* we are going to access  31 128-bit words */
+  __m128i w0, w1;
+  __m128i *out = (__m128i *)pout;
+  const __m128i mask = _mm_set1_epi64x(4611686018427387903);
+  w0 = _mm_loadu_si128(compressed);
+  _mm_storeu_si128(out + 0, _mm_and_si128(mask, w0));
+  w1 = _mm_loadu_si128(compressed + 1);
+  _mm_storeu_si128(out + 1,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 62),
+                                                    _mm_slli_epi64(w1, 2))));
+  w0 = _mm_loadu_si128(compressed + 2);
+  _mm_storeu_si128(out + 2,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 60),
+                                                    _mm_slli_epi64(w0, 4))));
+  w1 = _mm_loadu_si128(compressed + 3);
+  _mm_storeu_si128(out + 3,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 58),
+                                                    _mm_slli_epi64(w1, 6))));
+  w0 = _mm_loadu_si128(compressed + 4);
+  _mm_storeu_si128(out + 4,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 56),
+                                                    _mm_slli_epi64(w0, 8))));
+  w1 = _mm_loadu_si128(compressed + 5);
+  _mm_storeu_si128(out + 5,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 54),
+                                                    _mm_slli_epi64(w1, 10))));
+  w0 = _mm_loadu_si128(compressed + 6);
+  _mm_storeu_si128(out + 6,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 52),
+                                                    _mm_slli_epi64(w0, 12))));
+  w1 = _mm_loadu_si128(compressed + 7);
+  _mm_storeu_si128(out + 7,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 50),
+                                                    _mm_slli_epi64(w1, 14))));
+  w0 = _mm_loadu_si128(compressed + 8);
+  _mm_storeu_si128(out + 8,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 48),
+                                                    _mm_slli_epi64(w0, 16))));
+  w1 = _mm_loadu_si128(compressed + 9);
+  _mm_storeu_si128(out + 9,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 46),
+                                                    _mm_slli_epi64(w1, 18))));
+  w0 = _mm_loadu_si128(compressed + 10);
+  _mm_storeu_si128(out + 10,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 44),
+                                                    _mm_slli_epi64(w0, 20))));
+  w1 = _mm_loadu_si128(compressed + 11);
+  _mm_storeu_si128(out + 11,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 42),
+                                                    _mm_slli_epi64(w1, 22))));
+  w0 = _mm_loadu_si128(compressed + 12);
+  _mm_storeu_si128(out + 12,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 40),
+                                                    _mm_slli_epi64(w0, 24))));
+  w1 = _mm_loadu_si128(compressed + 13);
+  _mm_storeu_si128(out + 13,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 38),
+                                                    _mm_slli_epi64(w1, 26))));
+  w0 = _mm_loadu_si128(compressed + 14);
+  _mm_storeu_si128(out + 14,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 36),
+                                                    _mm_slli_epi64(w0, 28))));
+  w1 = _mm_loadu_si128(compressed + 15);
+  _mm_storeu_si128(out + 15,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 34),
+                                                    _mm_slli_epi64(w1, 30))));
+  w0 = _mm_loadu_si128(compressed + 16);
+  _mm_storeu_si128(out + 16,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 32),
+                                                    _mm_slli_epi64(w0, 32))));
+  w1 = _mm_loadu_si128(compressed + 17);
+  _mm_storeu_si128(out + 17,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 30),
+                                                    _mm_slli_epi64(w1, 34))));
+  w0 = _mm_loadu_si128(compressed + 18);
+  _mm_storeu_si128(out + 18,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 28),
+                                                    _mm_slli_epi64(w0, 36))));
+  w1 = _mm_loadu_si128(compressed + 19);
+  _mm_storeu_si128(out + 19,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 26),
+                                                    _mm_slli_epi64(w1, 38))));
+  w0 = _mm_loadu_si128(compressed + 20);
+  _mm_storeu_si128(out + 20,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 24),
+                                                    _mm_slli_epi64(w0, 40))));
+  w1 = _mm_loadu_si128(compressed + 21);
+  _mm_storeu_si128(out + 21,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 22),
+                                                    _mm_slli_epi64(w1, 42))));
+  w0 = _mm_loadu_si128(compressed + 22);
+  _mm_storeu_si128(out + 22,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 20),
+                                                    _mm_slli_epi64(w0, 44))));
+  w1 = _mm_loadu_si128(compressed + 23);
+  _mm_storeu_si128(out + 23,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 18),
+                                                    _mm_slli_epi64(w1, 46))));
+  w0 = _mm_loadu_si128(compressed + 24);
+  _mm_storeu_si128(out + 24,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 16),
+                                                    _mm_slli_epi64(w0, 48))));
+  w1 = _mm_loadu_si128(compressed + 25);
+  _mm_storeu_si128(out + 25,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 14),
+                                                    _mm_slli_epi64(w1, 50))));
+  w0 = _mm_loadu_si128(compressed + 26);
+  _mm_storeu_si128(out + 26,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 12),
+                                                    _mm_slli_epi64(w0, 52))));
+  w1 = _mm_loadu_si128(compressed + 27);
+  _mm_storeu_si128(out + 27,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 10),
+                                                    _mm_slli_epi64(w1, 54))));
+  w0 = _mm_loadu_si128(compressed + 28);
+  _mm_storeu_si128(out + 28,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 8),
+                                                    _mm_slli_epi64(w0, 56))));
+  w1 = _mm_loadu_si128(compressed + 29);
+  _mm_storeu_si128(out + 29,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 6),
+                                                    _mm_slli_epi64(w1, 58))));
+  w0 = _mm_loadu_si128(compressed + 30);
+  _mm_storeu_si128(out + 30,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 4),
+                                                    _mm_slli_epi64(w0, 60))));
+  _mm_storeu_si128(out + 31, _mm_srli_epi64(w0, 2));
+}
+
+/* we packed 64 63-bit values, touching 32 128-bit words, using 512 bytes */
+static void simdunpackblock63(const __m128i *compressed, u64 *pout) {
+  /* we are going to access  32 128-bit words */
+  __m128i w0, w1;
+  __m128i *out = (__m128i *)pout;
+  const __m128i mask = _mm_set1_epi64x(9223372036854775807);
+  w0 = _mm_loadu_si128(compressed);
+  _mm_storeu_si128(out + 0, _mm_and_si128(mask, w0));
+  w1 = _mm_loadu_si128(compressed + 1);
+  _mm_storeu_si128(out + 1,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 63),
+                                                    _mm_slli_epi64(w1, 1))));
+  w0 = _mm_loadu_si128(compressed + 2);
+  _mm_storeu_si128(out + 2,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 62),
+                                                    _mm_slli_epi64(w0, 2))));
+  w1 = _mm_loadu_si128(compressed + 3);
+  _mm_storeu_si128(out + 3,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 61),
+                                                    _mm_slli_epi64(w1, 3))));
+  w0 = _mm_loadu_si128(compressed + 4);
+  _mm_storeu_si128(out + 4,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 60),
+                                                    _mm_slli_epi64(w0, 4))));
+  w1 = _mm_loadu_si128(compressed + 5);
+  _mm_storeu_si128(out + 5,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 59),
+                                                    _mm_slli_epi64(w1, 5))));
+  w0 = _mm_loadu_si128(compressed + 6);
+  _mm_storeu_si128(out + 6,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 58),
+                                                    _mm_slli_epi64(w0, 6))));
+  w1 = _mm_loadu_si128(compressed + 7);
+  _mm_storeu_si128(out + 7,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 57),
+                                                    _mm_slli_epi64(w1, 7))));
+  w0 = _mm_loadu_si128(compressed + 8);
+  _mm_storeu_si128(out + 8,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 56),
+                                                    _mm_slli_epi64(w0, 8))));
+  w1 = _mm_loadu_si128(compressed + 9);
+  _mm_storeu_si128(out + 9,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 55),
+                                                    _mm_slli_epi64(w1, 9))));
+  w0 = _mm_loadu_si128(compressed + 10);
+  _mm_storeu_si128(out + 10,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 54),
+                                                    _mm_slli_epi64(w0, 10))));
+  w1 = _mm_loadu_si128(compressed + 11);
+  _mm_storeu_si128(out + 11,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 53),
+                                                    _mm_slli_epi64(w1, 11))));
+  w0 = _mm_loadu_si128(compressed + 12);
+  _mm_storeu_si128(out + 12,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 52),
+                                                    _mm_slli_epi64(w0, 12))));
+  w1 = _mm_loadu_si128(compressed + 13);
+  _mm_storeu_si128(out + 13,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 51),
+                                                    _mm_slli_epi64(w1, 13))));
+  w0 = _mm_loadu_si128(compressed + 14);
+  _mm_storeu_si128(out + 14,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 50),
+                                                    _mm_slli_epi64(w0, 14))));
+  w1 = _mm_loadu_si128(compressed + 15);
+  _mm_storeu_si128(out + 15,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 49),
+                                                    _mm_slli_epi64(w1, 15))));
+  w0 = _mm_loadu_si128(compressed + 16);
+  _mm_storeu_si128(out + 16,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 48),
+                                                    _mm_slli_epi64(w0, 16))));
+  w1 = _mm_loadu_si128(compressed + 17);
+  _mm_storeu_si128(out + 17,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 47),
+                                                    _mm_slli_epi64(w1, 17))));
+  w0 = _mm_loadu_si128(compressed + 18);
+  _mm_storeu_si128(out + 18,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 46),
+                                                    _mm_slli_epi64(w0, 18))));
+  w1 = _mm_loadu_si128(compressed + 19);
+  _mm_storeu_si128(out + 19,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 45),
+                                                    _mm_slli_epi64(w1, 19))));
+  w0 = _mm_loadu_si128(compressed + 20);
+  _mm_storeu_si128(out + 20,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 44),
+                                                    _mm_slli_epi64(w0, 20))));
+  w1 = _mm_loadu_si128(compressed + 21);
+  _mm_storeu_si128(out + 21,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 43),
+                                                    _mm_slli_epi64(w1, 21))));
+  w0 = _mm_loadu_si128(compressed + 22);
+  _mm_storeu_si128(out + 22,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 42),
+                                                    _mm_slli_epi64(w0, 22))));
+  w1 = _mm_loadu_si128(compressed + 23);
+  _mm_storeu_si128(out + 23,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 41),
+                                                    _mm_slli_epi64(w1, 23))));
+  w0 = _mm_loadu_si128(compressed + 24);
+  _mm_storeu_si128(out + 24,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 40),
+                                                    _mm_slli_epi64(w0, 24))));
+  w1 = _mm_loadu_si128(compressed + 25);
+  _mm_storeu_si128(out + 25,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 39),
+                                                    _mm_slli_epi64(w1, 25))));
+  w0 = _mm_loadu_si128(compressed + 26);
+  _mm_storeu_si128(out + 26,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 38),
+                                                    _mm_slli_epi64(w0, 26))));
+  w1 = _mm_loadu_si128(compressed + 27);
+  _mm_storeu_si128(out + 27,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 37),
+                                                    _mm_slli_epi64(w1, 27))));
+  w0 = _mm_loadu_si128(compressed + 28);
+  _mm_storeu_si128(out + 28,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 36),
+                                                    _mm_slli_epi64(w0, 28))));
+  w1 = _mm_loadu_si128(compressed + 29);
+  _mm_storeu_si128(out + 29,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 35),
+                                                    _mm_slli_epi64(w1, 29))));
+  w0 = _mm_loadu_si128(compressed + 30);
+  _mm_storeu_si128(out + 30,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w1, 34),
+                                                    _mm_slli_epi64(w0, 30))));
+  w1 = _mm_loadu_si128(compressed + 31);
+  _mm_storeu_si128(out + 31,
+                   _mm_and_si128(mask, _mm_or_si128(_mm_srli_epi64(w0, 33),
+                                                    _mm_slli_epi64(w1, 31))));
+}
+
+/* we packed 64 64-bit values, touching 32 128-bit words, using 512 bytes */
+static void simdunpackblock64(const __m128i *compressed, u64 *pout) {
+  /* we are going to access  32 128-bit words */
+  __m128i w0, w1;
+  __m128i *out = (__m128i *)pout;
+  w0 = _mm_loadu_si128(compressed);
+  _mm_storeu_si128(out + 0, w0);
+  w1 = _mm_loadu_si128(compressed + 1);
+  _mm_storeu_si128(out + 1, w1);
+  w0 = _mm_loadu_si128(compressed + 2);
+  _mm_storeu_si128(out + 2, w0);
+  w1 = _mm_loadu_si128(compressed + 3);
+  _mm_storeu_si128(out + 3, w1);
+  w0 = _mm_loadu_si128(compressed + 4);
+  _mm_storeu_si128(out + 4, w0);
+  w1 = _mm_loadu_si128(compressed + 5);
+  _mm_storeu_si128(out + 5, w1);
+  w0 = _mm_loadu_si128(compressed + 6);
+  _mm_storeu_si128(out + 6, w0);
+  w1 = _mm_loadu_si128(compressed + 7);
+  _mm_storeu_si128(out + 7, w1);
+  w0 = _mm_loadu_si128(compressed + 8);
+  _mm_storeu_si128(out + 8, w0);
+  w1 = _mm_loadu_si128(compressed + 9);
+  _mm_storeu_si128(out + 9, w1);
+  w0 = _mm_loadu_si128(compressed + 10);
+  _mm_storeu_si128(out + 10, w0);
+  w1 = _mm_loadu_si128(compressed + 11);
+  _mm_storeu_si128(out + 11, w1);
+  w0 = _mm_loadu_si128(compressed + 12);
+  _mm_storeu_si128(out + 12, w0);
+  w1 = _mm_loadu_si128(compressed + 13);
+  _mm_storeu_si128(out + 13, w1);
+  w0 = _mm_loadu_si128(compressed + 14);
+  _mm_storeu_si128(out + 14, w0);
+  w1 = _mm_loadu_si128(compressed + 15);
+  _mm_storeu_si128(out + 15, w1);
+  w0 = _mm_loadu_si128(compressed + 16);
+  _mm_storeu_si128(out + 16, w0);
+  w1 = _mm_loadu_si128(compressed + 17);
+  _mm_storeu_si128(out + 17, w1);
+  w0 = _mm_loadu_si128(compressed + 18);
+  _mm_storeu_si128(out + 18, w0);
+  w1 = _mm_loadu_si128(compressed + 19);
+  _mm_storeu_si128(out + 19, w1);
+  w0 = _mm_loadu_si128(compressed + 20);
+  _mm_storeu_si128(out + 20, w0);
+  w1 = _mm_loadu_si128(compressed + 21);
+  _mm_storeu_si128(out + 21, w1);
+  w0 = _mm_loadu_si128(compressed + 22);
+  _mm_storeu_si128(out + 22, w0);
+  w1 = _mm_loadu_si128(compressed + 23);
+  _mm_storeu_si128(out + 23, w1);
+  w0 = _mm_loadu_si128(compressed + 24);
+  _mm_storeu_si128(out + 24, w0);
+  w1 = _mm_loadu_si128(compressed + 25);
+  _mm_storeu_si128(out + 25, w1);
+  w0 = _mm_loadu_si128(compressed + 26);
+  _mm_storeu_si128(out + 26, w0);
+  w1 = _mm_loadu_si128(compressed + 27);
+  _mm_storeu_si128(out + 27, w1);
+  w0 = _mm_loadu_si128(compressed + 28);
+  _mm_storeu_si128(out + 28, w0);
+  w1 = _mm_loadu_si128(compressed + 29);
+  _mm_storeu_si128(out + 29, w1);
+  w0 = _mm_loadu_si128(compressed + 30);
+  _mm_storeu_si128(out + 30, w0);
+  w1 = _mm_loadu_si128(compressed + 31);
+  _mm_storeu_si128(out + 31, w1);
+}
+
+static simdpackblockfnc simdfuncPackArr[] = {
+    &simdpackblock0,  &simdpackblock1,  &simdpackblock2,  &simdpackblock3,
+    &simdpackblock4,  &simdpackblock5,  &simdpackblock6,  &simdpackblock7,
+    &simdpackblock8,  &simdpackblock9,  &simdpackblock10, &simdpackblock11,
+    &simdpackblock12, &simdpackblock13, &simdpackblock14, &simdpackblock15,
+    &simdpackblock16, &simdpackblock17, &simdpackblock18, &simdpackblock19,
+    &simdpackblock20, &simdpackblock21, &simdpackblock22, &simdpackblock23,
+    &simdpackblock24, &simdpackblock25, &simdpackblock26, &simdpackblock27,
+    &simdpackblock28, &simdpackblock29, &simdpackblock30, &simdpackblock31,
+    &simdpackblock32, &simdpackblock33, &simdpackblock34, &simdpackblock35,
+    &simdpackblock36, &simdpackblock37, &simdpackblock38, &simdpackblock39,
+    &simdpackblock40, &simdpackblock41, &simdpackblock42, &simdpackblock43,
+    &simdpackblock44, &simdpackblock45, &simdpackblock46, &simdpackblock47,
+    &simdpackblock48, &simdpackblock49, &simdpackblock50, &simdpackblock51,
+    &simdpackblock52, &simdpackblock53, &simdpackblock54, &simdpackblock55,
+    &simdpackblock56, &simdpackblock57, &simdpackblock58, &simdpackblock59,
+    &simdpackblock60, &simdpackblock61, &simdpackblock62, &simdpackblock63,
+    &simdpackblock64};
+static simdpackblockfnc simdfuncPackMaskArr[] = {
+    &simdpackblockmask0,  &simdpackblockmask1,  &simdpackblockmask2,
+    &simdpackblockmask3,  &simdpackblockmask4,  &simdpackblockmask5,
+    &simdpackblockmask6,  &simdpackblockmask7,  &simdpackblockmask8,
+    &simdpackblockmask9,  &simdpackblockmask10, &simdpackblockmask11,
+    &simdpackblockmask12, &simdpackblockmask13, &simdpackblockmask14,
+    &simdpackblockmask15, &simdpackblockmask16, &simdpackblockmask17,
+    &simdpackblockmask18, &simdpackblockmask19, &simdpackblockmask20,
+    &simdpackblockmask21, &simdpackblockmask22, &simdpackblockmask23,
+    &simdpackblockmask24, &simdpackblockmask25, &simdpackblockmask26,
+    &simdpackblockmask27, &simdpackblockmask28, &simdpackblockmask29,
+    &simdpackblockmask30, &simdpackblockmask31, &simdpackblockmask32,
+    &simdpackblockmask33, &simdpackblockmask34, &simdpackblockmask35,
+    &simdpackblockmask36, &simdpackblockmask37, &simdpackblockmask38,
+    &simdpackblockmask39, &simdpackblockmask40, &simdpackblockmask41,
+    &simdpackblockmask42, &simdpackblockmask43, &simdpackblockmask44,
+    &simdpackblockmask45, &simdpackblockmask46, &simdpackblockmask47,
+    &simdpackblockmask48, &simdpackblockmask49, &simdpackblockmask50,
+    &simdpackblockmask51, &simdpackblockmask52, &simdpackblockmask53,
+    &simdpackblockmask54, &simdpackblockmask55, &simdpackblockmask56,
+    &simdpackblockmask57, &simdpackblockmask58, &simdpackblockmask59,
+    &simdpackblockmask60, &simdpackblockmask61, &simdpackblockmask62,
+    &simdpackblockmask63, &simdpackblockmask64};
+static simdunpackblockfnc simdfuncUnpackArr[] = {
+    &simdunpackblock0,  &simdunpackblock1,  &simdunpackblock2,
+    &simdunpackblock3,  &simdunpackblock4,  &simdunpackblock5,
+    &simdunpackblock6,  &simdunpackblock7,  &simdunpackblock8,
+    &simdunpackblock9,  &simdunpackblock10, &simdunpackblock11,
+    &simdunpackblock12, &simdunpackblock13, &simdunpackblock14,
+    &simdunpackblock15, &simdunpackblock16, &simdunpackblock17,
+    &simdunpackblock18, &simdunpackblock19, &simdunpackblock20,
+    &simdunpackblock21, &simdunpackblock22, &simdunpackblock23,
+    &simdunpackblock24, &simdunpackblock25, &simdunpackblock26,
+    &simdunpackblock27, &simdunpackblock28, &simdunpackblock29,
+    &simdunpackblock30, &simdunpackblock31, &simdunpackblock32,
+    &simdunpackblock33, &simdunpackblock34, &simdunpackblock35,
+    &simdunpackblock36, &simdunpackblock37, &simdunpackblock38,
+    &simdunpackblock39, &simdunpackblock40, &simdunpackblock41,
+    &simdunpackblock42, &simdunpackblock43, &simdunpackblock44,
+    &simdunpackblock45, &simdunpackblock46, &simdunpackblock47,
+    &simdunpackblock48, &simdunpackblock49, &simdunpackblock50,
+    &simdunpackblock51, &simdunpackblock52, &simdunpackblock53,
+    &simdunpackblock54, &simdunpackblock55, &simdunpackblock56,
+    &simdunpackblock57, &simdunpackblock58, &simdunpackblock59,
+    &simdunpackblock60, &simdunpackblock61, &simdunpackblock62,
+    &simdunpackblock63, &simdunpackblock64};
+//---------------------------------------------------------------------------
+void pack(const u64 *in, __m128i *out, const u8 bit) {
+  simdfuncPackArr[bit](in, out);
+}
+//---------------------------------------------------------------------------
+void packmask(const u64 *in, __m128i *out, const u8 bit) {
+  simdfuncPackMaskArr[bit](in, out);
+}
+//---------------------------------------------------------------------------
+void unpack(const __m128i *in, u64 *out, const u8 bit) {
+  simdfuncUnpackArr[bit](in, out);
+}
+//---------------------------------------------------------------------------
+} // namespace block64
+//---------------------------------------------------------------------------
+} // namespace simd64
+//---------------------------------------------------------------------------
+} // namespace bitpacking
+//---------------------------------------------------------------------------
+} // namespace compression

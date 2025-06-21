@@ -42,10 +42,9 @@ void unpack(DataType *dest, const u8 *src, const u8 pack_size);
 //---------------------------------------------------------------------------
 template <>
 inline u32 pack<INTEGER, 64>(const INTEGER *src, u8 *dest, const u8 pack_size) {
-  auto out = simd32::sse::packShortLength(reinterpret_cast<const u32 *>(src),
-                                          64, reinterpret_cast<__m128i *>(dest),
-                                          pack_size);
-  return reinterpret_cast<u8 *>(out) - dest;
+  simd32::block64::pack(reinterpret_cast<const u32 *>(src),
+                        reinterpret_cast<__m128i *>(dest), pack_size);
+  return std::ceil(static_cast<double>((pack_size + 1) / 2 * 128) / 8);
 }
 //---------------------------------------------------------------------------
 template <>
@@ -74,10 +73,9 @@ inline u32 pack<INTEGER, 512>(const INTEGER *src, u8 *dest,
 //---------------------------------------------------------------------------
 template <>
 inline u32 pack<BIGINT, 64>(const BIGINT *src, u8 *dest, const u8 pack_size) {
-  auto out = simd64::simdpack_shortlength<64>(
-      reinterpret_cast<const u64 *>(src), reinterpret_cast<__m128i *>(dest),
-      pack_size);
-  return reinterpret_cast<u8 *>(out) - dest;
+  simd64::block64::pack(reinterpret_cast<const u64 *>(src),
+                        reinterpret_cast<__m128i *>(dest), pack_size);
+  return std::ceil(static_cast<double>((pack_size + 1) / 2 * 128) / 8);
 }
 //---------------------------------------------------------------------------
 template <>
@@ -104,7 +102,9 @@ inline u32 pack<BIGINT, 512>(const BIGINT *src, u8 *dest, const u8 pack_size) {
 template <>
 inline u32 packmask<INTEGER, 64>(const INTEGER *src, u8 *dest,
                                  const u8 pack_size) {
-  return pack<INTEGER, 64>(src, dest, pack_size);
+  simd32::block64::packmask(reinterpret_cast<const u32 *>(src),
+                            reinterpret_cast<__m128i *>(dest), pack_size);
+  return std::ceil(static_cast<double>((pack_size + 1) / 2 * 128) / 8);
 }
 //---------------------------------------------------------------------------
 template <>
@@ -134,7 +134,9 @@ inline u32 packmask<INTEGER, 512>(const INTEGER *src, u8 *dest,
 template <>
 inline u32 packmask<BIGINT, 64>(const BIGINT *src, u8 *dest,
                                 const u8 pack_size) {
-  return pack<BIGINT, 64>(src, dest, pack_size);
+  simd64::block64::packmask(reinterpret_cast<const u64 *>(src),
+                            reinterpret_cast<__m128i *>(dest), pack_size);
+  return std::ceil(static_cast<double>((pack_size + 1) / 2 * 128) / 8);
 }
 //---------------------------------------------------------------------------
 template <>
@@ -164,8 +166,8 @@ inline u32 packmask<BIGINT, 512>(const BIGINT *src, u8 *dest,
 template <>
 inline void unpack<INTEGER, 64>(INTEGER *dest, const u8 *src,
                                 const u8 pack_size) {
-  simd32::sse::unpackShortLength(reinterpret_cast<const __m128i *>(src), 64,
-                                 reinterpret_cast<u32 *>(dest), pack_size);
+  simd32::block64::unpack(reinterpret_cast<const __m128i *>(src),
+                          reinterpret_cast<u32 *>(dest), pack_size);
 }
 //---------------------------------------------------------------------------
 template <>
@@ -192,8 +194,8 @@ inline void unpack<INTEGER, 512>(INTEGER *dest, const u8 *src,
 template <>
 inline void unpack<BIGINT, 64>(BIGINT *dest, const u8 *src,
                                const u8 pack_size) {
-  simd64::simdunpack_shortlength<64>(reinterpret_cast<const __m128i *>(src),
-                                     reinterpret_cast<u64 *>(dest), pack_size);
+  simd64::block64::unpack(reinterpret_cast<const __m128i *>(src),
+                          reinterpret_cast<u64 *>(dest), pack_size);
 }
 //---------------------------------------------------------------------------
 template <>
