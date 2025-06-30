@@ -268,8 +268,10 @@ public:
     write_ptr += sizeof(meta);
     // Locations.
     auto locations_size = locations.size() * sizeof(ExceptionLocation);
-    std::memcpy(write_ptr, locations.data(), locations_size);
-    write_ptr += locations_size;
+    if (locations_size > 0) {
+      std::memcpy(write_ptr, locations.data(), locations_size);
+      write_ptr += locations_size;
+    }
     // Exceptions.
     u64 padding = 0;
     utils::align<u8>(write_ptr, 4, padding);
