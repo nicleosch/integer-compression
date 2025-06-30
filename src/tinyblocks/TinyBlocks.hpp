@@ -34,38 +34,25 @@ struct Opcode {
   u8 payload;
 };
 //---------------------------------------------------------------------------
-/// An abstraction for a block's 3 byte offset.
-struct Offset {
-  /// The raw offset.
-  u8 value[3];
-  /// Get the offset as 32-bit integer.
-  u32 get() const {
-    return (static_cast<u32>(value[0]) << 16) |
-           (static_cast<u32>(value[1]) << 8) | value[2];
-  }
-  /// Set the offset to provided value.
-  void set(u32 v) {
-    value[0] = (v >> 16) & 0xFF;
-    value[1] = (v >> 8) & 0xFF;
-    value[2] = v & 0xFF;
-  }
-};
-//---------------------------------------------------------------------------
 /// The class wrapping tinyblocks compression.
 template <typename DataType, const u16 kBlockSize> class TinyBlocks {
 public:
   //---------------------------------------------------------------------------
   using RunLength = u8;
   //---------------------------------------------------------------------------
+  static constexpr u32 kAlignment = sizeof(DataType);
+  //---------------------------------------------------------------------------
   /// The slot stored in the header per block.
-  struct __attribute__((packed)) Slot {
-    /// The reference of the corresponding frame.
+  struct alignas(DataType) Slot {
+    /// The reference, i.e. min, of the corresponding frame.
     DataType reference;
-    /// The offset into the data array.
-    Offset offset;
+    /// The offset into the data array (in sizeof(T)-Byte steps).
+    u16 offset;
     /// The number of bits used to store an integer in corresponding frame.
     Opcode opcode;
   };
+  static_assert(sizeof(Slot) % kAlignment == 0,
+                "Slot not a multiple of alignment!");
 
   //---------------------------------------------------------------------------
   // COMPRESSION
@@ -79,7 +66,7 @@ public:
         });
   }
   //---------------------------------------------------------------------------
-  // Compress given a specific opcode.
+  // Compress given a specific scheme.
   CompressionDetails compress(const DataType *src, const u32 size, u8 *dest,
                               const Statistics<DataType> *stats,
                               const Scheme scheme) {
@@ -107,7 +94,7 @@ public:
     for (u32 block_i = 0; block_i < block_count; ++block_i) {
       // Read header
       auto &slot = *reinterpret_cast<const Slot *>(header_ptr);
-      data_ptr = src + slot.offset.get();
+      data_ptr = src + slot.offset * sizeof(DataType);
       //---------------------------------------------------------------------------
       // Decompress payload
       decompressDispatch(dest, data_ptr, slot);
@@ -125,6 +112,11 @@ private:
   CompressionDetails compressImpl(const DataType *src, const u32 size, u8 *dest,
                                   const Statistics<DataType> *stats,
                                   auto &&chooseSchemeFn) {
+    assert(reinterpret_cast<uintptr_t>(dest) % 4 == 0 &&
+           "TinyBlock destination is not 4-byte aligned!");
+    assert(size <= (1ULL << (sizeof(Slot::offset) * 8)) &&
+           "Block is too large to reliably be addressed by offset!");
+    //---------------------------------------------------------------------------
     const u32 block_count = size / kBlockSize;
     u8 *header_ptr = dest;
     u8 *data_ptr = dest;
@@ -136,12 +128,15 @@ private:
       // Update header
       auto &slot = *reinterpret_cast<Slot *>(header_ptr);
       slot.reference = stats[block_i].min;
-      slot.offset.set(data_offset);
+      slot.offset = data_offset / kAlignment;
       //---------------------------------------------------------------------------
       // Compress
       Scheme scheme = chooseSchemeFn(src, stats[block_i]);
-      data_offset +=
+      u32 compressed_size =
           compressDispatch(src, data_ptr, stats[block_i], slot, scheme);
+      //---------------------------------------------------------------------------
+      // Align the offset.
+      data_offset += (compressed_size + (kAlignment - 1)) & ~(kAlignment - 1);
       //---------------------------------------------------------------------------
       // Update iterators
       src += kBlockSize;
@@ -551,7 +546,6 @@ private:
     pfor::decompressPFOREP<DataType, kBlockSize>(dest, src, slot.reference,
                                                  slot.opcode.payload);
   }
-  //---------------------------------------------------------------------------
 
   //---------------------------------------------------------------------------
   // PFOR_DELTA
