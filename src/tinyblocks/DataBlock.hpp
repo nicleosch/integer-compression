@@ -48,7 +48,9 @@ public:
   };
   static_assert(sizeof(Header) % 4 == 0, "Data must be 4-Byte aligned.");
   //---------------------------------------------------------------------------
-  CompressionDetails compress(const DataType *src, const u32 size, u8 *dest) {
+  /// Compress the datablocks.
+  CompressionDetails compress(const DataType *src, const u32 size, u8 *dest,
+                              const tinyblocks::Scheme *scheme = nullptr) {
     assert(size % kTinyBlockSize == 0);
     //---------------------------------------------------------------------------
     CompressionDetails details{};  // Full details.
@@ -60,7 +62,7 @@ public:
     //---------------------------------------------------------------------------
     // Compress all datablocks.
     for (u32 i = 0; i < cblock; ++i, read_ptr += kBlockSize) {
-      pdetails = compressImpl(read_ptr, kBlockSize, write_ptr);
+      pdetails = compressImpl(read_ptr, kBlockSize, write_ptr, scheme);
       details.header_size += pdetails.header_size;
       details.payload_size += pdetails.payload_size;
       //---------------------------------------------------------------------------
@@ -68,12 +70,13 @@ public:
     }
     //---------------------------------------------------------------------------
     // Compress the rest.
-    pdetails = compressImpl(read_ptr, size % kBlockSize, write_ptr);
+    pdetails = compressImpl(read_ptr, size % kBlockSize, write_ptr, scheme);
     details.header_size += pdetails.header_size;
     details.payload_size += pdetails.payload_size;
     //---------------------------------------------------------------------------
     return details;
   }
+  /// Decompress the datablocks.
   //---------------------------------------------------------------------------
   void decompress(DataType *dest, const u32 size, const u8 *src) {
     const u32 cblock = size / kBlockSize;
@@ -90,8 +93,8 @@ public:
 
 private:
   //---------------------------------------------------------------------------
-  CompressionDetails compressImpl(const DataType *src, const u32 size,
-                                  u8 *dest) {
+  CompressionDetails compressImpl(const DataType *src, const u32 size, u8 *dest,
+                                  const tinyblocks::Scheme *scheme) {
     assert(size % kTinyBlockSize == 0);
     //---------------------------------------------------------------------------
     if (size == 0)
@@ -125,7 +128,10 @@ private:
     // Compress the tinyblocks.
     TinyBlocks<DataType, kTinyBlockSize> tb;
     CompressionDetails cd =
-        tb.compress(src, size, dest + sizeof(Header), stats.data());
+        scheme == nullptr
+            ? tb.compress(src, size, dest + sizeof(Header), stats.data())
+            : tb.compress(src, size, dest + sizeof(Header), stats.data(),
+                          *scheme);
     header.cbytes = cd.header_size + cd.payload_size;
     cd.header_size += sizeof(Header);
     //---------------------------------------------------------------------------
