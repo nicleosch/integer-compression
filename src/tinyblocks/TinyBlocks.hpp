@@ -2,131 +2,113 @@
 //---------------------------------------------------------------------------
 #include <cmath>
 //---------------------------------------------------------------------------
-#include "bitpacking/BitPacking.hpp"
-#include "extern/fastpfor/BitPacking.hpp"
-#include "extern/fastpfor/Delta.hpp"
-#include "extern/fastpfor/PFOR.hpp"
 #include "schemes/CompressionScheme.hpp"
+#include "tinyblocks/Metadata.hpp"
+#include "tinyblocks/schemes/Delta.hpp"
+#include "tinyblocks/schemes/FrameOfReference.hpp"
+#include "tinyblocks/schemes/Monotonic.hpp"
+#include "tinyblocks/schemes/PatchedFrameOfReference.hpp"
+#include "tinyblocks/schemes/RLE.hpp"
 //---------------------------------------------------------------------------
 namespace compression {
 //---------------------------------------------------------------------------
 namespace tinyblocks {
 //---------------------------------------------------------------------------
-/// The scheme used for compression within a block.
-enum class Scheme : u8 {
-  MONOTONIC = 0,
-  FOR = 1,
-  RLE4 = 2,
-  RLE8 = 3,
-  DELTA = 4,
-  PFOR = 5,
-  PFOR_EBP = 6,
-  PFOR_EP = 7,
-  PFOR_DELTA = 8,
-  PFOR_LEMIRE = 9,
-};
-//---------------------------------------------------------------------------
-/// The opcode stored in the header slot.
-struct Opcode {
-  /// The compression scheme.
-  Scheme scheme;
-  /// Additional meta data required for the scheme.
-  u8 payload;
-};
-//---------------------------------------------------------------------------
 /// The class wrapping tinyblocks compression.
-template <typename DataType, const u16 kBlockSize> class TinyBlocks {
+template <typename T, const u16 kBlockSize> class TinyBlocks {
 public:
   //---------------------------------------------------------------------------
-  using RunLength = u8;
+  /// A tinyblocks alignment.
+  static constexpr u32 kAlignment = sizeof(T);
   //---------------------------------------------------------------------------
-  static constexpr u32 kAlignment = sizeof(DataType);
-  //---------------------------------------------------------------------------
-  /// The slot stored in the header per block.
-  struct alignas(DataType) Slot {
-    /// The reference, i.e. min, of the corresponding frame.
-    DataType reference;
-    /// The offset into the data array (in sizeof(T)-Byte steps).
-    u16 offset;
-    /// The number of bits used to store an integer in corresponding frame.
-    Opcode opcode;
-  };
-  static_assert(sizeof(Slot) % kAlignment == 0,
-                "Slot not a multiple of alignment!");
-
-  //---------------------------------------------------------------------------
-  // COMPRESSION
-  //---------------------------------------------------------------------------
-  CompressionDetails compress(const DataType *src, const u32 size, u8 *dest,
-                              const Statistics<DataType> *stats) {
-    return compressImpl(
-        src, size, dest, stats,
-        [this](const DataType *src, const Statistics<DataType> &stat) {
-          return chooseScheme(src, stat);
-        });
+  /// @brief Compress given data.
+  /// @param src The data to be compressed.
+  /// @param size The number of values to be compressed.
+  /// @param dest The location to compress the data to.
+  /// @param stats Statistics on the data to be compressed.
+  /// @return Statistics on the compressed data.
+  CompressionDetails compress(const T *src, const u32 size, u8 *dest,
+                              const Statistics<T> *stats) {
+    return compressImpl(src, size, dest, stats,
+                        [this](const T *src, const Statistics<T> &stat) {
+                          return chooseScheme(src, stat);
+                        });
   }
   //---------------------------------------------------------------------------
-  // Compress given a specific scheme.
-  CompressionDetails compress(const DataType *src, const u32 size, u8 *dest,
-                              const Statistics<DataType> *stats,
-                              const Scheme scheme) {
+  /// @brief Compress given data using given scheme.
+  /// @param src The data to be compressed.
+  /// @param size The number of values to be compressed.
+  /// @param dest The location to compress the data to.
+  /// @param stats Statistics on the data to be compressed.
+  /// @param scheme The scheme to compress the data with.
+  /// @return Statistics on the compressed data.
+  CompressionDetails compress(const T *src, const u32 size, u8 *dest,
+                              const Statistics<T> *stats, const Scheme scheme) {
     return compressImpl(
         src, size, dest, stats,
-        [scheme](const DataType *, const Statistics<DataType> &) {
-          return scheme;
-        });
+        [scheme](const T *, const Statistics<T> &) { return scheme; });
   }
-
   //---------------------------------------------------------------------------
-  // DECOMPRESSION
-  //---------------------------------------------------------------------------
-  void decompress(DataType *dest, const u32 size, const u8 *src) {
+  /// @brief Decompress given data.
+  /// @param dest The location to decompress the data to.
+  /// @param size The number of compressed values.
+  /// @param src The compressed data.
+  void decompress(T *dest, const u32 size, const u8 *src) {
     decompress(dest, size, src, 0);
   }
   //---------------------------------------------------------------------------
-  // Decompress starting from a given block offset.
-  void decompress(DataType *dest, const u32 size, const u8 *src,
+  /// @brief Decompress given data starting at given offset.
+  /// @param dest The location to decompress the data to.
+  /// @param size The number of compressed values.
+  /// @param src The compressed data.
+  /// @param block_offset The offset into the header.
+  void decompress(T *dest, const u32 size, const u8 *src,
                   const u32 block_offset) {
     const u32 block_count = size / kBlockSize;
-    const u8 *header_ptr = src + block_offset * sizeof(Slot);
+    const u8 *header_ptr = src + block_offset * sizeof(Slot<T>);
     const u8 *data_ptr = src;
     //---------------------------------------------------------------------------
     for (u32 block_i = 0; block_i < block_count; ++block_i) {
       // Read header
-      auto &slot = *reinterpret_cast<const Slot *>(header_ptr);
-      data_ptr = src + slot.offset * sizeof(DataType);
+      auto &slot = *reinterpret_cast<const Slot<T> *>(header_ptr);
+      data_ptr = src + slot.offset * sizeof(T);
       //---------------------------------------------------------------------------
       // Decompress payload
       decompressDispatch(dest, data_ptr, slot);
       //---------------------------------------------------------------------------
       // Update iterators
       dest += kBlockSize;
-      header_ptr += sizeof(Slot);
+      header_ptr += sizeof(Slot<T>);
     }
   }
 
 private:
-  //---------------------------------------------------------------------------
-  // COMPRESSION HELPERS
-  //---------------------------------------------------------------------------
-  CompressionDetails compressImpl(const DataType *src, const u32 size, u8 *dest,
-                                  const Statistics<DataType> *stats,
+  /// @brief Compress given data.
+  /// Note: This function contains the actual compression logic.
+  /// @param src The data to be compressed.
+  /// @param size The number of values to be compressed.
+  /// @param dest The location to compress the data to.
+  /// @param stats Statistics on the data to be compressed.
+  /// @param chooseSchemeFn A function to determine the compression scheme.
+  /// @return Statistics on the compressed data.
+  CompressionDetails compressImpl(const T *src, const u32 size, u8 *dest,
+                                  const Statistics<T> *stats,
                                   auto &&chooseSchemeFn) {
     assert(reinterpret_cast<uintptr_t>(dest) % 4 == 0 &&
            "TinyBlock destination is not 4-byte aligned!");
-    assert(size <= (1ULL << (sizeof(Slot::offset) * 8)) &&
+    assert(size <= (1ULL << (sizeof(Slot<T>::offset) * 8)) &&
            "Block is too large to reliably be addressed by offset!");
     //---------------------------------------------------------------------------
     const u32 block_count = size / kBlockSize;
     u8 *header_ptr = dest;
     u8 *data_ptr = dest;
-    u32 data_offset = block_count * sizeof(Slot);
+    u32 data_offset = block_count * sizeof(Slot<T>);
     //---------------------------------------------------------------------------
     for (u32 block_i = 0; block_i < block_count; ++block_i) {
       data_ptr = dest + data_offset;
       //---------------------------------------------------------------------------
       // Update header
-      auto &slot = *reinterpret_cast<Slot *>(header_ptr);
+      auto &slot = *reinterpret_cast<Slot<T> *>(header_ptr);
       slot.reference = stats[block_i].min;
       slot.offset = data_offset / kAlignment;
       //---------------------------------------------------------------------------
@@ -140,7 +122,7 @@ private:
       //---------------------------------------------------------------------------
       // Update iterators
       src += kBlockSize;
-      header_ptr += sizeof(Slot);
+      header_ptr += sizeof(Slot<T>);
     }
     //---------------------------------------------------------------------------
     u64 header_size = header_ptr - dest;
@@ -148,33 +130,48 @@ private:
     return {header_size, payload_size};
   }
   //---------------------------------------------------------------------------
-  // Choose the scheme that yields the smallest size.
-  // Note: This is a naive approach, which will be improved in the future.
-  Scheme chooseScheme(const DataType *src, const Statistics<DataType> &stats) {
+  /// @brief Choose the scheme that yields the smallest size.
+  /// Note: This is a naive approach, which will be improved in the future.
+  /// @param src The tinyblock to be compressed.
+  /// @param stats Statistics on the given tinyblock.
+  /// @return The chosen scheme.
+  Scheme chooseScheme(const T *src, const Statistics<T> &stats) {
     if (stats.step_size >= 0 && stats.step_size < 256) {
       return Scheme::MONOTONIC;
     }
     //---------------------------------------------------------------------------
     // The buffer to compress into.
-    auto dest = std::make_unique<u8[]>(kBlockSize * sizeof(DataType) * 2);
+    auto dest = std::make_unique<u8[]>(kBlockSize * sizeof(T) * 2);
     //---------------------------------------------------------------------------
     // A dummy slot.
-    Slot slot{stats.min, {}, {}};
+    Slot<T> slot{stats.min, {}, {}};
     //---------------------------------------------------------------------------
     // Compress to find best compressing scheme.
     unordered_map<Scheme, u32> scheme2size;
-    scheme2size[Scheme::FOR] = compressFOR(src, dest.get(), stats, slot);
-    scheme2size[Scheme::RLE4] = compressRLE<4>(src, dest.get(), stats, slot);
-    scheme2size[Scheme::RLE8] = compressRLE<8>(src, dest.get(), stats, slot);
-    scheme2size[Scheme::PFOR] = compressPFOR(src, dest.get(), slot);
-    scheme2size[Scheme::PFOR_EBP] = compressPFOREBP(src, dest.get(), slot);
-    scheme2size[Scheme::PFOR_EP] = compressPFOREP(src, dest.get(), slot);
+    scheme2size[Scheme::FOR] =
+        frameofreference::compress<T, kBlockSize>(src, dest.get(), stats, slot);
+    scheme2size[Scheme::RLE4] =
+        rle::compress<T, kBlockSize, 4>(src, dest.get(), stats, slot);
+    scheme2size[Scheme::RLE8] =
+        rle::compress<T, kBlockSize, 8>(src, dest.get(), stats, slot);
+    scheme2size[Scheme::PFOR] =
+        pframeofreference::compress<T, kBlockSize, Scheme::PFOR>(
+            src, dest.get(), slot);
+    scheme2size[Scheme::PFOR_EBP] =
+        pframeofreference::compress<T, kBlockSize, Scheme::PFOR_EBP>(
+            src, dest.get(), slot);
+    scheme2size[Scheme::PFOR_EP] =
+        pframeofreference::compress<T, kBlockSize, Scheme::PFOR_EP>(
+            src, dest.get(), slot);
     scheme2size[Scheme::PFOR_LEMIRE] =
-        compressPFORLemire(src, dest.get(), slot);
+        pframeofreference::compress<T, kBlockSize, Scheme::PFOR_LEMIRE>(
+            src, dest.get(), slot);
     if (stats.delta) {
-      scheme2size[Scheme::DELTA] = compressDelta(src, dest.get(), slot);
+      scheme2size[Scheme::DELTA] =
+          delta::compress<T, kBlockSize>(src, dest.get(), slot);
       scheme2size[Scheme::PFOR_DELTA] =
-          compressPFORDelta(src, dest.get(), slot);
+          pframeofreference::compress<T, kBlockSize, Scheme::PFOR_DELTA>(
+              src, dest.get(), slot);
     }
     //---------------------------------------------------------------------------
     // Find minimum size.
@@ -185,439 +182,91 @@ private:
     return min->first;
   }
   //---------------------------------------------------------------------------
-  u16 compressDispatch(const DataType *src, u8 *dest,
-                       const Statistics<DataType> &stats, Slot &slot,
-                       Scheme scheme) {
+  /// @brief Dispatch the compression functions based on given scheme.
+  /// @param src The tinyblock to be compressed.
+  /// @param dest The location to compress the tinyblock to.
+  /// @param stats Statistics on the tinyblock to be compressed.
+  /// @param slot The header for given tinyblock.
+  /// @param scheme The scheme to compress the tinyblock with.
+  /// @return The size of the compressed data in bytes.
+  u16 compressDispatch(const T *src, u8 *dest, const Statistics<T> &stats,
+                       Slot<T> &slot, Scheme scheme) {
     switch (scheme) {
     case Scheme::MONOTONIC:
-      return compressMonotonic(src, dest, stats, slot);
+      return monotonic::compress<T, kBlockSize>(src, dest, stats, slot);
     case Scheme::FOR:
-      return compressFOR(src, dest, stats, slot);
+      return frameofreference::compress<T, kBlockSize>(src, dest, stats, slot);
     case Scheme::RLE4:
-      return compressRLE<4>(src, dest, stats, slot);
+      return rle::compress<T, kBlockSize, 4>(src, dest, stats, slot);
     case Scheme::RLE8:
-      return compressRLE<8>(src, dest, stats, slot);
+      return rle::compress<T, kBlockSize, 8>(src, dest, stats, slot);
     case Scheme::DELTA:
-      return compressDelta(src, dest, slot);
+      return delta::compress<T, kBlockSize>(src, dest, slot);
     case Scheme::PFOR:
-      return compressPFOR(src, dest, slot);
+      return pframeofreference::compress<T, kBlockSize, Scheme::PFOR>(src, dest,
+                                                                      slot);
     case Scheme::PFOR_EBP:
-      return compressPFOREBP(src, dest, slot);
+      return pframeofreference::compress<T, kBlockSize, Scheme::PFOR_EBP>(
+          src, dest, slot);
     case Scheme::PFOR_EP:
-      return compressPFOREP(src, dest, slot);
+      return pframeofreference::compress<T, kBlockSize, Scheme::PFOR_EP>(
+          src, dest, slot);
     case Scheme::PFOR_DELTA:
-      return compressPFORDelta(src, dest, slot);
+      return pframeofreference::compress<T, kBlockSize, Scheme::PFOR_DELTA>(
+          src, dest, slot);
     case Scheme::PFOR_LEMIRE:
-      return compressPFORLemire(src, dest, slot);
+      return pframeofreference::compress<T, kBlockSize, Scheme::PFOR_LEMIRE>(
+          src, dest, slot);
     default:
       throw std::runtime_error(
           "Compression failed: Provided scheme does not exist.");
     }
   }
-
   //---------------------------------------------------------------------------
-  // DECOMPRESSION HELPERS
-  //---------------------------------------------------------------------------
-  void decompressDispatch(DataType *dest, const u8 *src, const Slot &slot) {
+  /// @brief Dispatch the decompression functions based on the encoded scheme.
+  /// @param dest The location to decompress the tinyblock to.
+  /// @param src The compressed tinyblock.
+  /// @param slot The header for given tinyblock.
+  void decompressDispatch(T *dest, const u8 *src, const Slot<T> &slot) {
     switch (slot.opcode.scheme) {
     case Scheme::MONOTONIC:
-      decompressMonotonic(dest, slot);
+      monotonic::decompress<T, kBlockSize>(dest, slot);
       return;
     case Scheme::FOR:
-      decompressFOR(dest, src, slot);
+      frameofreference::decompress<T, kBlockSize>(dest, src, slot);
       return;
     case Scheme::RLE4:
-      decompressRLE<4>(dest, src, slot);
+      rle::decompress<T, kBlockSize, 4>(dest, src, slot);
       return;
     case Scheme::RLE8:
-      decompressRLE<8>(dest, src, slot);
+      rle::decompress<T, kBlockSize, 8>(dest, src, slot);
       return;
     case Scheme::DELTA:
-      decompressDelta(dest, src, slot);
+      delta::decompress<T, kBlockSize>(dest, src, slot);
       return;
     case Scheme::PFOR:
-      decompressPFOR(dest, src, slot);
+      pframeofreference::decompress<T, kBlockSize, Scheme::PFOR>(dest, src,
+                                                                 slot);
       return;
     case Scheme::PFOR_EBP:
-      decompressPFOREBP(dest, src, slot);
+      pframeofreference::decompress<T, kBlockSize, Scheme::PFOR_EBP>(dest, src,
+                                                                     slot);
       return;
     case Scheme::PFOR_EP:
-      decompressPFOREP(dest, src, slot);
+      pframeofreference::decompress<T, kBlockSize, Scheme::PFOR_EP>(dest, src,
+                                                                    slot);
       return;
     case Scheme::PFOR_DELTA:
-      decompressPFORDelta(dest, src, slot);
+      pframeofreference::decompress<T, kBlockSize, Scheme::PFOR_DELTA>(
+          dest, src, slot);
       return;
     case Scheme::PFOR_LEMIRE:
-      decompressPFORLemire(dest, src, slot);
+      pframeofreference::decompress<T, kBlockSize, Scheme::PFOR_LEMIRE>(
+          dest, src, slot);
       return;
     default:
       throw std::runtime_error(
           "Decompression failed: Provided opcode does not exist.");
-    }
-  }
-
-  //---------------------------------------------------------------------------
-  // MONOTONIC
-  //---------------------------------------------------------------------------
-  u32 compressMonotonic(const DataType *src, u8 *dest,
-                        const Statistics<DataType> &stats, Slot &slot) {
-    assert(stats.step_size >= 0 && stats.step_size < 256);
-    slot.opcode = {Scheme::MONOTONIC, static_cast<u8>(stats.step_size)};
-    return 0;
-  }
-  //---------------------------------------------------------------------------
-  void decompressMonotonic(DataType *dest, const Slot &slot) {
-    for (u16 i = 0; i < kBlockSize; ++i) {
-      dest[i] = slot.reference + i * slot.opcode.payload;
-    }
-  }
-
-  //---------------------------------------------------------------------------
-  // FOR
-  //---------------------------------------------------------------------------
-  u32 compressFOR(const DataType *src, u8 *dest,
-                  const Statistics<DataType> &stats, Slot &slot) {
-    assert(stats.diff_bits >= 0 && stats.diff_bits <= sizeof(DataType) * 8);
-    slot.opcode = {Scheme::FOR, stats.diff_bits};
-    //---------------------------------------------------------------------------
-    // Normalize
-    vector<DataType> normalized(kBlockSize);
-    for (u32 i = 0; i < kBlockSize; ++i) {
-      normalized[i] = src[i] - slot.reference;
-    }
-    //---------------------------------------------------------------------------
-    // Compress
-    u8 pack_size = slot.opcode.payload;
-    return bitpacking::pack<DataType, kBlockSize>(normalized.data(), dest,
-                                                  pack_size);
-  }
-  //---------------------------------------------------------------------------
-  void decompressFOR(DataType *dest, const u8 *src, const Slot &slot) {
-    // Decompress
-    bitpacking::unpack<DataType, kBlockSize>(dest, src, slot.opcode.payload);
-    //---------------------------------------------------------------------------
-    // Denormalize
-    for (u32 i = 0; i < kBlockSize; ++i) {
-      dest[i] += slot.reference;
-    }
-  }
-
-  //---------------------------------------------------------------------------
-  // RLE
-  //---------------------------------------------------------------------------
-  template <u8 kLengthBits>
-  u32 compressRLE(const DataType *src, u8 *dest,
-                  const Statistics<DataType> &stats, Slot &slot) {
-    static_assert(kLengthBits == 4 || kLengthBits == 8,
-                  "Run-Lengths must be encoded in either 4 or 8 bits.");
-    assert(stats.diff_bits >= 0 && stats.diff_bits <= sizeof(DataType) * 8);
-    //---------------------------------------------------------------------------
-    slot.opcode = {kLengthBits == 4 ? Scheme::RLE4 : Scheme::RLE8,
-                   stats.diff_bits};
-    //---------------------------------------------------------------------------
-    constexpr RunLength max_length = (kLengthBits == 4) ? 15 : 255;
-    //---------------------------------------------------------------------------
-    // Data to be stored
-    u16 run_count;
-    vector<DataType> values;
-    vector<RunLength> lengths;
-    //---------------------------------------------------------------------------
-    // Iterators
-    DataType cur = src[0];
-    RunLength run_length = 1;
-    //---------------------------------------------------------------------------
-    // Helpers for bit manipulation
-    u8 shift = 0;
-    u8 length_byte = 0;
-    auto appendLength = [&]() {
-      if constexpr (kLengthBits == 8) {
-        lengths.push_back(run_length);
-      } else {
-        length_byte |= (run_length << (4 - shift));
-        shift = (shift + 4) % 8;
-        if (shift == 0) {
-          lengths.push_back(length_byte);
-          length_byte = 0;
-        }
-      }
-    };
-    //---------------------------------------------------------------------------
-    // Fill length & value arrays
-    for (u32 i = 1; i < kBlockSize; ++i) {
-      if (src[i] == cur) {
-        if (run_length == max_length) {
-          appendLength();
-          values.push_back(cur - slot.reference);
-          run_length = 0;
-        }
-        ++run_length;
-      } else {
-        appendLength();
-        values.push_back(cur - slot.reference);
-        run_length = 1;
-        cur = src[i];
-      }
-    }
-    if constexpr (kLengthBits == 8) {
-      lengths.push_back(run_length);
-    } else {
-      lengths.push_back(length_byte | (run_length << (4 - shift)));
-    }
-    values.push_back(cur - slot.reference);
-    run_count = values.size();
-    assert(((kLengthBits == 4) ? (values.size() + 1) / 2 : values.size()) ==
-           lengths.size());
-    //---------------------------------------------------------------------------
-    // Write lengths
-    auto write_ptr = dest;
-    std::memcpy(write_ptr, &run_count, sizeof(run_count));
-    write_ptr += sizeof(run_count);
-    std::memcpy(write_ptr, lengths.data(), lengths.size() * sizeof(RunLength));
-    //---------------------------------------------------------------------------
-    // Write values
-    u16 value_offset = lengths.size() * sizeof(RunLength);
-    write_ptr += value_offset;
-    u32 values_size = pfor::packAdaptive(
-        values, reinterpret_cast<u32 *>(write_ptr), slot.opcode.payload);
-    //---------------------------------------------------------------------------
-    return sizeof(run_count) + value_offset + values_size;
-  }
-  //---------------------------------------------------------------------------
-  template <u8 kLengthBits>
-  void decompressRLE(DataType *dest, const u8 *src, const Slot &slot) {
-    static_assert(kLengthBits == 4 || kLengthBits == 8,
-                  "Run-Lengths must be encoded in either 4 or 8 bits.");
-    //---------------------------------------------------------------------------
-    // Decode meta data
-    auto run_count = utils::unalignedLoad<u16>(src);
-    //---------------------------------------------------------------------------
-    u16 length_bytes;
-    if constexpr (kLengthBits == 4) {
-      length_bytes = ((run_count + 1) / 2);
-    } else {
-      length_bytes = run_count;
-    }
-    u16 value_offset = sizeof(run_count) + length_bytes;
-    //---------------------------------------------------------------------------
-    // Decompress lengths & values
-    auto read_ptr = src + value_offset;
-    // Unpack
-    vector<DataType> values(run_count);
-    pfor::unpackAdaptive<DataType>(
-        values, reinterpret_cast<const u32 *>(read_ptr), slot.opcode.payload);
-    // Initialize lengths
-    // TODO: Can be improved probably, currently done to prevent UB
-    vector<RunLength> lengths(length_bytes);
-    std::memcpy(lengths.data(), src + sizeof(run_count), length_bytes);
-    //---------------------------------------------------------------------------
-    // Decode RLE using AVX2
-    auto write_ptr = dest;
-    u16 shift = 0;
-    for (u16 i = 0; i < run_count; ++i) {
-      RunLength length;
-      if constexpr (kLengthBits == 4) {
-        length = (lengths[i / 2] >> (4 - (shift % 8))) & 0x0F;
-      } else {
-        length = lengths[i];
-      }
-      auto end_ptr = write_ptr + length;
-      DataType value = values[i] + slot.reference;
-
-      if constexpr (std::is_same_v<DataType, INTEGER>) {
-        __m256i broadcast = _mm256_set1_epi32(value);
-        while (write_ptr + 8 <= end_ptr) {
-          _mm256_storeu_si256(reinterpret_cast<__m256i *>(write_ptr),
-                              broadcast);
-          write_ptr += 8;
-        }
-      } else if constexpr (std::is_same_v<DataType, BIGINT>) {
-        __m256i broadcast = _mm256_set1_epi64x(value);
-        while (write_ptr + 4 <= end_ptr) {
-          _mm256_storeu_si256(reinterpret_cast<__m256i *>(write_ptr),
-                              broadcast);
-          write_ptr += 4;
-        }
-      } else {
-        static_assert(false,
-                      "Unsupported DataType for TinyBlocks RLE decompression.");
-      }
-      while (write_ptr < end_ptr) {
-        *write_ptr++ = value;
-      }
-      shift += 4;
-    }
-  }
-
-  //---------------------------------------------------------------------------
-  // DELTA
-  //---------------------------------------------------------------------------
-  u32 compressDelta(const DataType *src, u8 *dest, Slot &slot) {
-    // FOR
-    auto buffer = std::make_unique<DataType[]>(kBlockSize);
-    for (u32 i = 0; i < kBlockSize; ++i) {
-      buffer[i] = src[i] - slot.reference;
-    }
-    //---------------------------------------------------------------------------
-    // Delta
-    pfor::delta::compress<DataType, kBlockSize>(buffer.get());
-    //---------------------------------------------------------------------------
-    // Bitpacking
-    //---------------------------------------------------------------------------
-    // Prepare
-    DataType min = 0;
-    DataType max = 0;
-    for (u16 i = 0; i < kBlockSize; ++i) {
-      if (buffer[i] < min)
-        min = buffer[i];
-      if (buffer[i] > max)
-        max = buffer[i];
-    }
-    u8 pack_size = utils::requiredBits(max - min);
-    //---------------------------------------------------------------------------
-    slot.opcode = {Scheme::DELTA, pack_size};
-    //---------------------------------------------------------------------------
-    // Compress
-    u32 compressed_size =
-        bitpacking::pack<DataType, kBlockSize>(buffer.get(), dest, pack_size);
-    //---------------------------------------------------------------------------
-    return compressed_size;
-  }
-  //---------------------------------------------------------------------------
-  void decompressDelta(DataType *dest, const u8 *src, const Slot &slot) {
-    // Bitpacking
-    bitpacking::unpack<DataType, kBlockSize>(dest, src, slot.opcode.payload);
-    //---------------------------------------------------------------------------
-    // Delta
-    pfor::delta::decompress<DataType, kBlockSize>(dest);
-    //---------------------------------------------------------------------------
-    // FOR
-    for (u32 i = 0; i < kBlockSize; ++i) {
-      dest[i] += slot.reference;
-    }
-  }
-
-  //---------------------------------------------------------------------------
-  // PFOR
-  //---------------------------------------------------------------------------
-  u32 compressPFOR(const DataType *src, u8 *dest, Slot &slot) {
-    u8 pack_size;
-    slot.opcode = {Scheme::PFOR, pack_size};
-    //---------------------------------------------------------------------------
-    // Compress
-    return pfor::compressPFOR<DataType, kBlockSize>(src, dest, slot.reference,
-                                                    slot.opcode.payload);
-  }
-  //---------------------------------------------------------------------------
-  void decompressPFOR(DataType *dest, const u8 *src, const Slot &slot) {
-    pfor::decompressPFOR<DataType, kBlockSize>(dest, src, slot.reference,
-                                               slot.opcode.payload);
-  }
-
-  //---------------------------------------------------------------------------
-  // PFOR_EBP
-  //---------------------------------------------------------------------------
-  u32 compressPFOREBP(const DataType *src, u8 *dest, Slot &slot) {
-    u8 pack_size;
-    slot.opcode = {Scheme::PFOR_EBP, pack_size};
-    //---------------------------------------------------------------------------
-    // Compress
-    return pfor::compressPFOREBP<DataType, kBlockSize>(
-        src, dest, slot.reference, slot.opcode.payload);
-  }
-  //---------------------------------------------------------------------------
-  void decompressPFOREBP(DataType *dest, const u8 *src, const Slot &slot) {
-    pfor::decompressPFOREBP<DataType, kBlockSize>(dest, src, slot.reference,
-                                                  slot.opcode.payload);
-  }
-
-  //---------------------------------------------------------------------------
-  // PFOR_EP
-  //---------------------------------------------------------------------------
-  u32 compressPFOREP(const DataType *src, u8 *dest, Slot &slot) {
-    u8 pack_size;
-    slot.opcode = {Scheme::PFOR_EP, pack_size};
-    //---------------------------------------------------------------------------
-    // Compress
-    return pfor::compressPFOREP<DataType, kBlockSize>(src, dest, slot.reference,
-                                                      slot.opcode.payload);
-  }
-  //---------------------------------------------------------------------------
-  void decompressPFOREP(DataType *dest, const u8 *src, const Slot &slot) {
-    pfor::decompressPFOREP<DataType, kBlockSize>(dest, src, slot.reference,
-                                                 slot.opcode.payload);
-  }
-
-  //---------------------------------------------------------------------------
-  // PFOR_DELTA
-  //---------------------------------------------------------------------------
-  u32 compressPFORDelta(const DataType *src, u8 *dest, Slot &slot) {
-    slot.opcode = {Scheme::PFOR_DELTA, 0};
-    //---------------------------------------------------------------------------
-    // Normalize
-    vector<DataType> normalized(kBlockSize);
-    for (u32 i = 0; i < kBlockSize; ++i) {
-      normalized[i] = src[i] - slot.reference;
-    }
-    //---------------------------------------------------------------------------
-    // Compress Delta
-    pfor::delta::compress<DataType, kBlockSize>(normalized.data());
-    //---------------------------------------------------------------------------
-    // Prepare
-    DataType min = 0;
-    DataType max = 0;
-    for (u16 i = 0; i < kBlockSize; ++i) {
-      if (normalized[i] < min)
-        min = normalized[i];
-      if (normalized[i] > max)
-        max = normalized[i];
-    }
-    u8 pack_size = utils::requiredBits(max - min);
-    //---------------------------------------------------------------------------
-    // Compress PFOR
-    return pfor::compressPFORLemire<DataType, kBlockSize>(
-        normalized.data(), dest, slot.opcode.payload);
-  }
-  //---------------------------------------------------------------------------
-  void decompressPFORDelta(DataType *dest, const u8 *src, const Slot &slot) {
-    // Decompress
-    pfor::decompressPFORLemire<DataType, kBlockSize>(dest, src,
-                                                     slot.opcode.payload);
-    //---------------------------------------------------------------------------
-    // Delta
-    pfor::delta::decompress<DataType, kBlockSize>(dest);
-    //---------------------------------------------------------------------------
-    // Denormalize
-    for (u32 i = 0; i < kBlockSize; ++i) {
-      dest[i] += slot.reference;
-    }
-  }
-
-  //---------------------------------------------------------------------------
-  // PFOR_Lemire
-  //---------------------------------------------------------------------------
-  u32 compressPFORLemire(const DataType *src, u8 *dest, Slot &slot) {
-    u8 pack_size;
-    slot.opcode = {Scheme::PFOR_LEMIRE, pack_size};
-    //---------------------------------------------------------------------------
-    // Normalize
-    vector<DataType> normalized(kBlockSize);
-    for (u32 i = 0; i < kBlockSize; ++i) {
-      normalized[i] = src[i] - slot.reference;
-    }
-    //---------------------------------------------------------------------------
-    // Compress
-    return pfor::compressPFORLemire<DataType, kBlockSize>(
-        normalized.data(), dest, slot.opcode.payload);
-  }
-  //---------------------------------------------------------------------------
-  void decompressPFORLemire(DataType *dest, const u8 *src, const Slot &slot) {
-    // Decompress
-    pfor::decompressPFORLemire<DataType, kBlockSize>(dest, src,
-                                                     slot.opcode.payload);
-    //---------------------------------------------------------------------------
-    // Denormalize
-    for (u32 i = 0; i < kBlockSize; ++i) {
-      dest[i] += slot.reference;
     }
   }
   //---------------------------------------------------------------------------
