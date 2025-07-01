@@ -23,7 +23,7 @@ u32 compress(const T *src, u8 *dest, Slot<T> &slot) {
   }
   //---------------------------------------------------------------------------
   // Delta
-  pfor::delta::compress<T, kBlockSize>(buffer.get());
+  external::fastpfor::delta::compress<T, kBlockSize>(buffer.get());
   //---------------------------------------------------------------------------
   // Bitpacking
   //---------------------------------------------------------------------------
@@ -53,7 +53,7 @@ void decompress(T *dest, const u8 *src, const Slot<T> &slot) {
   bitpacking::unpack<T, kBlockSize>(dest, src, slot.opcode.payload);
   //---------------------------------------------------------------------------
   // Delta
-  pfor::delta::decompress<T, kBlockSize>(dest);
+  external::fastpfor::delta::decompress<T, kBlockSize>(dest);
   //---------------------------------------------------------------------------
   // FOR
   for (u32 i = 0; i < kBlockSize; ++i) {

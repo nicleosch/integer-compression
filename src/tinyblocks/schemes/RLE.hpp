@@ -87,7 +87,7 @@ u32 compress(const T *src, u8 *dest, const Statistics<T> &stats,
   // Write values
   u16 value_offset = lengths.size() * sizeof(RunLengthT);
   write_ptr += value_offset;
-  u32 values_size = pfor::packAdaptive(
+  u32 values_size = external::fastpfor::bitpacking::packAdaptive(
       values, reinterpret_cast<u32 *>(write_ptr), slot.opcode.payload);
   //---------------------------------------------------------------------------
   return sizeof(run_count) + value_offset + values_size;
@@ -113,8 +113,8 @@ void decompress(T *dest, const u8 *src, const Slot<T> &slot) {
   auto read_ptr = src + value_offset;
   // Unpack
   vector<T> values(run_count);
-  pfor::unpackAdaptive<T>(values, reinterpret_cast<const u32 *>(read_ptr),
-                          slot.opcode.payload);
+  external::fastpfor::bitpacking::unpackAdaptive<T>(
+      values, reinterpret_cast<const u32 *>(read_ptr), slot.opcode.payload);
   // Initialize lengths
   // TODO: Can be improved probably, currently done to prevent UB
   vector<RunLengthT> lengths(length_bytes);

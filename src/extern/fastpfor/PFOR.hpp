@@ -7,11 +7,17 @@
 #include "common/Utils.hpp"
 #include "extern/fastpfor/BitPacking.hpp"
 //---------------------------------------------------------------------------
+// Differentiate between different bitpacking implementations.
+namespace internal_bp = compression::bitpacking;
+namespace fastpfor_bp = compression::external::fastpfor::bitpacking;
+//---------------------------------------------------------------------------
 namespace compression {
+//---------------------------------------------------------------------------
+namespace external {
 //---------------------------------------------------------------------------
 /// Functions in this namespace implement FastPFOR functionality as pioneered by
 /// Daniel Lemire and Leonid Boytsov (https://github.com/fast-pack/FastPFOR).
-namespace pfor {
+namespace fastpfor {
 //---------------------------------------------------------------------------
 using SIMDRegister = __m128i;
 //---------------------------------------------------------------------------
@@ -125,7 +131,7 @@ u32 compress(const T *src, u8 *dest, const T &reference, u8 &best_pack_size,
   }
   //---------------------------------------------------------------------------
   // Bitpack payload.
-  return bitpacking::pack<T, kBlockSize>(buffer.data(), dest, best_pack_size);
+  return internal_bp::pack<T, kBlockSize>(buffer.data(), dest, best_pack_size);
 };
 //---------------------------------------------------------------------------
 /// @brief Decompresses given data using PFOR.
@@ -149,7 +155,7 @@ void decompress(T *dest, const u8 *src, const T &reference, const u8 &pack_size,
   assert(sizeof(T) >= sizeof(ExceptionT));
   //---------------------------------------------------------------------------
   // Unpack the payload.
-  bitpacking::unpack<T, kBlockSize>(dest, src, pack_size);
+  internal_bp::unpack<T, kBlockSize>(dest, src, pack_size);
   //---------------------------------------------------------------------------
   // Decompress the payload.
   T max_value = (1U << pack_size) - 1;
@@ -259,7 +265,7 @@ public:
     auto write_ptr = dest;
     // Payload.
     write_ptr +=
-        bitpacking::packmask<T, kBlockSize>(src, write_ptr, best_pack_size);
+        internal_bp::packmask<T, kBlockSize>(src, write_ptr, best_pack_size);
     // Meta data.
     assert(locations.size() < (1ULL << 24));
     u32 meta = ((static_cast<u32>(max_pack_size) << 24) |
@@ -275,15 +281,16 @@ public:
     // Exceptions.
     u64 padding = 0;
     utils::align<u8>(write_ptr, 4, padding);
-    write_ptr += packAdaptive<T>(exceptions, reinterpret_cast<u32 *>(write_ptr),
-                                 max_pack_size - best_pack_size);
+    write_ptr += fastpfor_bp::packAdaptive<T>(
+        exceptions, reinterpret_cast<u32 *>(write_ptr),
+        max_pack_size - best_pack_size);
     //---------------------------------------------------------------------------
     return write_ptr - dest;
   }
   //---------------------------------------------------------------------------
   static void decompress(T *dest, const u8 *src, const u8 &pack_size) {
     // Unpack the payload.
-    bitpacking::unpack<T, kBlockSize>(dest, src, pack_size);
+    internal_bp::unpack<T, kBlockSize>(dest, src, pack_size);
     //---------------------------------------------------------------------------
     auto read_ptr = reinterpret_cast<const u8 *>(
         src + internal::getExceptionOffset<kBlockSize>(pack_size));
@@ -302,8 +309,9 @@ public:
     vector<T> exceptions(exceptions_size);
     u64 padding = 0;
     utils::align<const u8>(read_ptr, 4, padding);
-    unpackAdaptive<T>(exceptions, reinterpret_cast<const u32 *>(read_ptr),
-                      max_pack_size - pack_size);
+    fastpfor_bp::unpackAdaptive<T>(exceptions,
+                                   reinterpret_cast<const u32 *>(read_ptr),
+                                   max_pack_size - pack_size);
     //---------------------------------------------------------------------------
     // Decompress the payload.
     for (u16 i = 0; i < exceptions_size; ++i) {
@@ -364,8 +372,8 @@ u32 compressPFOREBP(const T *src, u8 *dest, const T &reference, u8 &pack_size) {
   //---------------------------------------------------------------------------
   // Pack the exceptions, if there are any.
   if (exceptions_length > 0) {
-    write_ptr += packAdaptive<T>(exceptions, reinterpret_cast<u32 *>(write_ptr),
-                                 exc_pack_size);
+    write_ptr += fastpfor_bp::packAdaptive<T>(
+        exceptions, reinterpret_cast<u32 *>(write_ptr), exc_pack_size);
   }
   //---------------------------------------------------------------------------
   return write_ptr - dest;
@@ -463,8 +471,8 @@ void decompressPFOREBP(T *dest, const u8 *src, const T &reference,
   // TODO: Move such allocations one level up as it is not necessary to
   // allocate for each block.
   vector<T> exceptions(exceptions_length);
-  unpackAdaptive<T>(exceptions, reinterpret_cast<const u32 *>(exception_ptr),
-                    exc_pack_size);
+  fastpfor_bp::unpackAdaptive<T>(
+      exceptions, reinterpret_cast<const u32 *>(exception_ptr), exc_pack_size);
   //---------------------------------------------------------------------------
   // Decompress the payload.
   internal::decompress<T, T, kBlockSize>(dest, src, reference, pack_size,
@@ -524,6 +532,8 @@ void decompressPFORLemire(T *dest, const u8 *src, const u8 &pack_size) {
   return Lemire<T, kBlockSize>::decompress(dest, src, pack_size);
 };
 //---------------------------------------------------------------------------
-} // namespace pfor
+} // namespace fastpfor
+//---------------------------------------------------------------------------
+} // namespace external
 //---------------------------------------------------------------------------
 } // namespace compression
