@@ -34,6 +34,7 @@ public:
   static_assert(kBlockSize % kTinyBlockSize == 0,
                 "Datablock size must be multiple of Tinyblock size.");
   //---------------------------------------------------------------------------
+  /// The header stored in front of each datablock.
   struct Header {
     /// The minimum in the block.
     T min;
@@ -51,7 +52,12 @@ public:
   static_assert(sizeof(Header) % sizeof(T) == 0,
                 "Data must be sizeof(T)-Byte aligned.");
   //---------------------------------------------------------------------------
-  /// Compress the datablocks.
+  /// @brief Compress given data on a datablock granularity.
+  /// @param src The data to be compressed.
+  /// @param size The number of values to be compressed.
+  /// @param dest The location to compress the data to.
+  /// @param scheme The scheme to compress the data with, if given.
+  /// @return Statistics on the compressed data.
   CompressionDetails compress(const T *src, const u32 size, u8 *dest,
                               const tinyblocks::Scheme *scheme = nullptr) {
     assert(size % kTinyBlockSize == 0);
@@ -80,7 +86,10 @@ public:
     return details;
   }
   //---------------------------------------------------------------------------
-  /// Decompress the datablocks.
+  /// @brief Decompress given datablocks.
+  /// @param dest The location to decompress the data to.
+  /// @param size The number of compressed values.
+  /// @param src The compressed datablocks.
   void decompress(T *dest, const u32 size, const u8 *src) {
     const u32 cblock = size / kBlockSize;
     auto read_ptr = src;
@@ -94,7 +103,11 @@ public:
     decompressImpl(write_ptr, size % kBlockSize, read_ptr);
   }
   //---------------------------------------------------------------------------
-  /// Filter the datablock.
+  /// @brief Filter the datablocks.
+  /// @param data The data to be filtered.
+  /// @param size The number of compressed values.
+  /// @param predicate The predicate used for filtering.
+  /// @param mv The vector to indicate the matching values in.
   void filter(const T *data, const u32 size,
               const algebra::Predicate<T> &predicate, MatchVector &mv) {
     mv.resize(size);
@@ -115,7 +128,13 @@ public:
   }
 
 private:
-  //---------------------------------------------------------------------------
+  /// @brief Compress given datablock.
+  /// Note: This function contains the actual compression logic.
+  /// @param src The data to be compressed.
+  /// @param size The number of values to be compressed.
+  /// @param dest The location to compress the data to.
+  /// @param scheme The scheme to compress the data with, if given.
+  /// @return Statistics on the compressed data.
   CompressionDetails compressImpl(const T *src, const u32 size, u8 *dest,
                                   const tinyblocks::Scheme *scheme) {
     assert(size % kTinyBlockSize == 0);
@@ -162,6 +181,11 @@ private:
     return cd;
   }
   //---------------------------------------------------------------------------
+  /// @brief Decompress given datablock.
+  /// Note: This function contains the actual decompression logic.
+  /// @param dest The location to decompress the data to.
+  /// @param size The number of compressed values.
+  /// @param src The compressed datablocks.
   u32 decompressImpl(T *dest, const u32 size, const u8 *src) {
     assert(size % kTinyBlockSize == 0);
     //---------------------------------------------------------------------------
@@ -184,6 +208,12 @@ private:
     return header.cbytes;
   }
   //---------------------------------------------------------------------------
+  /// @brief Filter the datablock.
+  /// @param data The datablock to be filtered.
+  /// @param size The number of compressed values.
+  /// @param header The header for given datablock.
+  /// @param predicate The predicate used for filtering.
+  /// @param mv The buffer to indicate the matching values in.
   void filterImpl(const T *data, const u32 size, const Header &header,
                   const algebra::Predicate<T> predicate, u8 *matches) {
     // Pre-Filter
