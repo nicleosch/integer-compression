@@ -26,9 +26,40 @@ void decompress(T *dest, const Slot<T> &slot) {
 }
 //---------------------------------------------------------------------------
 template <typename T, const u16 kBlockSize>
-void filter(const T *data, algebra::Predicate<T> &predicate, u8 *matches) {
-  // TODO: Implement filter
-  throw std::runtime_error("Not implemented yet.");
+void filter(const T *data, const Slot<T> &slot,
+            const algebra::Predicate<T> &predicate, u8 *matches) {
+  auto step = slot.opcode.payload;
+  auto value = predicate.getValue();
+  switch (predicate.getType()) {
+  case algebra::PredicateType::EQ: { // Equality Predicate
+    if (step > 0) {
+      if ((value - slot.min) % step == 0)
+        ++matches[(value - slot.min) / step];
+    } else {
+      std::fill(matches, matches + kBlockSize, 1);
+    }
+  }
+  case algebra::PredicateType::GT: { // GreaterThan Predicate
+    u32 min = (value - slot.min) / step + 1;
+    for (u32 i = min; i < kBlockSize; ++i) {
+      ++matches[i];
+    }
+  }
+  case algebra::PredicateType::LT: { // LessThan Predicate
+    u32 numerator = value - slot.min;
+    u32 denominator = step;
+    u32 max = (numerator + denominator - 1) / denominator;
+    for (u32 i = 0; i < max; ++i) {
+      ++matches[i];
+    }
+  }
+  case algebra::PredicateType::INEQ: { // Inequality Predicate
+    assert(!(step == 0));              // Should be pre-filtered
+    std::fill(matches, matches + kBlockSize, 1);
+    if ((value - slot.min) % step == 0)
+      matches[(value - slot.min) / step] = 0;
+  }
+  }
 }
 //---------------------------------------------------------------------------
 } // namespace monotonic

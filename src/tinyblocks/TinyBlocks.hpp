@@ -329,7 +329,7 @@ private:
                       const algebra::Predicate<T> predicate, u8 *matches) {
     switch (slot.opcode.scheme) {
     case Scheme::MONOTONIC:
-      monotonic::filter<T, kBlockSize>(data, predicate, matches);
+      monotonic::filter<T, kBlockSize>(data, slot, predicate, matches);
       return;
     case Scheme::FOR:
       frameofreference::filter<T, kBlockSize>(data, predicate, matches);
