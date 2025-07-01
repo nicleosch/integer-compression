@@ -32,6 +32,8 @@ struct Opcode {
 template <typename T> struct alignas(T) Slot {
   /// The reference, i.e. min, of the corresponding frame.
   T reference;
+  /// The maximum value within the frame.
+  T max;
   /// The offset into the data array (in sizeof(T)-Byte steps).
   u16 offset;
   /// The number of bits used to store an integer in corresponding frame.

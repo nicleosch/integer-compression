@@ -22,6 +22,7 @@ using s64 = int64_t;
 //---------------------------------------------------------------------------
 using INTEGER = s32;
 using BIGINT = s64;
+using MatchVector = std::vector<u8>;
 //---------------------------------------------------------------------------
 using std::string;
 using std::unordered_map;

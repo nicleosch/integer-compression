@@ -39,6 +39,12 @@ void decompress(T *dest, const u8 *src, const Slot<T> &slot) {
   }
 }
 //---------------------------------------------------------------------------
+template <typename T, const u16 kBlockSize>
+void filter(const T *data, algebra::Predicate<T> &predicate, u8 *matches) {
+  // TODO: Implement filter
+  throw std::runtime_error("Not implemented yet.");
+}
+//---------------------------------------------------------------------------
 } // namespace frameofreference
 //---------------------------------------------------------------------------
 } // namespace tinyblocks

@@ -2,6 +2,7 @@
 //---------------------------------------------------------------------------
 #include <cmath>
 //---------------------------------------------------------------------------
+#include "algebra/Predicate.hpp"
 #include "schemes/CompressionScheme.hpp"
 #include "tinyblocks/Metadata.hpp"
 #include "tinyblocks/schemes/Delta.hpp"
@@ -81,6 +82,50 @@ public:
       header_ptr += sizeof(Slot<T>);
     }
   }
+  //---------------------------------------------------------------------------
+  /// @brief Filter the data based on a predicate.
+  /// @param data The data to be filtered.
+  /// @param size The number of compressed values.
+  /// @param predicate The predicate used for filtering.
+  /// @param matches The buffer to indicate the matching values in.
+  void filter(const u8 *data, const u32 size,
+              const algebra::Predicate<T> &predicate, u8 *matches) {
+    const u32 block_count = size / kBlockSize;
+    //---------------------------------------------------------------------------
+    const u8 *header_ptr = data;
+    const u8 *data_ptr = data;
+    const u8 *match_ptr = matches;
+    //---------------------------------------------------------------------------
+    for (u32 block_i = 0; block_i < block_count; ++block_i) {
+      auto &slot = *reinterpret_cast<const Slot<T> *>(header_ptr);
+      data_ptr = data + slot.offset * sizeof(T);
+      header_ptr = data + slot.offset * sizeof(Slot<T>);
+      match_ptr = matches + slot.offset * kBlockSize;
+      //---------------------------------------------------------------------------
+      // Pre-Filter
+      auto value = predicate.getValue();
+      switch (predicate.getType()) {
+      case algebra::PredicateType::EQ: {
+        if (value < slot.min || value > slot.max)
+          continue;
+      }
+      case algebra::PredicateType::GT: {
+        if (value > slot.max)
+          continue;
+      }
+      case algebra::PredicateType::LT: {
+        if (value < slot.min)
+          continue;
+      }
+      case algebra::PredicateType::INEQ: {
+        if (value == slot.min && value == slot.max)
+          continue;
+      }
+      }
+      // Filter
+      filterDispatch(data, slot, predicate, match_ptr);
+    }
+  }
 
 private:
   /// @brief Compress given data.
@@ -102,6 +147,10 @@ private:
     const u32 block_count = size / kBlockSize;
     u8 *header_ptr = dest;
     u8 *data_ptr = dest;
+    // TODO: Data offset should be 0 at the end of the header. Because right
+    // now, if there is no compression, the header + payload are larger than
+    // 2^16 * sizeof(T).
+    // -> serious bug, because end is not addressable
     u32 data_offset = block_count * sizeof(Slot<T>);
     //---------------------------------------------------------------------------
     for (u32 block_i = 0; block_i < block_count; ++block_i) {
@@ -110,6 +159,7 @@ private:
       // Update header
       auto &slot = *reinterpret_cast<Slot<T> *>(header_ptr);
       slot.reference = stats[block_i].min;
+      slot.max = stats[block_i].max;
       slot.offset = data_offset / kAlignment;
       //---------------------------------------------------------------------------
       // Compress
@@ -223,7 +273,7 @@ private:
     }
   }
   //---------------------------------------------------------------------------
-  /// @brief Dispatch the decompression functions based on the encoded scheme.
+  /// @brief Dispatch the decompression functions based on the encoding scheme.
   /// @param dest The location to decompress the tinyblock to.
   /// @param src The compressed tinyblock.
   /// @param slot The header for given tinyblock.
@@ -267,6 +317,55 @@ private:
     default:
       throw std::runtime_error(
           "Decompression failed: Provided opcode does not exist.");
+    }
+  }
+  //---------------------------------------------------------------------------
+  /// @brief Dispatch the filtering functions based on the encoding scheme.
+  /// @param data The tinyblock to be filtered.
+  /// @param slot The header for given tinyblock.
+  /// @param predicate The predicate used for filtering.
+  /// @param matches The buffer to indicate the matching values in.
+  void filterDispatch(const u8 *data, const Slot<T> &slot,
+                      const algebra::Predicate<T> predicate, u8 *matches) {
+    switch (slot.opcode.scheme) {
+    case Scheme::MONOTONIC:
+      monotonic::filter<T, kBlockSize>(data, predicate, matches);
+      return;
+    case Scheme::FOR:
+      frameofreference::filter<T, kBlockSize>(data, predicate, matches);
+      return;
+    case Scheme::RLE4:
+      rle::filter<T, kBlockSize, 4>(data, predicate, matches);
+      return;
+    case Scheme::RLE8:
+      rle::filter<T, kBlockSize, 8>(data, predicate, matches);
+      return;
+    case Scheme::DELTA:
+      delta::filter<T, kBlockSize>(data, predicate, matches);
+      return;
+    case Scheme::PFOR:
+      pframeofreference::filter<T, kBlockSize, Scheme::PFOR>(data, predicate,
+                                                             matches);
+      return;
+    case Scheme::PFOR_EBP:
+      pframeofreference::filter<T, kBlockSize, Scheme::PFOR_EBP>(
+          data, predicate, matches);
+      return;
+    case Scheme::PFOR_EP:
+      pframeofreference::filter<T, kBlockSize, Scheme::PFOR_EP>(data, predicate,
+                                                                matches);
+      return;
+    case Scheme::PFOR_DELTA:
+      pframeofreference::filter<T, kBlockSize, Scheme::PFOR_DELTA>(
+          data, predicate, matches);
+      return;
+    case Scheme::PFOR_LEMIRE:
+      pframeofreference::filter<T, kBlockSize, Scheme::PFOR_LEMIRE>(
+          data, predicate, matches);
+      return;
+    default:
+      throw std::runtime_error(
+          "Filtering failed: Provided opcode does not exist.");
     }
   }
   //---------------------------------------------------------------------------

@@ -15,11 +15,14 @@ public:
     //---------------------------------------------------------------------------
     MiniStatistics stats(src, count);
     stats.min = src[0];
+    stats.max = src[0];
     T step = src[1] - src[0];
     for (u32 i = 1; i < count; ++i) {
       T current = src[i];
       if (current < stats.min)
         stats.min = current;
+      if (current > stats.max)
+        stats.max = current;
       if (current - src[i - 1] != step)
         step = -1;
     }
@@ -36,6 +39,8 @@ public:
   const T *src;
   /// The minimum.
   T min;
+  /// The maximum.
+  T max;
   /// The step size, if it's the same for all deltas, else -1.
   T step_size;
   /// The number of values in the input.
