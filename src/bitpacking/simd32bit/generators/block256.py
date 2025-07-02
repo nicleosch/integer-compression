@@ -149,7 +149,7 @@ for bit in range(1,33):
 
 # GreaterThan
 print("static void filtergt0(const __m256i *in, u32 *matches, const INTEGER comp) {")
-print("  if (comp == 0)")
+print("  if (comp < 0)")
 print("     memset(matches, 1, 256 * sizeof(*matches));")
 print("  else")
 print("     memset(matches, 0, 256 * sizeof(*matches));")
@@ -198,7 +198,7 @@ for bit in range(1,33):
 
 # LessThan
 print("static void filterlt0(const __m256i *in, u32 *matches, const INTEGER comp) {")
-print("  if (comp == 0)")
+print("  if (comp > 0)")
 print("     memset(matches, 1, 256 * sizeof(*matches));")
 print("  else")
 print("     memset(matches, 0, 256 * sizeof(*matches));")
