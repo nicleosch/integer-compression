@@ -12741,7 +12741,7 @@ static void filterneq32(const __m256i *in, u32 *matches, const INTEGER comp) {
 }
 
 static void filtergt0(const __m256i *in, u32 *matches, const INTEGER comp) {
-  if (comp == 0)
+  if (comp < 0)
     memset(matches, 1, 256 * sizeof(*matches));
   else
     memset(matches, 0, 256 * sizeof(*matches));
@@ -18075,7 +18075,7 @@ static void filtergt32(const __m256i *in, u32 *matches, const INTEGER comp) {
 }
 
 static void filterlt0(const __m256i *in, u32 *matches, const INTEGER comp) {
-  if (comp == 0)
+  if (comp > 0)
     memset(matches, 1, 256 * sizeof(*matches));
   else
     memset(matches, 0, 256 * sizeof(*matches));
