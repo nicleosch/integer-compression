@@ -2,6 +2,7 @@
 //---------------------------------------------------------------------------
 #include <immintrin.h>
 //---------------------------------------------------------------------------
+#include "algebra/Predicate.hpp"
 #include "common/Types.hpp"
 //---------------------------------------------------------------------------
 namespace compression {
@@ -22,6 +23,12 @@ void packmask(const u32 *in, __m512i *out, const u8 bit);
 //---------------------------------------------------------------------------
 /// @brief Reads "bit" 512-bit vectors from "in", writes 512 values to "out".
 void unpack(const __m512i *in, u32 *out, const u8 bit);
+//---------------------------------------------------------------------------
+/// @brief Reads "bit" 512-bit vectors from "in" and writes 512 values to
+/// "matches". If there is a match with "predicate", the value will be larger
+/// than 0, else 0.
+void filter(const __m512i *in, u32 *matches, const u8 bit,
+            const algebra::Predicate<INTEGER> &predicate);
 //---------------------------------------------------------------------------
 } // namespace avx512
 //---------------------------------------------------------------------------
