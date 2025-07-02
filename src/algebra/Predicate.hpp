@@ -21,9 +21,9 @@ public:
   ~Predicate() = default;
   //---------------------------------------------------------------------------
   /// Get this predicate's type.
-  PredicateType getType() { return type; }
+  PredicateType getType() const { return type; }
   //---------------------------------------------------------------------------
-  T getValue() { return value; }
+  T getValue() const { return value; }
 
 private:
   PredicateType type;
