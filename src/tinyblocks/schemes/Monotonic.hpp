@@ -27,7 +27,7 @@ void decompress(T *dest, const Slot<T> &slot) {
 //---------------------------------------------------------------------------
 template <typename T, const u16 kBlockSize>
 void filter(const T *data, const Slot<T> &slot,
-            const algebra::Predicate<T> &predicate, u8 *matches) {
+            const algebra::Predicate<T> &predicate, Match *matches) {
   auto step = slot.opcode.payload;
   auto value = predicate.getValue();
   switch (predicate.getType()) {

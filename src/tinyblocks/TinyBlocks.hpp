@@ -89,12 +89,12 @@ public:
   /// @param predicate The predicate used for filtering.
   /// @param matches The buffer to indicate the matching values in.
   void filter(const u8 *data, const u32 size,
-              const algebra::Predicate<T> &predicate, u8 *matches) {
+              const algebra::Predicate<T> &predicate, Match *matches) {
     const u32 block_count = size / kBlockSize;
     //---------------------------------------------------------------------------
     const u8 *header_ptr = data;
     const u8 *data_ptr = data;
-    const u8 *match_ptr = matches;
+    const Match *match_ptr = matches;
     //---------------------------------------------------------------------------
     for (u32 block_i = 0; block_i < block_count; ++block_i) {
       auto &slot = *reinterpret_cast<const Slot<T> *>(header_ptr);
@@ -326,7 +326,7 @@ private:
   /// @param predicate The predicate used for filtering.
   /// @param matches The buffer to indicate the matching values in.
   void filterDispatch(const u8 *data, const Slot<T> &slot,
-                      const algebra::Predicate<T> predicate, u8 *matches) {
+                      const algebra::Predicate<T> predicate, Match *matches) {
     switch (slot.opcode.scheme) {
     case Scheme::MONOTONIC:
       monotonic::filter<T, kBlockSize>(data, slot, predicate, matches);

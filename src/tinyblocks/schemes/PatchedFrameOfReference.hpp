@@ -90,7 +90,7 @@ void decompress(T *dest, const u8 *src, const Slot<T> &slot) {
 }
 //---------------------------------------------------------------------------
 template <typename T, const u16 kBlockSize, Scheme kScheme>
-void filter(const T *data, algebra::Predicate<T> &predicate, u8 *matches) {
+void filter(const T *data, algebra::Predicate<T> &predicate, Match *matches) {
   // TODO: Implement filter
   throw std::runtime_error("Not implemented yet.");
 }

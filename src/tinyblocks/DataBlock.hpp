@@ -215,7 +215,7 @@ private:
   /// @param predicate The predicate used for filtering.
   /// @param mv The buffer to indicate the matching values in.
   void filterImpl(const T *data, const u32 size, const Header &header,
-                  const algebra::Predicate<T> predicate, u8 *matches) {
+                  const algebra::Predicate<T> predicate, Match *matches) {
     // Pre-Filter
     auto value = predicate.getValue();
     switch (predicate.getType()) {
