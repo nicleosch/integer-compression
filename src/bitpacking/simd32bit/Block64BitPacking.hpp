@@ -1,7 +1,9 @@
 #pragma once
 //---------------------------------------------------------------------------
 #include <emmintrin.h>
+#include <pmmintrin.h>
 //---------------------------------------------------------------------------
+#include "algebra/Predicate.hpp"
 #include "common/Types.hpp"
 //---------------------------------------------------------------------------
 namespace compression {
@@ -25,6 +27,12 @@ void packmask(const u32 *in, __m128i *out, const u8 bit);
 /// @brief Reads ("bit"+1)/2 128-bit vectors from "in", writes 64 values to
 /// "out".
 void unpack(const __m128i *in, u32 *out, const u8 bit);
+//---------------------------------------------------------------------------
+/// @brief Reads ("bit"+1)/2 128-bit vectors from "in" and writes 64 values to
+/// "matches". If there is a match with "predicate", the value will be larger
+/// than 0, else 0.
+void filter(const __m128i *in, u32 *matches, const u8 bit,
+            const algebra::Predicate<INTEGER> &predicate);
 //---------------------------------------------------------------------------
 } // namespace block64
 //---------------------------------------------------------------------------
