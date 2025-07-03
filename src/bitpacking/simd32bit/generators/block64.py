@@ -190,6 +190,22 @@ for bit in range(0,32):
   print("&simdunpackblock{0},".format(bit))
 print("&simdunpackblock32")
 print("};")
+print("")
+
+print("//---------------------------------------------------------------------------")
+print("void pack(const u32 *in, __m128i *out, const u8 bit) {")
+print("  simdfuncPackArr[bit](in, out);")
+print("}")
+print("//---------------------------------------------------------------------------")
+print("void packmask(const u32 *in, __m128i *out, const u8 bit) {")
+print("  simdfuncPackMaskArr[bit](in, out);")
+print("}")
+print("//---------------------------------------------------------------------------")
+print("void unpack(const __m128i *in, u32 *out, const u8 bit) {")
+print("  simdfuncUnpackArr[bit](in, out);")
+print("}")
+print("//---------------------------------------------------------------------------")
+
 
 # Equality
 print("static void filtereq0(const __m128i *in, u32 *matches, const INTEGER comp) {")

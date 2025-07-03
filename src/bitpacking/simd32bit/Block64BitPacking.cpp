@@ -4736,6 +4736,20 @@ static simdunpackblockfnc simdfuncUnpackArr[] = {
     &simdunpackblock24, &simdunpackblock25, &simdunpackblock26,
     &simdunpackblock27, &simdunpackblock28, &simdunpackblock29,
     &simdunpackblock30, &simdunpackblock31, &simdunpackblock32};
+
+//---------------------------------------------------------------------------
+void pack(const u32 *in, __m128i *out, const u8 bit) {
+  simdfuncPackArr[bit](in, out);
+}
+//---------------------------------------------------------------------------
+void packmask(const u32 *in, __m128i *out, const u8 bit) {
+  simdfuncPackMaskArr[bit](in, out);
+}
+//---------------------------------------------------------------------------
+void unpack(const __m128i *in, u32 *out, const u8 bit) {
+  simdfuncUnpackArr[bit](in, out);
+}
+//---------------------------------------------------------------------------
 static void filtereq0(const __m128i *in, u32 *matches, const INTEGER comp) {
   if (comp == 0)
     memset(matches, 1, 64 * sizeof(*matches));
