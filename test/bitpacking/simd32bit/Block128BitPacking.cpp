@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 #include <memory>
 //---------------------------------------------------------------------------
-#include "bitpacking/simd32bit/AVXBitPacking.hpp"
+#include "bitpacking/simd32bit/Block128BitPacking.hpp"
 //---------------------------------------------------------------------------
 using namespace compression;
 //---------------------------------------------------------------------------
@@ -9,23 +9,23 @@ using namespace compression;
 static constexpr INTEGER comp = 42;
 //---------------------------------------------------------------------------
 // Testing the Equality Filter where there is supposed to be a single match.
-TEST(AVXBitPackingTest, EQFilterSingle) {
+TEST(SSEBitPackingTest, EQFilterSingle) {
   algebra::Predicate<INTEGER> pred(algebra::PredicateType::EQ, comp);
   //---------------------------------------------------------------------------
-  vector<INTEGER> vec(256);
+  vector<INTEGER> vec(128);
   for (u32 i = 0; i < vec.size(); ++i) {
     vec[i] = i;
   }
-  vector<u32> matches(256);
+  vector<u32> matches(128);
   for (u32 i = 0; i < matches.size(); ++i) {
     matches[i] = 0;
   }
   //---------------------------------------------------------------------------
-  auto compressed = std::make_unique<__m256i[]>(64);
-  bitpacking::simd32::avx::pack(reinterpret_cast<u32 *>(vec.data()),
+  auto compressed = std::make_unique<__m128i[]>(64);
+  bitpacking::simd32::sse::pack(reinterpret_cast<u32 *>(vec.data()),
                                 compressed.get(), 8);
   //---------------------------------------------------------------------------
-  bitpacking::simd32::avx::filter(compressed.get(), matches.data(), 8, pred);
+  bitpacking::simd32::sse::filter(compressed.get(), matches.data(), 8, pred);
   //---------------------------------------------------------------------------
   // All values should be 0 except the value at the offset of value 42.
   ASSERT_GT(matches[comp], 0);
@@ -36,24 +36,24 @@ TEST(AVXBitPackingTest, EQFilterSingle) {
 }
 //---------------------------------------------------------------------------
 // Testing the Equality Filter where there is supposed to be multiple matches.
-TEST(AVXBitPackingTest, EQFilterMultiple) {
+TEST(SSEBitPackingTest, EQFilterMultiple) {
   algebra::Predicate<INTEGER> pred(algebra::PredicateType::EQ, comp);
   //---------------------------------------------------------------------------
-  vector<INTEGER> vec(256);
+  vector<INTEGER> vec(128);
   for (u32 i = 0; i < vec.size(); ++i) {
     vec[i] = comp;
   }
   vec[comp] = 14;
-  vector<u32> matches(256);
+  vector<u32> matches(128);
   for (u32 i = 0; i < matches.size(); ++i) {
     matches[i] = 0;
   }
   //---------------------------------------------------------------------------
-  auto compressed = std::make_unique<__m256i[]>(64);
-  bitpacking::simd32::avx::pack(reinterpret_cast<u32 *>(vec.data()),
+  auto compressed = std::make_unique<__m128i[]>(64);
+  bitpacking::simd32::sse::pack(reinterpret_cast<u32 *>(vec.data()),
                                 compressed.get(), 8);
   //---------------------------------------------------------------------------
-  bitpacking::simd32::avx::filter(compressed.get(), matches.data(), 8, pred);
+  bitpacking::simd32::sse::filter(compressed.get(), matches.data(), 8, pred);
   //---------------------------------------------------------------------------
   // All values should be 1 except the value at the offset of value 42.
   ASSERT_EQ(matches[comp], 0);
@@ -64,24 +64,24 @@ TEST(AVXBitPackingTest, EQFilterMultiple) {
 }
 //---------------------------------------------------------------------------
 // Testing the Inequality Filter where there is supposed to be a single match.
-TEST(AVXBitPackingTest, NEQFilterSingle) {
+TEST(SSEBitPackingTest, NEQFilterSingle) {
   algebra::Predicate<INTEGER> pred(algebra::PredicateType::INEQ, comp);
   //---------------------------------------------------------------------------
-  vector<INTEGER> vec(256);
+  vector<INTEGER> vec(128);
   for (u32 i = 0; i < vec.size(); ++i) {
     vec[i] = comp;
   }
   vec[comp] = 14;
-  vector<u32> matches(256);
+  vector<u32> matches(128);
   for (u32 i = 0; i < matches.size(); ++i) {
     matches[i] = 0;
   }
   //---------------------------------------------------------------------------
-  auto compressed = std::make_unique<__m256i[]>(64);
-  bitpacking::simd32::avx::pack(reinterpret_cast<u32 *>(vec.data()),
+  auto compressed = std::make_unique<__m128i[]>(64);
+  bitpacking::simd32::sse::pack(reinterpret_cast<u32 *>(vec.data()),
                                 compressed.get(), 8);
   //---------------------------------------------------------------------------
-  bitpacking::simd32::avx::filter(compressed.get(), matches.data(), 8, pred);
+  bitpacking::simd32::sse::filter(compressed.get(), matches.data(), 8, pred);
   //---------------------------------------------------------------------------
   // All values should be 0 except the value at the offset of value 42.
   ASSERT_GT(matches[comp], 0);
@@ -92,23 +92,23 @@ TEST(AVXBitPackingTest, NEQFilterSingle) {
 }
 //---------------------------------------------------------------------------
 // Testing the Inequality Filter where there is supposed to be multiple matches.
-TEST(AVXBitPackingTest, NEQFilterMultiple) {
+TEST(SSEBitPackingTest, NEQFilterMultiple) {
   algebra::Predicate<INTEGER> pred(algebra::PredicateType::INEQ, comp);
   //---------------------------------------------------------------------------
-  vector<INTEGER> vec(256);
+  vector<INTEGER> vec(128);
   for (u32 i = 0; i < vec.size(); ++i) {
     vec[i] = i;
   }
-  vector<u32> matches(256);
+  vector<u32> matches(128);
   for (u32 i = 0; i < matches.size(); ++i) {
     matches[i] = 0;
   }
   //---------------------------------------------------------------------------
-  auto compressed = std::make_unique<__m256i[]>(64);
-  bitpacking::simd32::avx::pack(reinterpret_cast<u32 *>(vec.data()),
+  auto compressed = std::make_unique<__m128i[]>(64);
+  bitpacking::simd32::sse::pack(reinterpret_cast<u32 *>(vec.data()),
                                 compressed.get(), 8);
   //---------------------------------------------------------------------------
-  bitpacking::simd32::avx::filter(compressed.get(), matches.data(), 8, pred);
+  bitpacking::simd32::sse::filter(compressed.get(), matches.data(), 8, pred);
   //---------------------------------------------------------------------------
   // All values should be 1 except the value at the offset of value 42.
   ASSERT_EQ(matches[comp], 0);
@@ -119,24 +119,24 @@ TEST(AVXBitPackingTest, NEQFilterMultiple) {
 }
 //---------------------------------------------------------------------------
 // Testing the GreaterThan Filter where there is supposed to be a single match.
-TEST(AVXBitPackingTest, GTFilterSingle) {
+TEST(SSEBitPackingTest, GTFilterSingle) {
   algebra::Predicate<INTEGER> pred(algebra::PredicateType::GT, comp);
   //---------------------------------------------------------------------------
-  vector<INTEGER> vec(256);
+  vector<INTEGER> vec(128);
   for (u32 i = 0; i < vec.size(); ++i) {
     vec[i] = comp;
   }
   vec[comp] = 128;
-  vector<u32> matches(256);
+  vector<u32> matches(128);
   for (u32 i = 0; i < matches.size(); ++i) {
     matches[i] = 0;
   }
   //---------------------------------------------------------------------------
-  auto compressed = std::make_unique<__m256i[]>(64);
-  bitpacking::simd32::avx::pack(reinterpret_cast<u32 *>(vec.data()),
+  auto compressed = std::make_unique<__m128i[]>(64);
+  bitpacking::simd32::sse::pack(reinterpret_cast<u32 *>(vec.data()),
                                 compressed.get(), 8);
   //---------------------------------------------------------------------------
-  bitpacking::simd32::avx::filter(compressed.get(), matches.data(), 8, pred);
+  bitpacking::simd32::sse::filter(compressed.get(), matches.data(), 8, pred);
   //---------------------------------------------------------------------------
   // All values should be 0 except the value at the offset of value 42.
   ASSERT_GT(matches[comp], 0);
@@ -148,23 +148,23 @@ TEST(AVXBitPackingTest, GTFilterSingle) {
 //---------------------------------------------------------------------------
 // Testing the GreaterThan Filter where there is supposed to be multiple
 // matches.
-TEST(AVXBitPackingTest, GTFilterMultiple) {
+TEST(SSEBitPackingTest, GTFilterMultiple) {
   algebra::Predicate<INTEGER> pred(algebra::PredicateType::GT, comp);
   //---------------------------------------------------------------------------
-  vector<INTEGER> vec(256);
+  vector<INTEGER> vec(128);
   for (u32 i = 0; i < vec.size(); ++i) {
     vec[i] = i;
   }
-  vector<u32> matches(256);
+  vector<u32> matches(128);
   for (u32 i = 0; i < matches.size(); ++i) {
     matches[i] = 0;
   }
   //---------------------------------------------------------------------------
-  auto compressed = std::make_unique<__m256i[]>(64);
-  bitpacking::simd32::avx::pack(reinterpret_cast<u32 *>(vec.data()),
+  auto compressed = std::make_unique<__m128i[]>(64);
+  bitpacking::simd32::sse::pack(reinterpret_cast<u32 *>(vec.data()),
                                 compressed.get(), 8);
   //---------------------------------------------------------------------------
-  bitpacking::simd32::avx::filter(compressed.get(), matches.data(), 8, pred);
+  bitpacking::simd32::sse::filter(compressed.get(), matches.data(), 8, pred);
   //---------------------------------------------------------------------------
   // All values at index larger than 42 should be larger than 0, else 0.
   for (u32 i = 0; i < matches.size(); ++i) {
@@ -176,24 +176,24 @@ TEST(AVXBitPackingTest, GTFilterMultiple) {
 }
 //---------------------------------------------------------------------------
 // Testing the LessThan Filter where there is supposed to be a single match.
-TEST(AVXBitPackingTest, LTFilterSingle) {
+TEST(SSEBitPackingTest, LTFilterSingle) {
   algebra::Predicate<INTEGER> pred(algebra::PredicateType::LT, comp);
   //---------------------------------------------------------------------------
-  vector<INTEGER> vec(256);
+  vector<INTEGER> vec(128);
   for (u32 i = 0; i < vec.size(); ++i) {
     vec[i] = comp;
   }
   vec[comp] = 13;
-  vector<u32> matches(256);
+  vector<u32> matches(128);
   for (u32 i = 0; i < matches.size(); ++i) {
     matches[i] = 0;
   }
   //---------------------------------------------------------------------------
-  auto compressed = std::make_unique<__m256i[]>(64);
-  bitpacking::simd32::avx::pack(reinterpret_cast<u32 *>(vec.data()),
+  auto compressed = std::make_unique<__m128i[]>(64);
+  bitpacking::simd32::sse::pack(reinterpret_cast<u32 *>(vec.data()),
                                 compressed.get(), 8);
   //---------------------------------------------------------------------------
-  bitpacking::simd32::avx::filter(compressed.get(), matches.data(), 8, pred);
+  bitpacking::simd32::sse::filter(compressed.get(), matches.data(), 8, pred);
   //---------------------------------------------------------------------------
   // All values should be 0 except the value at the offset of value 42.
   ASSERT_GT(matches[comp], 0);
@@ -204,23 +204,23 @@ TEST(AVXBitPackingTest, LTFilterSingle) {
 }
 //---------------------------------------------------------------------------
 // Testing the LessThan Filter where there is supposed to be multiple matches.
-TEST(AVXBitPackingTest, LTFilterMultiple) {
+TEST(SSEBitPackingTest, LTFilterMultiple) {
   algebra::Predicate<INTEGER> pred(algebra::PredicateType::LT, comp);
   //---------------------------------------------------------------------------
-  vector<INTEGER> vec(256);
+  vector<INTEGER> vec(128);
   for (u32 i = 0; i < vec.size(); ++i) {
     vec[i] = i;
   }
-  vector<u32> matches(256);
+  vector<u32> matches(128);
   for (u32 i = 0; i < matches.size(); ++i) {
     matches[i] = 0;
   }
   //---------------------------------------------------------------------------
-  auto compressed = std::make_unique<__m256i[]>(64);
-  bitpacking::simd32::avx::pack(reinterpret_cast<u32 *>(vec.data()),
+  auto compressed = std::make_unique<__m128i[]>(64);
+  bitpacking::simd32::sse::pack(reinterpret_cast<u32 *>(vec.data()),
                                 compressed.get(), 8);
   //---------------------------------------------------------------------------
-  bitpacking::simd32::avx::filter(compressed.get(), matches.data(), 8, pred);
+  bitpacking::simd32::sse::filter(compressed.get(), matches.data(), 8, pred);
   //---------------------------------------------------------------------------
   // All values at index larger than 42 should be larger than 0, else 0.
   for (u32 i = 0; i < matches.size(); ++i) {

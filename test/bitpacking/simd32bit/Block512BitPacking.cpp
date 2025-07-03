@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 #include <memory>
 //---------------------------------------------------------------------------
-#include "bitpacking/simd32bit/AVX512BitPacking.hpp"
+#include "bitpacking/simd32bit/Block512BitPacking.hpp"
 //---------------------------------------------------------------------------
 using namespace compression;
 //---------------------------------------------------------------------------
