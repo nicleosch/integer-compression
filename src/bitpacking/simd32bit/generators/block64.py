@@ -75,6 +75,8 @@ for bit in range(1,33): # 32 possible bit-sizes
           print("  w{0} = _mm_or_si128(w{0},_mm_slli_epi32(tmp , {2}));".format(firstword%2,j,firstshift))
           secondshift = 32-firstshift # shift to write the carry into the new word
           print("  w{0} = _mm_srli_epi32(tmp,{2});".format(secondword%2,j,secondshift))
+    if(firstword % 2 != secondword % 2):
+        print("  _mm_storeu_si128(compressed + {0}, w{1});".format(oldword,oldword%2))
     print("  _mm_storeu_si128(compressed + {0}, w{1});".format(secondword,secondword%2))
     print("}")
     print("")
@@ -122,6 +124,8 @@ for bit in range(1,33):
           print("  w{0} = _mm_or_si128(w{0},_mm_slli_epi32(tmp , {2}));".format(firstword%2,j,firstshift))
           secondshift = 32-firstshift
           print("  w{0} = _mm_srli_epi32(tmp,{2});".format(secondword%2,j,secondshift))
+    if(firstword % 2 != secondword % 2):
+        print("  _mm_storeu_si128(compressed + {0}, w{1});".format(oldword,oldword%2))
     print("  _mm_storeu_si128(compressed + {0}, w{1});".format(secondword,secondword%2))
     print("}")
     print("")

@@ -619,6 +619,7 @@ static void simdpackblock17(const u32 *pin, __m128i *compressed) {
   tmp = _mm_loadu_si128(in + 15);
   w1 = _mm_or_si128(w1, _mm_slli_epi32(tmp, 31));
   w0 = _mm_srli_epi32(tmp, 1);
+  _mm_storeu_si128(compressed + 7, w1);
   _mm_storeu_si128(compressed + 8, w0);
 }
 
@@ -721,6 +722,7 @@ static void simdpackblock19(const u32 *pin, __m128i *compressed) {
   tmp = _mm_loadu_si128(in + 15);
   w0 = _mm_or_si128(w0, _mm_slli_epi32(tmp, 29));
   w1 = _mm_srli_epi32(tmp, 3);
+  _mm_storeu_si128(compressed + 8, w0);
   _mm_storeu_si128(compressed + 9, w1);
 }
 
@@ -827,6 +829,7 @@ static void simdpackblock21(const u32 *pin, __m128i *compressed) {
   tmp = _mm_loadu_si128(in + 15);
   w1 = _mm_or_si128(w1, _mm_slli_epi32(tmp, 27));
   w0 = _mm_srli_epi32(tmp, 5);
+  _mm_storeu_si128(compressed + 9, w1);
   _mm_storeu_si128(compressed + 10, w0);
 }
 
@@ -941,6 +944,7 @@ static void simdpackblock23(const u32 *pin, __m128i *compressed) {
   tmp = _mm_loadu_si128(in + 15);
   w0 = _mm_or_si128(w0, _mm_slli_epi32(tmp, 25));
   w1 = _mm_srli_epi32(tmp, 7);
+  _mm_storeu_si128(compressed + 10, w0);
   _mm_storeu_si128(compressed + 11, w1);
 }
 
@@ -1055,6 +1059,7 @@ static void simdpackblock25(const u32 *pin, __m128i *compressed) {
   tmp = _mm_loadu_si128(in + 15);
   w1 = _mm_or_si128(w1, _mm_slli_epi32(tmp, 23));
   w0 = _mm_srli_epi32(tmp, 9);
+  _mm_storeu_si128(compressed + 11, w1);
   _mm_storeu_si128(compressed + 12, w0);
 }
 
@@ -1181,6 +1186,7 @@ static void simdpackblock27(const u32 *pin, __m128i *compressed) {
   tmp = _mm_loadu_si128(in + 15);
   w0 = _mm_or_si128(w0, _mm_slli_epi32(tmp, 21));
   w1 = _mm_srli_epi32(tmp, 11);
+  _mm_storeu_si128(compressed + 12, w0);
   _mm_storeu_si128(compressed + 13, w1);
 }
 
@@ -1311,6 +1317,7 @@ static void simdpackblock29(const u32 *pin, __m128i *compressed) {
   tmp = _mm_loadu_si128(in + 15);
   w1 = _mm_or_si128(w1, _mm_slli_epi32(tmp, 19));
   w0 = _mm_srli_epi32(tmp, 13);
+  _mm_storeu_si128(compressed + 13, w1);
   _mm_storeu_si128(compressed + 14, w0);
 }
 
@@ -1449,6 +1456,7 @@ static void simdpackblock31(const u32 *pin, __m128i *compressed) {
   tmp = _mm_loadu_si128(in + 15);
   w0 = _mm_or_si128(w0, _mm_slli_epi32(tmp, 17));
   w1 = _mm_srli_epi32(tmp, 15);
+  _mm_storeu_si128(compressed + 14, w0);
   _mm_storeu_si128(compressed + 15, w1);
 }
 
@@ -2306,6 +2314,7 @@ static void simdpackblockmask17(const u32 *pin, __m128i *compressed) {
   tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 15));
   w1 = _mm_or_si128(w1, _mm_slli_epi32(tmp, 31));
   w0 = _mm_srli_epi32(tmp, 1);
+  _mm_storeu_si128(compressed + 7, w1);
   _mm_storeu_si128(compressed + 8, w0);
 }
 
@@ -2423,6 +2432,7 @@ static void simdpackblockmask19(const u32 *pin, __m128i *compressed) {
   tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 15));
   w0 = _mm_or_si128(w0, _mm_slli_epi32(tmp, 29));
   w1 = _mm_srli_epi32(tmp, 3);
+  _mm_storeu_si128(compressed + 8, w0);
   _mm_storeu_si128(compressed + 9, w1);
 }
 
@@ -2542,6 +2552,7 @@ static void simdpackblockmask21(const u32 *pin, __m128i *compressed) {
   tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 15));
   w1 = _mm_or_si128(w1, _mm_slli_epi32(tmp, 27));
   w0 = _mm_srli_epi32(tmp, 5);
+  _mm_storeu_si128(compressed + 9, w1);
   _mm_storeu_si128(compressed + 10, w0);
 }
 
@@ -2667,6 +2678,7 @@ static void simdpackblockmask23(const u32 *pin, __m128i *compressed) {
   tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 15));
   w0 = _mm_or_si128(w0, _mm_slli_epi32(tmp, 25));
   w1 = _mm_srli_epi32(tmp, 7);
+  _mm_storeu_si128(compressed + 10, w0);
   _mm_storeu_si128(compressed + 11, w1);
 }
 
@@ -2790,6 +2802,7 @@ static void simdpackblockmask25(const u32 *pin, __m128i *compressed) {
   tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 15));
   w1 = _mm_or_si128(w1, _mm_slli_epi32(tmp, 23));
   w0 = _mm_srli_epi32(tmp, 9);
+  _mm_storeu_si128(compressed + 11, w1);
   _mm_storeu_si128(compressed + 12, w0);
 }
 
@@ -2923,6 +2936,7 @@ static void simdpackblockmask27(const u32 *pin, __m128i *compressed) {
   tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 15));
   w0 = _mm_or_si128(w0, _mm_slli_epi32(tmp, 21));
   w1 = _mm_srli_epi32(tmp, 11);
+  _mm_storeu_si128(compressed + 12, w0);
   _mm_storeu_si128(compressed + 13, w1);
 }
 
@@ -3058,6 +3072,7 @@ static void simdpackblockmask29(const u32 *pin, __m128i *compressed) {
   tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 15));
   w1 = _mm_or_si128(w1, _mm_slli_epi32(tmp, 19));
   w0 = _mm_srli_epi32(tmp, 13);
+  _mm_storeu_si128(compressed + 13, w1);
   _mm_storeu_si128(compressed + 14, w0);
 }
 
@@ -3199,6 +3214,7 @@ static void simdpackblockmask31(const u32 *pin, __m128i *compressed) {
   tmp = _mm_and_si128(mask, _mm_loadu_si128(in + 15));
   w0 = _mm_or_si128(w0, _mm_slli_epi32(tmp, 17));
   w1 = _mm_srli_epi32(tmp, 15);
+  _mm_storeu_si128(compressed + 14, w0);
   _mm_storeu_si128(compressed + 15, w1);
 }
 
