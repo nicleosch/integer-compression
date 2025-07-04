@@ -88,25 +88,26 @@ public:
   /// @param size The number of compressed values.
   /// @param predicate The predicate used for filtering.
   /// @param matches The buffer to indicate the matching values in.
-  void filter(const u8 *data, const u32 size,
-              const algebra::Predicate<T> &predicate, Match *matches) {
+  void filter(const u8 *data, const u32 size, algebra::Predicate<T> &predicate,
+              Match *matches) {
     const u32 block_count = size / kBlockSize;
     //---------------------------------------------------------------------------
     const u8 *header_ptr = data;
     const u8 *data_ptr = data;
-    const Match *match_ptr = matches;
+    Match *match_ptr = matches;
     //---------------------------------------------------------------------------
     for (u32 block_i = 0; block_i < block_count; ++block_i) {
+      header_ptr = data + block_i * sizeof(Slot<T>);
+      match_ptr = matches + block_i * kBlockSize;
+      //---------------------------------------------------------------------------
       auto &slot = *reinterpret_cast<const Slot<T> *>(header_ptr);
       data_ptr = data + slot.offset * sizeof(T);
-      header_ptr = data + slot.offset * sizeof(Slot<T>);
-      match_ptr = matches + slot.offset * kBlockSize;
       //---------------------------------------------------------------------------
       // Pre-Filter
       auto value = predicate.getValue();
       switch (predicate.getType()) {
       case algebra::PredicateType::EQ: {
-        if (value < slot.min || value > slot.max)
+        if (value < slot.reference || value > slot.max)
           continue;
       }
       case algebra::PredicateType::GT: {
@@ -114,16 +115,16 @@ public:
           continue;
       }
       case algebra::PredicateType::LT: {
-        if (value < slot.min)
+        if (value < slot.reference)
           continue;
       }
       case algebra::PredicateType::INEQ: {
-        if (value == slot.min && value == slot.max)
+        if (value == slot.reference && value == slot.max)
           continue;
       }
       }
       // Filter
-      filterDispatch(data, slot, predicate, match_ptr);
+      filterDispatch(data_ptr, slot, predicate, match_ptr);
     }
   }
 
@@ -326,13 +327,13 @@ private:
   /// @param predicate The predicate used for filtering.
   /// @param matches The buffer to indicate the matching values in.
   void filterDispatch(const u8 *data, const Slot<T> &slot,
-                      const algebra::Predicate<T> predicate, Match *matches) {
+                      algebra::Predicate<T> &predicate, Match *matches) {
     switch (slot.opcode.scheme) {
     case Scheme::MONOTONIC:
       monotonic::filter<T, kBlockSize>(data, slot, predicate, matches);
       return;
     case Scheme::FOR:
-      frameofreference::filter<T, kBlockSize>(data, predicate, matches);
+      frameofreference::filter<T, kBlockSize>(data, slot, predicate, matches);
       return;
     case Scheme::RLE4:
       rle::filter<T, kBlockSize, 4>(data, predicate, matches);

@@ -104,12 +104,12 @@ public:
   }
   //---------------------------------------------------------------------------
   /// @brief Filter the datablocks.
-  /// @param data The data to be filtered.
+  /// @param data The compressed data to be filtered.
   /// @param size The number of compressed values.
   /// @param predicate The predicate used for filtering.
   /// @param mv The vector to indicate the matching values in.
-  void filter(const T *data, const u32 size,
-              const algebra::Predicate<T> &predicate, MatchVector &mv) {
+  void filter(const u8 *data, const u32 size, algebra::Predicate<T> &predicate,
+              MatchVector &mv) {
     mv.resize(size);
     //---------------------------------------------------------------------------
     const u32 cblock = size / kBlockSize;
@@ -117,13 +117,15 @@ public:
     auto match_ptr = mv.data();
     //---------------------------------------------------------------------------
     for (u32 i = 0; i < cblock; ++i) {
-      auto header = *reinterpret_cast<Header *>(read_ptr);
-      filterImpl(read_ptr + sizeof(Header), kBlockSize, predicate, match_ptr);
+      auto header = *reinterpret_cast<const Header *>(read_ptr);
+      read_ptr += sizeof(Header);
+      filterImpl(read_ptr, kBlockSize, header, predicate, match_ptr);
       read_ptr += header.cbytes;
       match_ptr += kBlockSize;
     }
     //---------------------------------------------------------------------------
-    filterImpl(read_ptr + sizeof(Header), size % kBlockSize, predicate,
+    auto header = *reinterpret_cast<const Header *>(read_ptr);
+    filterImpl(read_ptr + sizeof(Header), size % kBlockSize, header, predicate,
                match_ptr);
   }
 
@@ -209,13 +211,13 @@ private:
   }
   //---------------------------------------------------------------------------
   /// @brief Filter the datablock.
-  /// @param data The datablock to be filtered.
+  /// @param data The compressed datablock to be filtered.
   /// @param size The number of compressed values.
   /// @param header The header for given datablock.
   /// @param predicate The predicate used for filtering.
   /// @param mv The buffer to indicate the matching values in.
-  void filterImpl(const T *data, const u32 size, const Header &header,
-                  const algebra::Predicate<T> predicate, Match *matches) {
+  void filterImpl(const u8 *data, const u32 size, const Header &header,
+                  algebra::Predicate<T> &predicate, Match *matches) {
     // Pre-Filter
     auto value = predicate.getValue();
     switch (predicate.getType()) {

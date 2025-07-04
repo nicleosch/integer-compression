@@ -23,7 +23,11 @@ public:
   /// Get this predicate's type.
   PredicateType getType() const { return type; }
   //---------------------------------------------------------------------------
+  /// Get this predicate's value.
   T getValue() const { return value; }
+  //---------------------------------------------------------------------------
+  /// Set this predicate's value.
+  void setValue(T value) { this->value = value; }
 
 private:
   PredicateType type;

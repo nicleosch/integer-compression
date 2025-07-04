@@ -28,6 +28,8 @@ struct TinyBlocksConfig {
 //---------------------------------------------------------------------------
 /// A Test-Suite for TinyBlocks.
 template <typename Config> class TinyBlocksTest : public ::testing::Test {};
+template <typename Config>
+class TinyBlocksTestFiltering : public ::testing::Test {};
 //---------------------------------------------------------------------------
 // Combinations to be tested.
 using Config1 = TinyBlocksConfig<INTEGER, Partsupp, 128, Scheme::FOR>;
@@ -72,7 +74,9 @@ using Configs = ::testing::Types<
     Config17, Config18, Config19, Config21, Config22, Config23, Config24,
     Config25, Config26, Config27, Config28, Config29, Config31, Config32,
     Config33, Config34, Config35, Config36, Config37, Config38, Config39>;
+using FilterConfigs = ::testing::Types<Config1, Config11, Config21, Config31>;
 TYPED_TEST_CASE(TinyBlocksTest, Configs);
+TYPED_TEST_CASE(TinyBlocksTestFiltering, FilterConfigs);
 //---------------------------------------------------------------------------
 /// A Test for TinyBlocks confirming compression and decompression does not
 /// alter the data.
@@ -100,6 +104,45 @@ TYPED_TEST(TinyBlocksTest, CompDecompInvariant) {
   //---------------------------------------------------------------------------
   // verify
   for (size_t i = 0; i < column.size(); ++i) {
-    ASSERT_EQ(column.data()[i], decompression_out[i]);
+    EXPECT_EQ(column.data()[i], decompression_out[i]);
+  }
+}
+//---------------------------------------------------------------------------
+/// Testing TinyBlocks filtering capabilities.
+TYPED_TEST(TinyBlocksTestFiltering, Filtering) {
+  constexpr u16 kTinyBlockSize = TypeParam::kTinyBlockSize;
+  constexpr u32 kSize = datablock::kDefaultSize + kTinyBlockSize;
+  //---------------------------------------------------------------------------
+  using DataType = typename TypeParam::DataType;
+  using DataBlocks = datablock::DataBlock<DataType, kTinyBlockSize>;
+  //---------------------------------------------------------------------------
+  algebra::Predicate<INTEGER> pred(algebra::PredicateType::EQ, 42);
+  //---------------------------------------------------------------------------
+  vector<INTEGER> vec(kSize);
+  for (u32 i = 0; i < vec.size(); ++i) {
+    if (i % 42 == 0)
+      vec[i] = 42;
+    else
+      vec[i] = i;
+  }
+  vector<u32> matches(kSize);
+  for (u32 i = 0; i < matches.size(); ++i) {
+    matches[i] = 0;
+  }
+  //---------------------------------------------------------------------------
+  storage::Column<DataType> column(vec);
+  auto compression_out =
+      std::make_unique<u8[]>(column.size() * sizeof(DataType) * 2);
+  DataBlocks tb;
+  //---------------------------------------------------------------------------
+  tb.compress(column.data(), column.size(), compression_out.get(),
+              &TypeParam::kScheme);
+  tb.filter(compression_out.get(), column.size(), pred, matches);
+  //---------------------------------------------------------------------------
+  for (u32 i = 0; i < matches.size(); ++i) {
+    if (i % 42 == 0)
+      ASSERT_GT(matches[i], 0);
+    else
+      ASSERT_EQ(matches[i], 0);
   }
 }

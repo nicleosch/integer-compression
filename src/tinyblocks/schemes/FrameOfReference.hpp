@@ -40,9 +40,14 @@ void decompress(T *dest, const u8 *src, const Slot<T> &slot) {
 }
 //---------------------------------------------------------------------------
 template <typename T, const u16 kBlockSize>
-void filter(const T *data, algebra::Predicate<T> &predicate, Match *matches) {
-  // TODO: Implement filter
-  throw std::runtime_error("Not implemented yet.");
+void filter(const u8 *data, const Slot<T> &slot,
+            algebra::Predicate<T> &predicate, Match *matches) {
+  // Normalize the value to filter
+  predicate.setValue(predicate.getValue() - slot.reference);
+  bitpacking::filter<T, kBlockSize>(data, matches, slot.opcode.payload,
+                                    predicate);
+  // Revert the changes to the filter predicate
+  predicate.setValue(predicate.getValue() + slot.reference);
 }
 //---------------------------------------------------------------------------
 } // namespace frameofreference

@@ -20,6 +20,16 @@ namespace bitpacking {
 template <typename DataType, u32 kSize>
 u32 pack(const DataType *src, u8 *dest, const u8 pack_size);
 //---------------------------------------------------------------------------
+/// @brief Pack given integers using SIMD-BinaryPacking.
+/// @param src The integers to be packed.
+/// @param size The number of integers to be packed.
+/// @param dest The destination to pack the data to.
+/// @param pack_size The amount of bits to be used to pack an integer.
+/// @tparam DataType The type of integer to be packed.
+/// @returns The size of the compressed data in bytes.
+template <typename DataType>
+u32 pack(const DataType *src, const u16 size, u8 *dest, const u8 pack_size);
+//---------------------------------------------------------------------------
 /// @brief Bitpack the given data into arbitrary bit-widths.
 /// Note: This function masks the input bits before packing it.
 /// @param src The integers to be packed.
@@ -39,6 +49,27 @@ u32 packmask(const DataType *src, u8 *dest, const u8 pack_size);
 /// @tparam kSize The amount of integers to be unpacked.
 template <typename DataType, u32 kSize>
 void unpack(DataType *dest, const u8 *src, const u8 pack_size);
+//---------------------------------------------------------------------------
+/// @brief Unpack given integers using SIMD-BinaryPacking.
+/// @param dest The resulting integers.
+/// @param size The number of integers to be unpacked.
+/// @param src The data to unpack.
+/// @param pack_size The amount of bits used for packing.
+/// @tparam DataType The type of integer to be unpacked.
+template <typename DataType>
+void unpack(DataType *dest, const u16 size, const u8 *src, const u8 pack_size);
+//---------------------------------------------------------------------------
+/// @brief Filter the input based on a predicate.
+/// @param data The data to be filtered.
+/// @param matches The match vector to be filled if matches with the predicate
+/// occur.
+/// @param pack_size The amount of bits used for packing.
+/// @param predicate The predicate to be evaluated on the data.
+/// @tparam DataType The type of integer to be unpacked.
+/// @tparam kSize The amount of integers to be unpacked.
+template <typename DataType, u32 kSize>
+void filter(const u8 *data, u32 *matches, const u8 bit,
+            const algebra::Predicate<INTEGER> &predicate);
 //---------------------------------------------------------------------------
 template <>
 inline u32 pack<INTEGER, 64>(const INTEGER *src, u8 *dest, const u8 pack_size) {
@@ -219,25 +250,6 @@ inline void unpack<BIGINT, 512>(BIGINT *dest, const u8 *src,
                        reinterpret_cast<u64 *>(dest), pack_size);
 }
 //---------------------------------------------------------------------------
-/// @brief Pack given integers using SIMD-BinaryPacking.
-/// @param src The integers to be packed.
-/// @param size The number of integers to be packed.
-/// @param dest The destination to pack the data to.
-/// @param pack_size The amount of bits to be used to pack an integer.
-/// @tparam DataType The type of integer to be packed.
-/// @returns The size of the compressed data in bytes.
-template <typename DataType>
-u32 pack(const DataType *src, const u16 size, u8 *dest, const u8 pack_size);
-//---------------------------------------------------------------------------
-/// @brief Unpack given integers using SIMD-BinaryPacking.
-/// @param dest The resulting integers.
-/// @param size The number of integers to be unpacked.
-/// @param src The data to unpack.
-/// @param pack_size The amount of bits used for packing.
-/// @tparam DataType The type of integer to be unpacked.
-template <typename DataType>
-void unpack(DataType *dest, const u16 size, const u8 *src, const u8 pack_size);
-//---------------------------------------------------------------------------
 template <>
 inline u32 pack<INTEGER>(const INTEGER *src, const u16 size, u8 *dest,
                          const u8 pack_size) {
@@ -268,6 +280,58 @@ inline void unpack<BIGINT>(BIGINT *dest, const u16 size, const u8 *src,
                            const u8 pack_size) {
   simd64::simdunpack_length(reinterpret_cast<const __m128i *>(src), size,
                             reinterpret_cast<u64 *>(dest), pack_size);
+}
+//---------------------------------------------------------------------------
+template <>
+inline void filter<INTEGER, 64>(const u8 *data, u32 *matches, const u8 bit,
+                                const algebra::Predicate<INTEGER> &predicate) {
+  simd32::block64::filter(reinterpret_cast<const __m128i *>(data), matches, bit,
+                          predicate);
+}
+//---------------------------------------------------------------------------
+template <>
+inline void filter<INTEGER, 128>(const u8 *data, u32 *matches, const u8 bit,
+                                 const algebra::Predicate<INTEGER> &predicate) {
+  simd32::sse::filter(reinterpret_cast<const __m128i *>(data), matches, bit,
+                      predicate);
+}
+//---------------------------------------------------------------------------
+template <>
+inline void filter<INTEGER, 256>(const u8 *data, u32 *matches, const u8 bit,
+                                 const algebra::Predicate<INTEGER> &predicate) {
+  simd32::avx::filter(reinterpret_cast<const __m256i *>(data), matches, bit,
+                      predicate);
+}
+//---------------------------------------------------------------------------
+template <>
+inline void filter<INTEGER, 512>(const u8 *data, u32 *matches, const u8 bit,
+                                 const algebra::Predicate<INTEGER> &predicate) {
+  simd32::avx512::filter(reinterpret_cast<const __m512i *>(data), matches, bit,
+                         predicate);
+}
+//---------------------------------------------------------------------------
+template <>
+inline void filter<BIGINT, 64>(const u8 *data, u32 *matches, const u8 bit,
+                               const algebra::Predicate<INTEGER> &predicate) {
+  std::runtime_error("TODO: Not implemented yet!");
+}
+//---------------------------------------------------------------------------
+template <>
+inline void filter<BIGINT, 128>(const u8 *data, u32 *matches, const u8 bit,
+                                const algebra::Predicate<INTEGER> &predicate) {
+  std::runtime_error("TODO: Not implemented yet!");
+}
+//---------------------------------------------------------------------------
+template <>
+inline void filter<BIGINT, 256>(const u8 *data, u32 *matches, const u8 bit,
+                                const algebra::Predicate<INTEGER> &predicate) {
+  std::runtime_error("TODO: Not implemented yet!");
+}
+//---------------------------------------------------------------------------
+template <>
+inline void filter<BIGINT, 512>(const u8 *data, u32 *matches, const u8 bit,
+                                const algebra::Predicate<INTEGER> &predicate) {
+  std::runtime_error("TODO: Not implemented yet!");
 }
 //---------------------------------------------------------------------------
 } // namespace bitpacking
