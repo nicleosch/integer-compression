@@ -38,12 +38,14 @@ void filter(const u8 *data, const Slot<T> &slot,
     } else {
       std::fill(matches, matches + kBlockSize, 1);
     }
+    return;
   }
   case algebra::PredicateType::GT: { // GreaterThan Predicate
     u32 min = (value - slot.reference) / step + 1;
     for (u32 i = min; i < kBlockSize; ++i) {
       ++matches[i];
     }
+    return;
   }
   case algebra::PredicateType::LT: { // LessThan Predicate
     u32 numerator = value - slot.reference;
@@ -52,12 +54,14 @@ void filter(const u8 *data, const Slot<T> &slot,
     for (u32 i = 0; i < max; ++i) {
       ++matches[i];
     }
+    return;
   }
   case algebra::PredicateType::INEQ: { // Inequality Predicate
     assert(!(step == 0));              // Should be pre-filtered
     std::fill(matches, matches + kBlockSize, 1);
     if ((value - slot.reference) % step == 0)
       matches[(value - slot.reference) / step] = 0;
+    return;
   }
   }
 }
