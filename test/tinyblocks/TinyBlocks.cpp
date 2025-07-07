@@ -31,13 +31,15 @@ enum class TinyBlockSize : u8 { k64, k128, k256, k512 };
 enum class DataType : u8 { kINT, kBIGINT };
 //---------------------------------------------------------------------------
 /// Compile-Time configuration parameters.
-template <typename T, typename Column, u16 size, Scheme scheme>
+template <typename T, typename Column, u16 size, Scheme scheme,
+          algebra::PredicateType pred = algebra::PredicateType::EQ>
 struct TinyBlocksConfig {
   using DataType = T;
   using ColumnMeta = Column;
   //---------------------------------------------------------------------------
   static constexpr u16 kTinyBlockSize = size;
   static constexpr Scheme kScheme = scheme;
+  static constexpr algebra::PredicateType kPredicate = pred;
 };
 //---------------------------------------------------------------------------
 /// Test-Suites for TinyBlocks.
@@ -48,6 +50,12 @@ class TinyBlocksTestFiltering : public ::testing::Test {};
 //---------------------------------------------------------------------------
 // Combinations to be tested.
 using Config1 = TinyBlocksConfig<INTEGER, Partsupp<INTEGER>, 128, Scheme::FOR>;
+using Config100 = TinyBlocksConfig<INTEGER, Partsupp<INTEGER>, 128, Scheme::FOR,
+                                   algebra::PredicateType::GT>;
+using Config101 = TinyBlocksConfig<INTEGER, Partsupp<INTEGER>, 128, Scheme::FOR,
+                                   algebra::PredicateType::LT>;
+using Config102 = TinyBlocksConfig<INTEGER, Partsupp<INTEGER>, 128, Scheme::FOR,
+                                   algebra::PredicateType::INEQ>;
 using Config2 = TinyBlocksConfig<INTEGER, Partsupp<INTEGER>, 128, Scheme::RLE4>;
 using Config3 = TinyBlocksConfig<INTEGER, Partsupp<INTEGER>, 128, Scheme::RLE8>;
 using Config4 =
@@ -62,6 +70,12 @@ using Config8 =
 using Config9 =
     TinyBlocksConfig<INTEGER, Partsupp<INTEGER>, 128, Scheme::PFOR_LEMIRE>;
 using Config11 = TinyBlocksConfig<INTEGER, Partsupp<INTEGER>, 256, Scheme::FOR>;
+using Config110 = TinyBlocksConfig<INTEGER, Partsupp<INTEGER>, 256, Scheme::FOR,
+                                   algebra::PredicateType::GT>;
+using Config111 = TinyBlocksConfig<INTEGER, Partsupp<INTEGER>, 256, Scheme::FOR,
+                                   algebra::PredicateType::LT>;
+using Config112 = TinyBlocksConfig<INTEGER, Partsupp<INTEGER>, 256, Scheme::FOR,
+                                   algebra::PredicateType::INEQ>;
 using Config12 =
     TinyBlocksConfig<INTEGER, Partsupp<INTEGER>, 256, Scheme::RLE4>;
 using Config13 =
@@ -79,6 +93,12 @@ using Config18 =
 using Config19 =
     TinyBlocksConfig<INTEGER, Partsupp<INTEGER>, 256, Scheme::PFOR_LEMIRE>;
 using Config21 = TinyBlocksConfig<INTEGER, Partsupp<INTEGER>, 512, Scheme::FOR>;
+using Config120 = TinyBlocksConfig<INTEGER, Partsupp<INTEGER>, 512, Scheme::FOR,
+                                   algebra::PredicateType::GT>;
+using Config121 = TinyBlocksConfig<INTEGER, Partsupp<INTEGER>, 512, Scheme::FOR,
+                                   algebra::PredicateType::LT>;
+using Config122 = TinyBlocksConfig<INTEGER, Partsupp<INTEGER>, 512, Scheme::FOR,
+                                   algebra::PredicateType::INEQ>;
 using Config22 =
     TinyBlocksConfig<INTEGER, Partsupp<INTEGER>, 512, Scheme::RLE4>;
 using Config23 =
@@ -96,6 +116,12 @@ using Config28 =
 using Config29 =
     TinyBlocksConfig<INTEGER, Partsupp<INTEGER>, 512, Scheme::PFOR_LEMIRE>;
 using Config31 = TinyBlocksConfig<INTEGER, Partsupp<INTEGER>, 64, Scheme::FOR>;
+using Config130 = TinyBlocksConfig<INTEGER, Partsupp<INTEGER>, 64, Scheme::FOR,
+                                   algebra::PredicateType::GT>;
+using Config131 = TinyBlocksConfig<INTEGER, Partsupp<INTEGER>, 64, Scheme::FOR,
+                                   algebra::PredicateType::LT>;
+using Config132 = TinyBlocksConfig<INTEGER, Partsupp<INTEGER>, 64, Scheme::FOR,
+                                   algebra::PredicateType::INEQ>;
 using Config32 = TinyBlocksConfig<INTEGER, Partsupp<INTEGER>, 64, Scheme::RLE4>;
 using Config33 = TinyBlocksConfig<INTEGER, Partsupp<INTEGER>, 64, Scheme::RLE8>;
 using Config34 =
@@ -125,8 +151,11 @@ using Configs =
                      Config27, Config28, Config29, Config31, Config32, Config33,
                      Config34, Config35, Config36, Config37, Config38, Config39,
                      Config40, Config41, Config42, Config43>;
-using FilterConfigs = ::testing::Types<Config1, Config11, Config21, Config31,
-                                       Config40, Config41, Config42, Config43>;
+using FilterConfigs =
+    ::testing::Types<Config1, Config100, Config101, Config102, Config11,
+                     Config110, Config111, Config112, Config21, Config120,
+                     Config121, Config122, Config31, Config130, Config131,
+                     Config132, Config40, Config41, Config42, Config43>;
 TYPED_TEST_CASE(TinyBlocksTestCompression, Configs);
 TYPED_TEST_CASE(TinyBlocksTestFiltering, FilterConfigs);
 //---------------------------------------------------------------------------
@@ -175,7 +204,7 @@ TYPED_TEST(TinyBlocksTestFiltering, Filtering) {
   using DataType = typename TypeParam::DataType;
   using DataBlocks = datablock::DataBlock<DataType, kTinyBlockSize>;
   //---------------------------------------------------------------------------
-  algebra::Predicate<INTEGER> pred(algebra::PredicateType::EQ, 42);
+  algebra::Predicate<INTEGER> pred(TypeParam::kPredicate, 42);
   //---------------------------------------------------------------------------
   vector<INTEGER> vec(kSize);
   if constexpr (TypeParam::ColumnMeta::path) {
@@ -206,9 +235,26 @@ TYPED_TEST(TinyBlocksTestFiltering, Filtering) {
   tb.filter(compression_out.get(), column.size(), pred, matches);
   //---------------------------------------------------------------------------
   for (u32 i = 0; i < matches.size(); ++i) {
-    if (vec[i] == 42)
-      ASSERT_GT(matches[i], 0);
-    else
-      ASSERT_EQ(matches[i], 0);
+    if constexpr (TypeParam::kPredicate == algebra::PredicateType::EQ) {
+      if (vec[i] == 42)
+        ASSERT_GT(matches[i], 0);
+      else
+        ASSERT_EQ(matches[i], 0);
+    } else if constexpr (TypeParam::kPredicate == algebra::PredicateType::GT) {
+      if (vec[i] > 42)
+        ASSERT_GT(matches[i], 0);
+      else
+        ASSERT_EQ(matches[i], 0);
+    } else if constexpr (TypeParam::kPredicate == algebra::PredicateType::LT) {
+      if (vec[i] < 42)
+        ASSERT_GT(matches[i], 0);
+      else
+        ASSERT_EQ(matches[i], 0);
+    } else {
+      if (vec[i] != 42)
+        ASSERT_GT(matches[i], 0);
+      else
+        ASSERT_EQ(matches[i], 0);
+    }
   }
 }
