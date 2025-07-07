@@ -224,18 +224,30 @@ private:
     case algebra::PredicateType::EQ: {
       if (value < header.min || value > header.max)
         return;
+      break;
     }
     case algebra::PredicateType::GT: {
       if (value > header.max)
         return;
+      else if (value < header.min) {
+        std::fill(matches, matches + size, 1);
+        return;
+      }
+      break;
     }
     case algebra::PredicateType::LT: {
       if (value < header.min)
         return;
+      else if (value > header.max) {
+        std::fill(matches, matches + size, 1);
+        return;
+      }
+      break;
     }
     case algebra::PredicateType::INEQ: {
       if (value == header.min && value == header.max)
         return;
+      break;
     }
     }
     //---------------------------------------------------------------------------
@@ -253,18 +265,26 @@ private:
         return;
       }
       case algebra::PredicateType::GT: { // GreaterThan Predicate
-        u32 min = (value - header.min) / header.tag.payload + 1;
-        for (u32 i = min; i < size; ++i) {
-          ++matches[i];
+        /// If payload is 0, all values MUST be equal to the predicate,
+        /// thus no tuples qualify
+        if (!header.tag.payload == 0) {
+          u32 min = (value - header.min) / header.tag.payload + 1;
+          for (u32 i = min; i < size; ++i) {
+            ++matches[i];
+          }
         }
         return;
       }
       case algebra::PredicateType::LT: { // LessThan Predicate
-        u32 numerator = value - header.min;
-        u32 denominator = header.tag.payload;
-        u32 max = (numerator + denominator - 1) / denominator;
-        for (u32 i = 0; i < max; ++i) {
-          ++matches[i];
+        /// If payload is 0, all values MUST be equal to the predicate,
+        /// thus no tuples qualify
+        if (!header.tag.payload == 0) {
+          u32 numerator = value - header.min;
+          u32 denominator = header.tag.payload;
+          u32 max = (numerator + denominator - 1) / denominator;
+          for (u32 i = 0; i < max; ++i) {
+            ++matches[i];
+          }
         }
         return;
       }
