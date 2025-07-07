@@ -242,37 +242,39 @@ private:
     // Filter
     if (header.tag.scheme == Scheme::MONOTONIC) [[unlikely]] {
       // Datablock filter.
-      for (u32 i = 0; i < size; ++i) {
-        switch (predicate.getType()) {
-        case algebra::PredicateType::EQ: { // Equality Predicate
-          if (header.tag.payload > 0 &&
-              (value - header.min) % header.tag.payload == 0) {
-            ++matches[(value - header.min) / header.tag.payload];
-          } else {
-            std::fill(matches, matches + size, 1);
-          }
-        }
-        case algebra::PredicateType::GT: { // GreaterThan Predicate
-          u32 min = (value - header.min) / header.tag.payload + 1;
-          for (u32 i = min; i < size; ++i) {
-            ++matches[i];
-          }
-        }
-        case algebra::PredicateType::LT: { // LessThan Predicate
-          u32 numerator = value - header.min;
-          u32 denominator = header.tag.payload;
-          u32 max = (numerator + denominator - 1) / denominator;
-          for (u32 i = 0; i < max; ++i) {
-            ++matches[i];
-          }
-        }
-        case algebra::PredicateType::INEQ: { // Inequality Predicate
-          assert(!(header.tag.payload == 0));
-          std::fill(matches, matches + size, 1);
+      switch (predicate.getType()) {
+      case algebra::PredicateType::EQ: { // Equality Predicate
+        if (header.tag.payload > 0) {
           if ((value - header.min) % header.tag.payload == 0)
-            matches[(value - header.min) / header.tag.payload] = 0;
+            ++matches[(value - header.min) / header.tag.payload];
+        } else {
+          std::fill(matches, matches + size, 1);
         }
+        return;
+      }
+      case algebra::PredicateType::GT: { // GreaterThan Predicate
+        u32 min = (value - header.min) / header.tag.payload + 1;
+        for (u32 i = min; i < size; ++i) {
+          ++matches[i];
         }
+        return;
+      }
+      case algebra::PredicateType::LT: { // LessThan Predicate
+        u32 numerator = value - header.min;
+        u32 denominator = header.tag.payload;
+        u32 max = (numerator + denominator - 1) / denominator;
+        for (u32 i = 0; i < max; ++i) {
+          ++matches[i];
+        }
+        return;
+      }
+      case algebra::PredicateType::INEQ: { // Inequality Predicate
+        assert(!(header.tag.payload == 0));
+        std::fill(matches, matches + size, 1);
+        if ((value - header.min) % header.tag.payload == 0)
+          matches[(value - header.min) / header.tag.payload] = 0;
+        return;
+      }
       }
     } else {
       // Tinyblock filter.
