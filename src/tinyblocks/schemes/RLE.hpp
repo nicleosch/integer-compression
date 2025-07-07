@@ -116,17 +116,15 @@ void decompress(T *dest, const u8 *src, const Slot<T> &slot) {
   external::fastpfor::bitpacking::unpackAdaptive<T>(
       values, reinterpret_cast<const u32 *>(read_ptr), slot.opcode.payload);
   // Initialize lengths
-  // TODO: Can be improved probably, currently done to prevent UB
-  vector<RunLengthT> lengths(length_bytes);
-  std::memcpy(lengths.data(), src + sizeof(run_count), length_bytes);
+  auto lengths = reinterpret_cast<const RunLengthT *>(src + sizeof(run_count));
   //---------------------------------------------------------------------------
   // Decode RLE using AVX2
   auto write_ptr = dest;
-  u16 shift = 0;
   for (u16 i = 0; i < run_count; ++i) {
     RunLengthT length;
     if constexpr (kLengthBits == 4) {
-      length = (lengths[i / 2] >> (4 - (shift % 8))) & 0x0F;
+      u32 shift = (i & 1) << 2;
+      length = (lengths[i / 2] >> (4 - shift)) & 0x0F;
     } else {
       length = lengths[i];
     }
@@ -152,7 +150,6 @@ void decompress(T *dest, const u8 *src, const Slot<T> &slot) {
     while (write_ptr < end_ptr) {
       *write_ptr++ = value;
     }
-    shift += 4;
   }
 }
 //---------------------------------------------------------------------------
