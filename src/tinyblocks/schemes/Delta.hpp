@@ -16,8 +16,6 @@ template <typename T, const u16 kBlockSize>
 u32 compress(const T *src, u8 *dest, Slot<T> &slot) {
   // FOR
   auto buffer = std::make_unique<T[]>(kBlockSize);
-  // TODO: When the reference is negative, this will actually increase the
-  // values!
   for (u32 i = 0; i < kBlockSize; ++i) {
     buffer[i] = src[i] - slot.reference;
   }
