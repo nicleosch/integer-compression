@@ -1,5 +1,7 @@
 #pragma once
 //---------------------------------------------------------------------------
+#include <type_traits>
+//---------------------------------------------------------------------------
 #include "algebra/Predicate.hpp"
 #include "bitpacking/BitPacking.hpp"
 #include "extern/fastpfor/Delta.hpp"
@@ -14,6 +16,8 @@ namespace delta {
 //---------------------------------------------------------------------------
 template <typename T, const u16 kBlockSize>
 u32 compress(const T *src, u8 *dest, Slot<T> &slot) {
+  using U = typename std::make_unsigned<T>::type;
+  //---------------------------------------------------------------------------
   // FOR
   auto buffer = std::make_unique<T[]>(kBlockSize);
   for (u32 i = 0; i < kBlockSize; ++i) {
@@ -34,7 +38,8 @@ u32 compress(const T *src, u8 *dest, Slot<T> &slot) {
     if (buffer[i] > max)
       max = buffer[i];
   }
-  u8 pack_size = utils::requiredBits(max - min);
+  u8 pack_size =
+      utils::requiredBits<U>(static_cast<U>(max) - static_cast<U>(min));
   //---------------------------------------------------------------------------
   slot.opcode = {Scheme::DELTA, pack_size};
   //---------------------------------------------------------------------------

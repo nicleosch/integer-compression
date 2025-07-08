@@ -142,21 +142,15 @@ private:
 /// @brief Template specialization to determine the number of required bits to
 /// represent an integer.
 template <typename T> inline u8 requiredBits(T value);
-template <> inline u8 requiredBits(INTEGER value) {
+template <> inline u8 requiredBits(u32 value) {
   if (value == 0)
     return 1;
-  if (value < 0)
-    return sizeof(INTEGER) * 8;
-  return static_cast<u8>(sizeof(INTEGER) * 8) -
-         __builtin_clz(static_cast<u32>(value));
+  return static_cast<u8>(sizeof(u32) * 8) - __builtin_clz(value);
 }
-template <> inline u8 requiredBits(BIGINT value) {
+template <> inline u8 requiredBits(u64 value) {
   if (value == 0)
     return 1;
-  if (value < 0)
-    return sizeof(BIGINT) * 8;
-  return static_cast<u8>(sizeof(BIGINT) * 8) -
-         __builtin_clzll(static_cast<u64>(value));
+  return static_cast<u8>(sizeof(u64) * 8) - __builtin_clzll(value);
 }
 //---------------------------------------------------------------------------
 /// @brief A utility to safely load from an unaligned address.

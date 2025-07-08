@@ -2,6 +2,7 @@
 //---------------------------------------------------------------------------
 #include <cassert>
 #include <cmath>
+#include <type_traits>
 //---------------------------------------------------------------------------
 #include "common/Types.hpp"
 #include "common/Utils.hpp"
@@ -49,6 +50,7 @@ public:
 //---------------------------------------------------------------------------
 template <typename T> class Statistics {
 public:
+  using U = typename std::make_unsigned<T>::type;
   //---------------------------------------------------------------------------
   static Statistics generateFrom(const T *src, u32 count) {
     assert(count > 0);
@@ -75,9 +77,12 @@ public:
         stats.delta = false;
     }
     //---------------------------------------------------------------------------
-    stats.diff_bits = utils::requiredBits<T>(stats.max - stats.min);
-    stats.delta_bits = utils::requiredBits<T>(max_diff);
-    stats.max_bits = utils::requiredBits<T>(stats.max);
+    // TODO: The difference between two values of T might not fit into a T
+    // value. This is a bug and needs to be fixed.
+    stats.diff_bits = utils::requiredBits<U>(static_cast<U>(stats.max) -
+                                             static_cast<U>((stats.min)));
+    stats.delta_bits = utils::requiredBits<U>(max_diff);
+    stats.max_bits = utils::requiredBits<U>(stats.max);
     stats.step_size = step;
     //---------------------------------------------------------------------------
     return stats;
