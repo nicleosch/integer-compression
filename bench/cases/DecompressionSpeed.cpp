@@ -1,3 +1,4 @@
+#include <filesystem>
 #include <fstream>
 #include <random>
 //---------------------------------------------------------------------------
@@ -16,6 +17,8 @@ namespace benchmarks {
 static const u32 kTupleCount = 1024;
 static const u32 kIterations = 1024 * 1024;
 static std::ofstream null_stream("/dev/null");
+static const char *kResultFolder = "results/";
+/// @brief TinyBlocks compression schemes
 static const tinyblocks::Scheme schemes[] = {
     tinyblocks::Scheme::FOR,         tinyblocks::Scheme::RLE4,
     tinyblocks::Scheme::RLE8,        tinyblocks::Scheme::PFOR,
@@ -26,6 +29,17 @@ static const tinyblocks::Scheme deltaSchemes[] = {
     tinyblocks::Scheme::DELTA,
     tinyblocks::Scheme::PFOR_DELTA,
 };
+/// @brief BtrBlocks compression schemes
+static const btrblocks::IntegerSchemeType btrblocksSchemes[] = {
+    btrblocks::IntegerSchemeType::DICT,
+    btrblocks::IntegerSchemeType::RLE,
+    btrblocks::IntegerSchemeType::PFOR,
+    btrblocks::IntegerSchemeType::BP,
+};
+static const btrblocks::IntegerSchemeType btrblocksDeltaSchemes[] = {
+    btrblocks::IntegerSchemeType::PFOR_DELTA,
+};
+/// @brief The different types of datasets we're benchmarking on.
 enum class Data { kRandom, kOneValue, kMonotonic };
 static const char *toString(Data d) {
   switch (d) {
@@ -140,7 +154,8 @@ static void decompressionSpeed() {
     for (const auto &scheme : schemes) {
       // The file to write to.
       std::ofstream bp_file(
-          toString(kType) + std::to_string(static_cast<u32>(scheme)) +
+          std::string(kResultFolder) + std::string(toString(kType)) + "_" +
+          std::to_string(static_cast<u32>(scheme)) + "_" +
           std::to_string(sizeof(T) * 8) + "bit" + toString(kData) + ".csv");
       //---------------------------------------------------------------------------
       for (u8 pack_size = kBits - 31; pack_size <= kBits; ++pack_size) {
@@ -177,7 +192,9 @@ static void decompressionSpeed() {
         utils::stopCounters(perf_event, bp_file);
       }
     }
-  } else {
+  } else if constexpr (kType == EncodingType::kUncompressed ||
+                       kType == EncodingType::kBtrBlocks3 ||
+                       kType == EncodingType::kBtrBlocks3_256) {
     vector<T> column;
     if constexpr (kData == Data::kRandom)
       utils::generateRandomValues<T, 64>(column, kTupleCount, sizeof(T) * 8);
@@ -189,8 +206,9 @@ static void decompressionSpeed() {
     encoding->compress(column, cbuffer.get(), nullptr);
     //---------------------------------------------------------------------------
     PerfEvent perf_event;
-    std::ofstream bp_file(toString(kType) + std::to_string(sizeof(T) * 8) +
-                          "bit" + toString(kData) + ".csv");
+    std::ofstream bp_file(std::string(kResultFolder) + toString(kType) +
+                          std::to_string(sizeof(T) * 8) + "bit" +
+                          toString(kData) + ".csv");
     utils::startCounters(perf_event, bp_file);
     //---------------------------------------------------------------------------
     for (u32 i = 0; i < kIterations; ++i) {
@@ -198,13 +216,62 @@ static void decompressionSpeed() {
     }
     //---------------------------------------------------------------------------
     utils::stopCounters(perf_event, bp_file);
+  } else {
+    for (const auto &scheme : btrblocksSchemes) {
+      // The file to write to.
+      std::ofstream bp_file(
+          std::string(kResultFolder) + std::string(toString(kType)) + "_" +
+          std::to_string(static_cast<u32>(scheme)) + "_" +
+          std::to_string(sizeof(T) * 8) + "bit" + toString(kData) + ".csv");
+      //---------------------------------------------------------------------------
+      for (u8 pack_size = kBits - 31; pack_size <= kBits; ++pack_size) {
+        // The buffer to compress into.
+        cbuffer = std::make_unique<u8[]>(kTupleCount * sizeof(T) * 2);
+        vector<T> column;
+        if constexpr (kData == Data::kRandom)
+          utils::generateRandomValues<T, 64>(column, kTupleCount, pack_size);
+        else if constexpr (kData == Data::kOneValue)
+          assert(false);
+        else
+          assert(false);
+        //---------------------------------------------------------------------------
+        std::cout << "Starting " << std::to_string(static_cast<u32>(scheme))
+                  << " with pack size: "
+                  << std::to_string(static_cast<u32>(pack_size)) << std::endl;
+        //---------------------------------------------------------------------------
+        // Compress
+        encoding->compress(column, cbuffer.get(), &scheme);
+        //---------------------------------------------------------------------------
+        // Register cpu counters
+        PerfEvent perf_event;
+        if (pack_size == kBits - 31) {
+          perf_event.printReport(bp_file, null_stream, 1);
+          bp_file << "Cycles/Tuple, Instructions/Tuple\n";
+        }
+        perf_event.startCounters();
+        //---------------------------------------------------------------------------
+        // Decompress
+        for (u32 i = 0; i < kIterations; ++i) {
+          encoding->decompress(cbuffer.get(), column);
+        }
+        //---------------------------------------------------------------------------
+        utils::stopCounters(perf_event, bp_file);
+      }
+    }
   }
 }
 
 static void decompressionBenchmarks() {
+  std::filesystem::create_directories(kResultFolder);
   decompressionSpeed<INTEGER, EncodingType::kUncompressed, Data::kRandom>();
+  decompressionSpeed<INTEGER, EncodingType::kTinyBlocks64, Data::kRandom>();
+  decompressionSpeed<INTEGER, EncodingType::kTinyBlocks128, Data::kRandom>();
+  decompressionSpeed<INTEGER, EncodingType::kTinyBlocks256, Data::kRandom>();
+  decompressionSpeed<INTEGER, EncodingType::kTinyBlocks512, Data::kRandom>();
   decompressionSpeed<INTEGER, EncodingType::kBtrBlocks1, Data::kRandom>();
   decompressionSpeed<INTEGER, EncodingType::kBtrBlocks3, Data::kRandom>();
+  decompressionSpeed<INTEGER, EncodingType::kBtrBlocks1_256, Data::kRandom>();
+  decompressionSpeed<INTEGER, EncodingType::kBtrBlocks3_256, Data::kRandom>();
 };
 //---------------------------------------------------------------------------
 } // namespace benchmarks

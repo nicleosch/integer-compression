@@ -56,7 +56,7 @@ public:
   virtual ~Encoding() = default;
   //---------------------------------------------------------------------------
   virtual u32 compress(const vector<T> &src, u8 *dest,
-                       tinyblocks::Scheme *tscheme = nullptr) = 0;
+                       const void *tscheme = nullptr) = 0;
   //---------------------------------------------------------------------------
   virtual void decompress(const u8 *src, vector<T> &dest) = 0;
   //---------------------------------------------------------------------------
@@ -66,7 +66,7 @@ public:
 template <typename T> class UncompressedEncoding : public Encoding<T> {
 public:
   u32 compress(const vector<T> &src, u8 *dest,
-               tinyblocks::Scheme *tscheme = nullptr) override {
+               const void *tscheme = nullptr) override {
     return this->scheme.compress(src.data(), src.size(), dest, nullptr)
         .payload_size;
   }
@@ -85,7 +85,7 @@ template <typename T, u32 kTinyBlocksSize>
 class TinyBlocksEncoding : public Encoding<T> {
 public:
   u32 compress(const vector<T> &src, u8 *dest,
-               tinyblocks::Scheme *tscheme = nullptr) override {
+               const void *tscheme = nullptr) override {
     vector<Statistics<T>> stats;
     auto block_count = src.size() / kTinyBlocksSize;
     for (size_t i = 0; i < block_count; ++i) {
@@ -93,7 +93,8 @@ public:
           src.data() + i * kTinyBlocksSize, kTinyBlocksSize));
     }
     return this->scheme
-        .compress(src.data(), src.size(), dest, stats.data(), tscheme)
+        .compress(src.data(), src.size(), dest, stats.data(),
+                  *reinterpret_cast<const tinyblocks::Scheme *>(tscheme))
         .payload_size;
   }
   //---------------------------------------------------------------------------
@@ -120,12 +121,17 @@ template <typename T, u32 kDepth, u32 kBlockSize = 65536>
 class BtrBlocksEncoding : public Encoding<T> {
 public:
   u32 compress(const vector<T> &src, u8 *dest,
-               tinyblocks::Scheme *tscheme = nullptr) override {
+               const void *tscheme = nullptr) override {
     // Setup BtrBlocks
     btrblocks::BtrBlocksConfig::configure(
         [&](btrblocks::BtrBlocksConfig &config) {
           config.integers.max_cascade_depth = kDepth;
-          config.integers.schemes.enableAll();
+          if (tscheme == nullptr)
+            config.integers.schemes.enableAll();
+          else
+            config.integers.override_scheme =
+                *reinterpret_cast<const btrblocks::IntegerSchemeType *>(
+                    tscheme);
           config.block_size = kBlockSize;
         });
     // Setup Data
