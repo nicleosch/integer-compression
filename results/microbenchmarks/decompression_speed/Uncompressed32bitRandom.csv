@@ -1,0 +1,2 @@
+cycles, kcycles, scycles, instructions, L1-misses, LLC-misses, branch-misses, task-clock, scale,  IPC, CPUs,  GHz Cycles/Tuple, Instructions/Tuple
+173212420.22, 1241157.52,    0.00, 444696565.12,  23262.71,     358.40,       3377.76, 67696371.00,     1, 2.57, 1.00, 2.56 , 0.161317, 0.414156
