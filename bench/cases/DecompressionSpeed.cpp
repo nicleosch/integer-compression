@@ -114,6 +114,54 @@ static void generateRandomValues(vector<T> &data, const u32 count,
   }
 };
 //---------------------------------------------------------------------------
+/// @brief Generates a vector of monotonically increasing values that require
+/// "pack_size" bits to represent.
+/// @param data The vector to be filled with data.
+/// @param count The size of the vector.
+/// @param pack_size The number of bits required to store the highest value
+/// within a TinyBlock.
+template <typename T>
+static void generateMonotonicValues(vector<T> &data, const u32 count,
+                                    const u8 pack_size = sizeof(T) * 8) {
+  data.resize(count);
+  //---------------------------------------------------------------------------
+  u32 max = 1ULL << pack_size;
+  for (u32 i = 0; i < count; ++i) {
+    if (i < max)
+      data[i] = static_cast<T>(i);
+    else
+      data[i] = static_cast<T>(max - 1);
+  }
+};
+//---------------------------------------------------------------------------
+/// @brief Generates a vector of a single value that require
+/// "pack_size" bits to represent.
+/// @param data The vector to be filled with data.
+/// @param count The size of the vector.
+/// @param pack_size The number of bits required to store the highest value
+/// within a TinyBlock.
+template <typename T>
+static void generateOneValue(vector<T> &data, const u32 count,
+                             const u8 pack_size = sizeof(T) * 8) {
+  data.resize(count);
+  //---------------------------------------------------------------------------
+  u32 max = 1ULL << pack_size;
+  for (u32 i = 0; i < count; ++i) {
+    data[i] = static_cast<T>(max - 1);
+  };
+}
+//---------------------------------------------------------------------------
+template <typename T, Data kData>
+static void generateData(vector<T> &data, const u32 count,
+                         const u8 pack_size = sizeof(T) * 8) {
+  if constexpr (kData == Data::kRandom)
+    utils::generateRandomValues<T, 64>(data, kTupleCount, pack_size);
+  else if constexpr (kData == Data::kOneValue)
+    utils::generateOneValue<T>(data, kTupleCount, pack_size);
+  else
+    utils::generateMonotonicValues<T>(data, kTupleCount, pack_size);
+}
+//---------------------------------------------------------------------------
 } // namespace utils
 //---------------------------------------------------------------------------
 
@@ -162,12 +210,7 @@ static void decompressionSpeed() {
         // The buffer to compress into.
         cbuffer = std::make_unique<u8[]>(kTupleCount * sizeof(T) * 2);
         vector<T> column;
-        if constexpr (kData == Data::kRandom)
-          utils::generateRandomValues<T, 64>(column, kTupleCount, pack_size);
-        else if constexpr (kData == Data::kOneValue)
-          assert(false);
-        else
-          assert(false);
+        utils::generateData<T, kData>(column, kTupleCount, pack_size);
         //---------------------------------------------------------------------------
         std::cout << "Starting " << std::to_string(static_cast<u32>(scheme))
                   << " with pack size: "
@@ -196,12 +239,7 @@ static void decompressionSpeed() {
                        kType == EncodingType::kBtrBlocks3 ||
                        kType == EncodingType::kBtrBlocks3_256) {
     vector<T> column;
-    if constexpr (kData == Data::kRandom)
-      utils::generateRandomValues<T, 64>(column, kTupleCount, sizeof(T) * 8);
-    else if constexpr (kData == Data::kOneValue)
-      assert(false);
-    else
-      assert(false);
+    utils::generateData<T, kData>(column, kTupleCount);
     //---------------------------------------------------------------------------
     encoding->compress(column, cbuffer.get(), nullptr);
     //---------------------------------------------------------------------------
@@ -228,12 +266,7 @@ static void decompressionSpeed() {
         // The buffer to compress into.
         cbuffer = std::make_unique<u8[]>(kTupleCount * sizeof(T) * 2);
         vector<T> column;
-        if constexpr (kData == Data::kRandom)
-          utils::generateRandomValues<T, 64>(column, kTupleCount, pack_size);
-        else if constexpr (kData == Data::kOneValue)
-          assert(false);
-        else
-          assert(false);
+        utils::generateData<T, kData>(column, kTupleCount, pack_size);
         //---------------------------------------------------------------------------
         std::cout << "Starting " << std::to_string(static_cast<u32>(scheme))
                   << " with pack size: "
@@ -272,6 +305,26 @@ static void decompressionBenchmarks() {
   decompressionSpeed<INTEGER, EncodingType::kBtrBlocks3, Data::kRandom>();
   decompressionSpeed<INTEGER, EncodingType::kBtrBlocks1_256, Data::kRandom>();
   decompressionSpeed<INTEGER, EncodingType::kBtrBlocks3_256, Data::kRandom>();
+  decompressionSpeed<INTEGER, EncodingType::kUncompressed, Data::kOneValue>();
+  decompressionSpeed<INTEGER, EncodingType::kTinyBlocks64, Data::kOneValue>();
+  decompressionSpeed<INTEGER, EncodingType::kTinyBlocks128, Data::kOneValue>();
+  decompressionSpeed<INTEGER, EncodingType::kTinyBlocks256, Data::kOneValue>();
+  decompressionSpeed<INTEGER, EncodingType::kTinyBlocks512, Data::kOneValue>();
+  decompressionSpeed<INTEGER, EncodingType::kBtrBlocks1, Data::kOneValue>();
+  decompressionSpeed<INTEGER, EncodingType::kBtrBlocks3, Data::kOneValue>();
+  decompressionSpeed<INTEGER, EncodingType::kBtrBlocks1_256, Data::kOneValue>();
+  decompressionSpeed<INTEGER, EncodingType::kBtrBlocks3_256, Data::kOneValue>();
+  decompressionSpeed<INTEGER, EncodingType::kUncompressed, Data::kMonotonic>();
+  decompressionSpeed<INTEGER, EncodingType::kTinyBlocks64, Data::kMonotonic>();
+  decompressionSpeed<INTEGER, EncodingType::kTinyBlocks128, Data::kMonotonic>();
+  decompressionSpeed<INTEGER, EncodingType::kTinyBlocks256, Data::kMonotonic>();
+  decompressionSpeed<INTEGER, EncodingType::kTinyBlocks512, Data::kMonotonic>();
+  decompressionSpeed<INTEGER, EncodingType::kBtrBlocks1, Data::kMonotonic>();
+  decompressionSpeed<INTEGER, EncodingType::kBtrBlocks3, Data::kMonotonic>();
+  decompressionSpeed<INTEGER, EncodingType::kBtrBlocks1_256,
+                     Data::kMonotonic>();
+  decompressionSpeed<INTEGER, EncodingType::kBtrBlocks3_256,
+                     Data::kMonotonic>();
 };
 //---------------------------------------------------------------------------
 } // namespace benchmarks
