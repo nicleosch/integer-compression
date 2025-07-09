@@ -70,7 +70,7 @@ static void thrashCPUCaches() {
 /// @brief Starts cpu counters and writes the report header to the file.
 static void startCounters(PerfEvent &event, std::ostream &file) {
   event.printReport(file, null_stream, 1);
-  file << "Cycles/Tuple, Instructions/Tuple\n";
+  file << ", Cycles/Tuple, Instructions/Tuple\n";
   event.startCounters();
 }
 //---------------------------------------------------------------------------
@@ -223,7 +223,7 @@ static void decompressionSpeed() {
         PerfEvent perf_event;
         if (pack_size == kBits - 31) {
           perf_event.printReport(bp_file, null_stream, 1);
-          bp_file << "Cycles/Tuple, Instructions/Tuple\n";
+          bp_file << ", Cycles/Tuple, Instructions/Tuple\n";
         }
         perf_event.startCounters();
         //---------------------------------------------------------------------------
@@ -279,7 +279,7 @@ static void decompressionSpeed() {
         PerfEvent perf_event;
         if (pack_size == kBits - 31) {
           perf_event.printReport(bp_file, null_stream, 1);
-          bp_file << "Cycles/Tuple, Instructions/Tuple\n";
+          bp_file << ", Cycles/Tuple, Instructions/Tuple\n";
         }
         perf_event.startCounters();
         //---------------------------------------------------------------------------
