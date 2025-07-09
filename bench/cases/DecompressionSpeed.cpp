@@ -98,8 +98,7 @@ static void generateRandomValues(vector<T> &data, const u32 count,
                                  const u8 pack_size = sizeof(T) * 8) {
   data.resize(count);
   //---------------------------------------------------------------------------
-  std::random_device rd;
-  std::mt19937 gen(rd());
+  std::mt19937 gen(42);
   std::bernoulli_distribution dist(0.5);
   //---------------------------------------------------------------------------
   for (u32 i = 0; i < count; ++i) {
