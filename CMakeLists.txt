@@ -25,6 +25,7 @@ endif()
 # PATHS
 # ---------------------------------------------------------------------------
 include_directories(${CMAKE_SOURCE_DIR}/src)
+include_directories(${CMAKE_SOURCE_DIR}/bench)
 
 # DEPENDENCIES
 # ---------------------------------------------------------------------------
