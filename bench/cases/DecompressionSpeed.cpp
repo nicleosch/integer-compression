@@ -206,6 +206,10 @@ static void decompressionSpeed() {
           std::to_string(sizeof(T) * 8) + "bit" + toString(kData) + ".csv");
       //---------------------------------------------------------------------------
       for (u8 pack_size = kBits - 31; pack_size <= kBits; ++pack_size) {
+        //---------------------------------------------------------------------------
+        std::cout << "Starting " << std::to_string(static_cast<u32>(scheme))
+                  << " with pack size: "
+                  << std::to_string(static_cast<u32>(pack_size)) << std::endl;
         // The buffer to compress into.
         cbuffer = std::make_unique<u8[]>(kTupleCount * sizeof(T) * 2);
         vector<T> column;
