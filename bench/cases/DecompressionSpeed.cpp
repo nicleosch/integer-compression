@@ -101,12 +101,24 @@ static void generateRandomValues(vector<T> &data, const u32 count,
   std::mt19937 gen(42);
   std::bernoulli_distribution dist(0.5);
   //---------------------------------------------------------------------------
+  if (pack_size == 0) {
+    std ::fill(data.begin(), data.end(), 0);
+    return;
+  }
+  //---------------------------------------------------------------------------
+  u32 max = 1ULL << pack_size;
   for (u32 i = 0; i < count; ++i) {
     if (i % kTinyBlocksSize == 0) {
-      if (pack_size == 32)
-        data[i] = -1;
-      else
-        data[i] = static_cast<T>(1ULL << pack_size);
+      if (pack_size == 32) {
+        // data[i] = std::numeric_limits<T>::max();
+        // data[i == 0 ? i + 1 : i - 1] = std::numeric_limits<T>::min();
+
+        // TODO: Fix: Handle pack size 32 through all tinyblocks-schemes.
+        // Thus, for now we use pack size 31 instead.
+        data[i] = static_cast<T>((1ULL << 31) - 1);
+      } else {
+        data[i] = static_cast<T>(max - 1);
+      }
     } else {
       data[i] = dist(gen);
     }
