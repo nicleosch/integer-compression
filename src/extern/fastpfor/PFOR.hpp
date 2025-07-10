@@ -58,7 +58,7 @@ void getBestPackSize(const T *src, u8 &best_pack_size, u8 &max_pack_size,
            INT64_MAX); // TODO: Will break for values larger than MAX_INT64
     u32 b = FastPForLib::asmbits(static_cast<u64>(src[k]));
     bit_freqs[b]++;
-    T max_value = (1 << b) - 1;
+    T max_value = (1U << b) - 1;
     if (src[k] == max_value)
       max_values[b] = true;
   }
