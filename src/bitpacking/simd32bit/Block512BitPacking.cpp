@@ -1,3 +1,4 @@
+#include <cassert>
 #include <cstring>
 #include <simdcomp.h>
 //---------------------------------------------------------------------------
@@ -24,11 +25,103 @@ void unpack(const __m512i *in, u32 *out, const u8 bit) {
   avx512unpack(in, out, bit);
 }
 
+static void packblockfast1(const u32 *pin, __m512i *compressed) {
+  const __m512i *in = (const __m512i *)pin;
+  __m512i w0 = _mm512_setzero_si512();
+  __m512i in0, in1, in2, in3;
+  //---------------------------------------------------------------------------
+  __m512i shuffle_mask = _mm512_set_epi32(15, 11, 7, 3, // in3
+                                          14, 10, 6, 2, // in2
+                                          13, 9, 5, 1,  // in1
+                                          12, 8, 4, 0   // in0
+  );
+  //---------------------------------------------------------------------------
+  for (u32 i = 0; i < 8; ++i) {
+    // Load 64
+    in0 = _mm512_loadu_si512(in + i * 4);
+    in1 = _mm512_loadu_si512(in + i * 4 + 1);
+    in2 = _mm512_loadu_si512(in + i * 4 + 2);
+    in3 = _mm512_loadu_si512(in + i * 4 + 3);
+    // Narrow 64 32bit (2048 bit) integers to 64 8bit (512 bit) integers
+    __m512i lo16 = _mm512_packs_epi32(in0, in1);
+    __m512i hi16 = _mm512_packs_epi32(in2, in3);
+    __m512i packed8 = _mm512_packus_epi16(lo16, hi16);
+    __m512i linefix = _mm512_permutexvar_epi32(shuffle_mask, packed8);
+    // Bitpack
+    w0 = _mm512_or_si512(w0, _mm512_slli_epi32(linefix, i));
+  }
+  _mm512_storeu_si512(compressed, w0);
+}
+
+static void unpackblockfast1(const __m512i *compressed, u32 *pout) {
+  __m512i *out = (__m512i *)pout;
+  //---------------------------------------------------------------------------
+  __m512i w;
+  __m128i w0, w1, w2, w3;
+  //---------------------------------------------------------------------------
+  w = _mm512_loadu_si512(compressed);
+  w0 = _mm512_extracti32x4_epi32(w, 0);
+  w1 = _mm512_extracti32x4_epi32(w, 1);
+  w2 = _mm512_extracti32x4_epi32(w, 2);
+  w3 = _mm512_extracti32x4_epi32(w, 3);
+  const __m128i mask = _mm_set1_epi8(1);
+  for (u32 i = 0; i < 8; ++i) {
+    _mm512_storeu_si512(out + 4 * i, _mm512_cvtepu8_epi32(_mm_and_si128(
+                                         mask, _mm_srli_epi32(w0, i))));
+    _mm512_storeu_si512(out + 4 * i + 1, _mm512_cvtepu8_epi32(_mm_and_si128(
+                                             mask, _mm_srli_epi32(w1, i))));
+    _mm512_storeu_si512(out + 4 * i + 2, _mm512_cvtepu8_epi32(_mm_and_si128(
+                                             mask, _mm_srli_epi32(w2, i))));
+    _mm512_storeu_si512(out + 4 * i + 3, _mm512_cvtepu8_epi32(_mm_and_si128(
+                                             mask, _mm_srli_epi32(w3, i))));
+  }
+}
+
+void packfast(const u32 *in, __m512i *out, const u8 bit) {
+  switch (bit) {
+  case 1:
+    packblockfast1(in, out);
+    break;
+  default:
+    assert(false);
+  }
+}
+
+void unpackfast(const __m512i *in, u32 *out, const u8 bit) {
+  switch (bit) {
+  case 1:
+    unpackblockfast1(in, out);
+    break;
+  default:
+    assert(false);
+  }
+}
+
 static void filtereq0(const __m512i *in, u32 *matches, const INTEGER comp) {
   if (comp == 0)
     memset(matches, 1, 512 * sizeof(*matches));
   else
     memset(matches, 0, 512 * sizeof(*matches));
+}
+
+/* we packed 512 1-bit values, touching 1 512-bit words, using 64 bytes */
+static void filterfasteq1(const __m512i *in, u8 *matches, const INTEGER comp) {
+  assert(comp < 2);
+  //---------------------------------------------------------------------------
+  __m512i w0;
+  auto out = reinterpret_cast<__m512i *>(matches);
+  const __m512i mask = _mm512_set1_epi8(1);
+  const __m512i broadcomp = _mm512_set1_epi8(comp);
+  //---------------------------------------------------------------------------
+  w0 = _mm512_loadu_si512(in);
+  for (u32 i = 0; i < 8; ++i) {
+    _mm512_storeu_si512(
+        out + i,
+        _mm512_maskz_set1_epi8(
+            _mm512_cmpeq_epi8_mask(
+                _mm512_and_si512(mask, _mm512_srli_epi32(w0, i)), broadcomp),
+            0xFF));
+  }
 }
 
 /* we packed 512 1-bit values, touching 1 512-bit words, using 64 bytes */
@@ -29987,6 +30080,30 @@ void filter(const __m512i *in, u32 *matches, const u8 bit,
     break;
   case algebra::PredicateType::LT:
     filterlt(in, matches, comp, bit);
+    break;
+  default:
+    break;
+  }
+}
+
+void filterfast(const __m512i *in, u8 *matches, const u8 bit,
+                const algebra::Predicate<INTEGER> &predicate) {
+  const INTEGER comp = predicate.getValue();
+  switch (predicate.getType()) {
+  case algebra::PredicateType::EQ:
+    if (bit == 1)
+      filterfasteq1(in, matches, comp);
+    else
+      assert(false);
+    break;
+  case algebra::PredicateType::INEQ:
+    assert(false);
+    break;
+  case algebra::PredicateType::GT:
+    assert(false);
+    break;
+  case algebra::PredicateType::LT:
+    assert(false);
     break;
   default:
     break;
