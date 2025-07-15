@@ -13,11 +13,11 @@ namespace avx512 {
 //---------------------------------------------------------------------------
 
 void pack(const u32 *in, __m512i *out, const u8 bit) {
-  return avx512packwithoutmask(in, out, bit);
+  avx512packwithoutmask(in, out, bit);
 }
 
 void packmask(const u32 *in, __m512i *out, const u8 bit) {
-  return avx512pack(in, out, bit);
+  avx512pack(in, out, bit);
 }
 
 void unpack(const __m512i *in, u32 *out, const u8 bit) {
