@@ -129,6 +129,47 @@ static void packblockfast3(const u32 *pin, __m512i *compressed) {
   _mm512_storeu_si512(compressed + 2, w2);
 }
 
+static void packblockfast4(const u32 *pin, __m512i *compressed) {
+  const __m512i *in = (const __m512i *)pin;
+  __m512i w0, w1, w2, w3, packed8;
+  //---------------------------------------------------------------------------
+  w0 = _mm512_setzero_si512();
+  for (u32 i = 0; i < 2; ++i) {
+    packed8 = compactify32to8(in);
+    // Bitpack
+    w0 = _mm512_or_si512(w0, _mm512_slli_epi32(packed8, 4 * i));
+    in += 4;
+  }
+  _mm512_storeu_si512(compressed, w0);
+  //---------------------------------------------------------------------------
+  w1 = _mm512_setzero_si512();
+  for (u32 i = 0; i < 2; ++i) {
+    packed8 = compactify32to8(in);
+    // Bitpack
+    w1 = _mm512_or_si512(w1, _mm512_slli_epi32(packed8, 4 * i));
+    in += 4;
+  }
+  _mm512_storeu_si512(compressed + 1, w1);
+  //---------------------------------------------------------------------------
+  w2 = _mm512_setzero_si512();
+  for (u32 i = 0; i < 2; ++i) {
+    packed8 = compactify32to8(in);
+    // Bitpack
+    w2 = _mm512_or_si512(w2, _mm512_slli_epi32(packed8, 4 * i));
+    in += 4;
+  }
+  _mm512_storeu_si512(compressed + 2, w2);
+  //---------------------------------------------------------------------------
+  w3 = _mm512_setzero_si512();
+  for (u32 i = 0; i < 2; ++i) {
+    packed8 = compactify32to8(in);
+    // Bitpack
+    w3 = _mm512_or_si512(w3, _mm512_slli_epi32(packed8, 4 * i));
+    in += 4;
+  }
+  _mm512_storeu_si512(compressed + 3, w3);
+}
+
 static void unpackblockfast1(const __m512i *compressed, u32 *pout) {
   __m512i *out = (__m512i *)pout;
   //---------------------------------------------------------------------------
@@ -294,6 +335,82 @@ static void unpackblockfast3(const __m512i *compressed, u32 *pout) {
   }
 }
 
+static void unpackblockfast4(const __m512i *compressed, u32 *pout) {
+  __m512i *out = (__m512i *)pout;
+  const __m128i mask = _mm_set1_epi8(15);
+  //---------------------------------------------------------------------------
+  __m512i w0, w1, w2, w3;
+  __m128i s0, s1, s2, s3;
+  //---------------------------------------------------------------------------
+  w0 = _mm512_loadu_si512(compressed);
+  s0 = _mm512_extracti32x4_epi32(w0, 0);
+  s1 = _mm512_extracti32x4_epi32(w0, 1);
+  s2 = _mm512_extracti32x4_epi32(w0, 2);
+  s3 = _mm512_extracti32x4_epi32(w0, 3);
+  for (u32 i = 0; i < 2; ++i) {
+    _mm512_storeu_si512(out, _mm512_cvtepu8_epi32(_mm_and_si128(
+                                 mask, _mm_srli_epi32(s0, 4 * i))));
+    _mm512_storeu_si512(out + 1, _mm512_cvtepu8_epi32(_mm_and_si128(
+                                     mask, _mm_srli_epi32(s1, 4 * i))));
+    _mm512_storeu_si512(out + 2, _mm512_cvtepu8_epi32(_mm_and_si128(
+                                     mask, _mm_srli_epi32(s2, 4 * i))));
+    _mm512_storeu_si512(out + 3, _mm512_cvtepu8_epi32(_mm_and_si128(
+                                     mask, _mm_srli_epi32(s3, 4 * i))));
+    out += 4;
+  }
+  //---------------------------------------------------------------------------
+  w1 = _mm512_loadu_si512(compressed + 1);
+  s0 = _mm512_extracti32x4_epi32(w1, 0);
+  s1 = _mm512_extracti32x4_epi32(w1, 1);
+  s2 = _mm512_extracti32x4_epi32(w1, 2);
+  s3 = _mm512_extracti32x4_epi32(w1, 3);
+  for (u32 i = 0; i < 2; ++i) {
+    _mm512_storeu_si512(out, _mm512_cvtepu8_epi32(_mm_and_si128(
+                                 mask, _mm_srli_epi32(s0, 4 * i))));
+    _mm512_storeu_si512(out + 1, _mm512_cvtepu8_epi32(_mm_and_si128(
+                                     mask, _mm_srli_epi32(s1, 4 * i))));
+    _mm512_storeu_si512(out + 2, _mm512_cvtepu8_epi32(_mm_and_si128(
+                                     mask, _mm_srli_epi32(s2, 4 * i))));
+    _mm512_storeu_si512(out + 3, _mm512_cvtepu8_epi32(_mm_and_si128(
+                                     mask, _mm_srli_epi32(s3, 4 * i))));
+    out += 4;
+  }
+  //---------------------------------------------------------------------------
+  w2 = _mm512_loadu_si512(compressed + 2);
+  s0 = _mm512_extracti32x4_epi32(w2, 0);
+  s1 = _mm512_extracti32x4_epi32(w2, 1);
+  s2 = _mm512_extracti32x4_epi32(w2, 2);
+  s3 = _mm512_extracti32x4_epi32(w2, 3);
+  for (u32 i = 0; i < 2; ++i) {
+    _mm512_storeu_si512(out, _mm512_cvtepu8_epi32(_mm_and_si128(
+                                 mask, _mm_srli_epi32(s0, 4 * i))));
+    _mm512_storeu_si512(out + 1, _mm512_cvtepu8_epi32(_mm_and_si128(
+                                     mask, _mm_srli_epi32(s1, 4 * i))));
+    _mm512_storeu_si512(out + 2, _mm512_cvtepu8_epi32(_mm_and_si128(
+                                     mask, _mm_srli_epi32(s2, 4 * i))));
+    _mm512_storeu_si512(out + 3, _mm512_cvtepu8_epi32(_mm_and_si128(
+                                     mask, _mm_srli_epi32(s3, 4 * i))));
+    out += 4;
+  }
+  //---------------------------------------------------------------------------
+  w3 = _mm512_loadu_si512(compressed + 3);
+  s0 = _mm512_extracti32x4_epi32(w3, 0);
+  s1 = _mm512_extracti32x4_epi32(w3, 1);
+  s2 = _mm512_extracti32x4_epi32(w3, 2);
+  s3 = _mm512_extracti32x4_epi32(w3, 3);
+  for (u32 i = 0; i < 2; ++i) {
+    _mm512_storeu_si512(out, _mm512_cvtepu8_epi32(_mm_and_si128(
+                                 mask, _mm_srli_epi32(s0, 4 * i))));
+    _mm512_storeu_si512(out + 1, _mm512_cvtepu8_epi32(_mm_and_si128(
+                                     mask, _mm_srli_epi32(s1, 4 * i))));
+    _mm512_storeu_si512(out + 2, _mm512_cvtepu8_epi32(_mm_and_si128(
+                                     mask, _mm_srli_epi32(s2, 4 * i))));
+    _mm512_storeu_si512(out + 3, _mm512_cvtepu8_epi32(_mm_and_si128(
+                                     mask, _mm_srli_epi32(s3, 4 * i))));
+    out += 4;
+  }
+}
+
 void packfast(const u32 *in, __m512i *out, const u8 bit) {
   switch (bit) {
   case 1:
@@ -304,6 +421,9 @@ void packfast(const u32 *in, __m512i *out, const u8 bit) {
     break;
   case 3:
     packblockfast3(in, out);
+    break;
+  case 4:
+    packblockfast4(in, out);
     break;
   default:
     assert(false);
@@ -320,6 +440,9 @@ void unpackfast(const __m512i *in, u32 *out, const u8 bit) {
     break;
   case 3:
     unpackblockfast3(in, out);
+    break;
+  case 4:
+    unpackblockfast4(in, out);
     break;
   default:
     assert(false);
