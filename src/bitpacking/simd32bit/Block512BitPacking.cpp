@@ -27,13 +27,13 @@ void unpack(const __m512i *in, u32 *out, const u8 bit) {
 
 static void packblockfast1(const u32 *pin, __m512i *compressed) {
   const __m512i *in = (const __m512i *)pin;
-  __m512i w0 = _mm512_setzero_si512();
-  __m512i in0, in1, in2, in3;
+  __m512i w0, shuffle_mask, in0, in1, in2, in3, lo16, hi16, packed8, linefix;
   //---------------------------------------------------------------------------
-  __m512i shuffle_mask = _mm512_set_epi32(15, 11, 7, 3, // in3
-                                          14, 10, 6, 2, // in2
-                                          13, 9, 5, 1,  // in1
-                                          12, 8, 4, 0   // in0
+  w0 = _mm512_setzero_si512();
+  shuffle_mask = _mm512_set_epi32(15, 11, 7, 3, // in3
+                                  14, 10, 6, 2, // in2
+                                  13, 9, 5, 1,  // in1
+                                  12, 8, 4, 0   // in0
   );
   //---------------------------------------------------------------------------
   for (u32 i = 0; i < 8; ++i) {
@@ -43,14 +43,63 @@ static void packblockfast1(const u32 *pin, __m512i *compressed) {
     in2 = _mm512_loadu_si512(in + i * 4 + 2);
     in3 = _mm512_loadu_si512(in + i * 4 + 3);
     // Narrow 64 32bit (2048 bit) integers to 64 8bit (512 bit) integers
-    __m512i lo16 = _mm512_packs_epi32(in0, in1);
-    __m512i hi16 = _mm512_packs_epi32(in2, in3);
-    __m512i packed8 = _mm512_packus_epi16(lo16, hi16);
-    __m512i linefix = _mm512_permutexvar_epi32(shuffle_mask, packed8);
+    lo16 = _mm512_packs_epi32(in0, in1);
+    hi16 = _mm512_packs_epi32(in2, in3);
+    packed8 = _mm512_packus_epi16(lo16, hi16);
+    linefix = _mm512_permutexvar_epi32(shuffle_mask, packed8);
     // Bitpack
     w0 = _mm512_or_si512(w0, _mm512_slli_epi32(linefix, i));
   }
   _mm512_storeu_si512(compressed, w0);
+}
+
+static void packblockfast2(const u32 *pin, __m512i *compressed) {
+  const __m512i *in = (const __m512i *)pin;
+  __m512i w0, w1, shuffle_mask, in0, in1, in2, in3, lo16, hi16, packed8,
+      linefix;
+  //---------------------------------------------------------------------------
+  w0 = _mm512_setzero_si512();
+  shuffle_mask = _mm512_set_epi32(15, 11, 7, 3, // in3
+                                  14, 10, 6, 2, // in2
+                                  13, 9, 5, 1,  // in1
+                                  12, 8, 4, 0   // in0
+  );
+  //---------------------------------------------------------------------------
+  for (u32 i = 0; i < 4; ++i) {
+    // Load 64
+    in0 = _mm512_loadu_si512(in);
+    in1 = _mm512_loadu_si512(in + 1);
+    in2 = _mm512_loadu_si512(in + 2);
+    in3 = _mm512_loadu_si512(in + 3);
+    // Narrow 64 32bit (2048 bit) integers to 64 8bit (512 bit) integers
+    lo16 = _mm512_packs_epi32(in0, in1);
+    hi16 = _mm512_packs_epi32(in2, in3);
+    packed8 = _mm512_packus_epi16(lo16, hi16);
+    linefix = _mm512_permutexvar_epi32(shuffle_mask, packed8);
+    // Bitpack
+    w0 = _mm512_or_si512(w0, _mm512_slli_epi32(linefix, 2 * i));
+    in += 4;
+  }
+  _mm512_storeu_si512(compressed, w0);
+  //---------------------------------------------------------------------------
+  w1 = _mm512_setzero_si512();
+  //---------------------------------------------------------------------------
+  for (u32 i = 0; i < 4; ++i) {
+    // Load 64
+    in0 = _mm512_loadu_si512(in);
+    in1 = _mm512_loadu_si512(in + 1);
+    in2 = _mm512_loadu_si512(in + 2);
+    in3 = _mm512_loadu_si512(in + 3);
+    // Narrow 64 32bit (2048 bit) integers to 64 8bit (512 bit) integers
+    lo16 = _mm512_packs_epi32(in0, in1);
+    hi16 = _mm512_packs_epi32(in2, in3);
+    packed8 = _mm512_packus_epi16(lo16, hi16);
+    linefix = _mm512_permutexvar_epi32(shuffle_mask, packed8);
+    // Bitpack
+    w1 = _mm512_or_si512(w1, _mm512_slli_epi32(linefix, 2 * i));
+    in += 4;
+  }
+  _mm512_storeu_si512(compressed + 1, w1);
 }
 
 static void unpackblockfast1(const __m512i *compressed, u32 *pout) {
@@ -77,10 +126,55 @@ static void unpackblockfast1(const __m512i *compressed, u32 *pout) {
   }
 }
 
+static void unpackblockfast2(const __m512i *compressed, u32 *pout) {
+  __m512i *out = (__m512i *)pout;
+  const __m128i mask = _mm_set1_epi8(1);
+  //---------------------------------------------------------------------------
+  __m512i w0, w1;
+  __m128i s0, s1, s2, s3;
+  //---------------------------------------------------------------------------
+  w0 = _mm512_loadu_si512(compressed);
+  s0 = _mm512_extracti32x4_epi32(w0, 0);
+  s1 = _mm512_extracti32x4_epi32(w0, 1);
+  s2 = _mm512_extracti32x4_epi32(w0, 2);
+  s3 = _mm512_extracti32x4_epi32(w0, 3);
+  for (u32 i = 0; i < 4; ++i) {
+    _mm512_storeu_si512(out, _mm512_cvtepu8_epi32(_mm_and_si128(
+                                 mask, _mm_srli_epi32(s0, 2 * i))));
+    _mm512_storeu_si512(out + 1, _mm512_cvtepu8_epi32(_mm_and_si128(
+                                     mask, _mm_srli_epi32(s1, 2 * i))));
+    _mm512_storeu_si512(out + 2, _mm512_cvtepu8_epi32(_mm_and_si128(
+                                     mask, _mm_srli_epi32(s2, 2 * i))));
+    _mm512_storeu_si512(out + 3, _mm512_cvtepu8_epi32(_mm_and_si128(
+                                     mask, _mm_srli_epi32(s3, 2 * i))));
+    out += 4;
+  }
+  //---------------------------------------------------------------------------
+  w1 = _mm512_loadu_si512(compressed + 1);
+  s0 = _mm512_extracti32x4_epi32(w1, 0);
+  s1 = _mm512_extracti32x4_epi32(w1, 1);
+  s2 = _mm512_extracti32x4_epi32(w1, 2);
+  s3 = _mm512_extracti32x4_epi32(w1, 3);
+  for (u32 i = 0; i < 4; ++i) {
+    _mm512_storeu_si512(out, _mm512_cvtepu8_epi32(_mm_and_si128(
+                                 mask, _mm_srli_epi32(s0, 2 * i))));
+    _mm512_storeu_si512(out + 1, _mm512_cvtepu8_epi32(_mm_and_si128(
+                                     mask, _mm_srli_epi32(s1, 2 * i))));
+    _mm512_storeu_si512(out + 2, _mm512_cvtepu8_epi32(_mm_and_si128(
+                                     mask, _mm_srli_epi32(s2, 2 * i))));
+    _mm512_storeu_si512(out + 3, _mm512_cvtepu8_epi32(_mm_and_si128(
+                                     mask, _mm_srli_epi32(s3, 2 * i))));
+    out += 4;
+  }
+}
+
 void packfast(const u32 *in, __m512i *out, const u8 bit) {
   switch (bit) {
   case 1:
     packblockfast1(in, out);
+    break;
+  case 2:
+    packblockfast2(in, out);
     break;
   default:
     assert(false);
@@ -91,6 +185,9 @@ void unpackfast(const __m512i *in, u32 *out, const u8 bit) {
   switch (bit) {
   case 1:
     unpackblockfast1(in, out);
+    break;
+  case 2:
+    unpackblockfast2(in, out);
     break;
   default:
     assert(false);
