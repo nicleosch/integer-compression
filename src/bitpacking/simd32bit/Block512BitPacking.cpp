@@ -46,7 +46,7 @@ static __m512i compactify32to8(const __m512i *in) {
 
 static void packblockfast1(const u32 *pin, __m512i *compressed) {
   const __m512i *in = (const __m512i *)pin;
-  __m512i w0, shuffle_mask, packed8;
+  __m512i w0, packed8;
   //---------------------------------------------------------------------------
   w0 = _mm512_setzero_si512();
   for (u32 i = 0; i < 8; ++i) {
@@ -343,6 +343,17 @@ static void packblockfast7(const u32 *pin, __m512i *compressed) {
   in += 4;
   w6 = _mm512_or_si512(w6, _mm512_slli_epi32(packed8, 1));
   _mm512_storeu_si512(compressed + 6, w6);
+}
+
+static void packblockfast8(const u32 *pin, __m512i *compressed) {
+  const __m512i *in = (const __m512i *)pin;
+  __m512i packed8;
+  //---------------------------------------------------------------------------
+  for (u32 i = 0; i < 8; ++i) {
+    packed8 = compactify32to8(in);
+    _mm512_storeu_si512(compressed + i, packed8);
+    in += 4;
+  }
 }
 
 static void unpackblockfast1(const __m512i *compressed, u32 *pout) {
@@ -995,6 +1006,24 @@ static void unpackblockfast7(const __m512i *compressed, u32 *pout) {
   out += 4;
 }
 
+static void unpackblockfast8(const __m512i *compressed, u32 *pout) {
+  __m512i *out = (__m512i *)pout;
+  __m512i w;
+  __m128i w0, w1, w2, w3;
+  //---------------------------------------------------------------------------
+  for (u32 i = 0; i < 8; ++i) {
+    w = _mm512_loadu_si512(compressed + i);
+    w0 = _mm512_extracti32x4_epi32(w, 0);
+    w1 = _mm512_extracti32x4_epi32(w, 1);
+    w2 = _mm512_extracti32x4_epi32(w, 2);
+    w3 = _mm512_extracti32x4_epi32(w, 3);
+    _mm512_storeu_si512(out + 4 * i, _mm512_cvtepu8_epi32(w0));
+    _mm512_storeu_si512(out + 4 * i + 1, _mm512_cvtepu8_epi32(w1));
+    _mm512_storeu_si512(out + 4 * i + 2, _mm512_cvtepu8_epi32(w2));
+    _mm512_storeu_si512(out + 4 * i + 3, _mm512_cvtepu8_epi32(w3));
+  }
+}
+
 void packfast(const u32 *in, __m512i *out, const u8 bit) {
   switch (bit) {
   case 1:
@@ -1017,6 +1046,9 @@ void packfast(const u32 *in, __m512i *out, const u8 bit) {
     break;
   case 7:
     packblockfast7(in, out);
+    break;
+  case 8:
+    packblockfast8(in, out);
     break;
   default:
     assert(false);
@@ -1045,6 +1077,9 @@ void unpackfast(const __m512i *in, u32 *out, const u8 bit) {
     break;
   case 7:
     unpackblockfast7(in, out);
+    break;
+  case 8:
+    unpackblockfast8(in, out);
     break;
   default:
     assert(false);
