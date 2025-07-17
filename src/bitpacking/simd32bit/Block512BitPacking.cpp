@@ -270,6 +270,81 @@ static void packblockfast6(const u32 *pin, __m512i *compressed) {
   }
 }
 
+static void packblockfast7(const u32 *pin, __m512i *compressed) {
+  const __m512i *in = (const __m512i *)pin;
+  __m512i w0, w1, w2, w3, w4, w5, w6, packed8, maskr, maskl;
+  //---------------------------------------------------------------------------
+  w0 = _mm512_setzero_si512();
+  packed8 = compactify32to8(in);
+  in += 4;
+  w0 = _mm512_or_si512(w0, packed8);
+  //---------------------------------------------------------------------------
+  // Word boundary
+  maskr = _mm512_set1_epi8(1);
+  maskl = _mm512_set1_epi8(126);
+  packed8 = compactify32to8(in);
+  in += 4;
+  w0 = _mm512_or_si512(w0,
+                       _mm512_slli_epi32(_mm512_and_si512(maskr, packed8), 7));
+  _mm512_storeu_si512(compressed, w0);
+  w1 = _mm512_srli_epi32(_mm512_and_si512(maskl, packed8), 1);
+  //---------------------------------------------------------------------------
+  // Word boundary
+  maskr = _mm512_set1_epi8(3);
+  maskl = _mm512_set1_epi8(124);
+  packed8 = compactify32to8(in);
+  in += 4;
+  w1 = _mm512_or_si512(w1,
+                       _mm512_slli_epi32(_mm512_and_si512(maskr, packed8), 6));
+  _mm512_storeu_si512(compressed + 1, w1);
+  w2 = _mm512_srli_epi32(_mm512_and_si512(maskl, packed8), 2);
+  //---------------------------------------------------------------------------
+  // Word boundary
+  maskr = _mm512_set1_epi8(7);
+  maskl = _mm512_set1_epi8(120);
+  packed8 = compactify32to8(in);
+  in += 4;
+  w2 = _mm512_or_si512(w2,
+                       _mm512_slli_epi32(_mm512_and_si512(maskr, packed8), 5));
+  _mm512_storeu_si512(compressed + 2, w2);
+  w3 = _mm512_srli_epi32(_mm512_and_si512(maskl, packed8), 3);
+  //---------------------------------------------------------------------------
+  // Word boundary
+  maskr = _mm512_set1_epi8(15);
+  maskl = _mm512_set1_epi8(112);
+  packed8 = compactify32to8(in);
+  in += 4;
+  w3 = _mm512_or_si512(w3,
+                       _mm512_slli_epi32(_mm512_and_si512(maskr, packed8), 4));
+  _mm512_storeu_si512(compressed + 3, w3);
+  w4 = _mm512_srli_epi32(_mm512_and_si512(maskl, packed8), 4);
+  //---------------------------------------------------------------------------
+  // Word boundary
+  maskr = _mm512_set1_epi8(31);
+  maskl = _mm512_set1_epi8(96);
+  packed8 = compactify32to8(in);
+  in += 4;
+  w4 = _mm512_or_si512(w4,
+                       _mm512_slli_epi32(_mm512_and_si512(maskr, packed8), 3));
+  _mm512_storeu_si512(compressed + 4, w4);
+  w5 = _mm512_srli_epi32(_mm512_and_si512(maskl, packed8), 5);
+  //---------------------------------------------------------------------------
+  // Word boundary
+  maskr = _mm512_set1_epi8(63);
+  maskl = _mm512_set1_epi8(64);
+  packed8 = compactify32to8(in);
+  in += 4;
+  w5 = _mm512_or_si512(w5,
+                       _mm512_slli_epi32(_mm512_and_si512(maskr, packed8), 2));
+  _mm512_storeu_si512(compressed + 5, w5);
+  w6 = _mm512_srli_epi32(_mm512_and_si512(maskl, packed8), 6);
+  //---------------------------------------------------------------------------
+  packed8 = compactify32to8(in);
+  in += 4;
+  w6 = _mm512_or_si512(w6, _mm512_slli_epi32(packed8, 1));
+  _mm512_storeu_si512(compressed + 6, w6);
+}
+
 static void unpackblockfast1(const __m512i *compressed, u32 *pout) {
   __m512i *out = (__m512i *)pout;
   //---------------------------------------------------------------------------
@@ -741,6 +816,185 @@ static void unpackblockfast6(const __m512i *compressed, u32 *pout) {
   }
 }
 
+static void unpackblockfast7(const __m512i *compressed, u32 *pout) {
+  __m512i *out = (__m512i *)pout;
+  const __m128i mask = _mm_set1_epi8(127);
+  //---------------------------------------------------------------------------
+  __m512i w0, w1, w2, w3, w4, w5, w6;
+  __m128i s0, s1, s2, s3, s4, s5, s6, s7, maskr, maskl;
+  //---------------------------------------------------------------------------
+  w0 = _mm512_loadu_si512(compressed);
+  s0 = _mm512_extracti32x4_epi32(w0, 0);
+  s1 = _mm512_extracti32x4_epi32(w0, 1);
+  s2 = _mm512_extracti32x4_epi32(w0, 2);
+  s3 = _mm512_extracti32x4_epi32(w0, 3);
+  _mm512_storeu_si512(out, _mm512_cvtepu8_epi32(_mm_and_si128(mask, s0)));
+  _mm512_storeu_si512(out + 1, _mm512_cvtepu8_epi32(_mm_and_si128(mask, s1)));
+  _mm512_storeu_si512(out + 2, _mm512_cvtepu8_epi32(_mm_and_si128(mask, s2)));
+  _mm512_storeu_si512(out + 3, _mm512_cvtepu8_epi32(_mm_and_si128(mask, s3)));
+  out += 4;
+  //---------------------------------------------------------------------------
+  // Word Boundary
+  maskr = _mm_set1_epi8(1);
+  maskl = _mm_set1_epi8(126);
+  w1 = _mm512_loadu_si512(compressed + 1);
+  s4 = _mm512_extracti32x4_epi32(w1, 0);
+  s5 = _mm512_extracti32x4_epi32(w1, 1);
+  s6 = _mm512_extracti32x4_epi32(w1, 2);
+  s7 = _mm512_extracti32x4_epi32(w1, 3);
+  _mm512_storeu_si512(out, _mm512_cvtepu8_epi32(_mm_or_si128(
+                               _mm_and_si128(maskl, _mm_slli_epi32(s4, 1)),
+                               _mm_and_si128(maskr, _mm_srli_epi32(s0, 7)))));
+  _mm512_storeu_si512(
+      out + 1, _mm512_cvtepu8_epi32(
+                   _mm_or_si128(_mm_and_si128(maskl, _mm_slli_epi32(s5, 1)),
+                                _mm_and_si128(maskr, _mm_srli_epi32(s1, 7)))));
+  _mm512_storeu_si512(
+      out + 2, _mm512_cvtepu8_epi32(
+                   _mm_or_si128(_mm_and_si128(maskl, _mm_slli_epi32(s6, 1)),
+                                _mm_and_si128(maskr, _mm_srli_epi32(s2, 7)))));
+  _mm512_storeu_si512(
+      out + 3, _mm512_cvtepu8_epi32(
+                   _mm_or_si128(_mm_and_si128(maskl, _mm_slli_epi32(s7, 1)),
+                                _mm_and_si128(maskr, _mm_srli_epi32(s3, 7)))));
+  out += 4;
+  //---------------------------------------------------------------------------
+  // Word Boundary
+  maskr = _mm_set1_epi8(3);
+  maskl = _mm_set1_epi8(124);
+  w2 = _mm512_loadu_si512(compressed + 2);
+  s0 = _mm512_extracti32x4_epi32(w2, 0);
+  s1 = _mm512_extracti32x4_epi32(w2, 1);
+  s2 = _mm512_extracti32x4_epi32(w2, 2);
+  s3 = _mm512_extracti32x4_epi32(w2, 3);
+  _mm512_storeu_si512(out, _mm512_cvtepu8_epi32(_mm_or_si128(
+                               _mm_and_si128(maskl, _mm_slli_epi32(s0, 2)),
+                               _mm_and_si128(maskr, _mm_srli_epi32(s4, 6)))));
+  _mm512_storeu_si512(
+      out + 1, _mm512_cvtepu8_epi32(
+                   _mm_or_si128(_mm_and_si128(maskl, _mm_slli_epi32(s1, 2)),
+                                _mm_and_si128(maskr, _mm_srli_epi32(s5, 6)))));
+  _mm512_storeu_si512(
+      out + 2, _mm512_cvtepu8_epi32(
+                   _mm_or_si128(_mm_and_si128(maskl, _mm_slli_epi32(s2, 2)),
+                                _mm_and_si128(maskr, _mm_srli_epi32(s6, 6)))));
+  _mm512_storeu_si512(
+      out + 3, _mm512_cvtepu8_epi32(
+                   _mm_or_si128(_mm_and_si128(maskl, _mm_slli_epi32(s3, 2)),
+                                _mm_and_si128(maskr, _mm_srli_epi32(s7, 6)))));
+  out += 4;
+  //---------------------------------------------------------------------------
+  // Word Boundary
+  maskr = _mm_set1_epi8(7);
+  maskl = _mm_set1_epi8(120);
+  w3 = _mm512_loadu_si512(compressed + 3);
+  s4 = _mm512_extracti32x4_epi32(w3, 0);
+  s5 = _mm512_extracti32x4_epi32(w3, 1);
+  s6 = _mm512_extracti32x4_epi32(w3, 2);
+  s7 = _mm512_extracti32x4_epi32(w3, 3);
+  _mm512_storeu_si512(out, _mm512_cvtepu8_epi32(_mm_or_si128(
+                               _mm_and_si128(maskl, _mm_slli_epi32(s4, 3)),
+                               _mm_and_si128(maskr, _mm_srli_epi32(s0, 5)))));
+  _mm512_storeu_si512(
+      out + 1, _mm512_cvtepu8_epi32(
+                   _mm_or_si128(_mm_and_si128(maskl, _mm_slli_epi32(s5, 3)),
+                                _mm_and_si128(maskr, _mm_srli_epi32(s1, 5)))));
+  _mm512_storeu_si512(
+      out + 2, _mm512_cvtepu8_epi32(
+                   _mm_or_si128(_mm_and_si128(maskl, _mm_slli_epi32(s6, 3)),
+                                _mm_and_si128(maskr, _mm_srli_epi32(s2, 5)))));
+  _mm512_storeu_si512(
+      out + 3, _mm512_cvtepu8_epi32(
+                   _mm_or_si128(_mm_and_si128(maskl, _mm_slli_epi32(s7, 3)),
+                                _mm_and_si128(maskr, _mm_srli_epi32(s3, 5)))));
+  out += 4;
+  //---------------------------------------------------------------------------
+  // Word Boundary
+  maskr = _mm_set1_epi8(15);
+  maskl = _mm_set1_epi8(112);
+  w4 = _mm512_loadu_si512(compressed + 4);
+  s0 = _mm512_extracti32x4_epi32(w4, 0);
+  s1 = _mm512_extracti32x4_epi32(w4, 1);
+  s2 = _mm512_extracti32x4_epi32(w4, 2);
+  s3 = _mm512_extracti32x4_epi32(w4, 3);
+  _mm512_storeu_si512(out, _mm512_cvtepu8_epi32(_mm_or_si128(
+                               _mm_and_si128(maskl, _mm_slli_epi32(s0, 4)),
+                               _mm_and_si128(maskr, _mm_srli_epi32(s4, 4)))));
+  _mm512_storeu_si512(
+      out + 1, _mm512_cvtepu8_epi32(
+                   _mm_or_si128(_mm_and_si128(maskl, _mm_slli_epi32(s1, 4)),
+                                _mm_and_si128(maskr, _mm_srli_epi32(s5, 4)))));
+  _mm512_storeu_si512(
+      out + 2, _mm512_cvtepu8_epi32(
+                   _mm_or_si128(_mm_and_si128(maskl, _mm_slli_epi32(s2, 4)),
+                                _mm_and_si128(maskr, _mm_srli_epi32(s6, 4)))));
+  _mm512_storeu_si512(
+      out + 3, _mm512_cvtepu8_epi32(
+                   _mm_or_si128(_mm_and_si128(maskl, _mm_slli_epi32(s3, 4)),
+                                _mm_and_si128(maskr, _mm_srli_epi32(s7, 4)))));
+  out += 4;
+  //---------------------------------------------------------------------------
+  // Word Boundary
+  maskr = _mm_set1_epi8(31);
+  maskl = _mm_set1_epi8(96);
+  w5 = _mm512_loadu_si512(compressed + 5);
+  s4 = _mm512_extracti32x4_epi32(w5, 0);
+  s5 = _mm512_extracti32x4_epi32(w5, 1);
+  s6 = _mm512_extracti32x4_epi32(w5, 2);
+  s7 = _mm512_extracti32x4_epi32(w5, 3);
+  _mm512_storeu_si512(out, _mm512_cvtepu8_epi32(_mm_or_si128(
+                               _mm_and_si128(maskl, _mm_slli_epi32(s4, 5)),
+                               _mm_and_si128(maskr, _mm_srli_epi32(s0, 3)))));
+  _mm512_storeu_si512(
+      out + 1, _mm512_cvtepu8_epi32(
+                   _mm_or_si128(_mm_and_si128(maskl, _mm_slli_epi32(s5, 5)),
+                                _mm_and_si128(maskr, _mm_srli_epi32(s1, 3)))));
+  _mm512_storeu_si512(
+      out + 2, _mm512_cvtepu8_epi32(
+                   _mm_or_si128(_mm_and_si128(maskl, _mm_slli_epi32(s6, 5)),
+                                _mm_and_si128(maskr, _mm_srli_epi32(s2, 3)))));
+  _mm512_storeu_si512(
+      out + 3, _mm512_cvtepu8_epi32(
+                   _mm_or_si128(_mm_and_si128(maskl, _mm_slli_epi32(s7, 5)),
+                                _mm_and_si128(maskr, _mm_srli_epi32(s3, 3)))));
+  out += 4;
+  //---------------------------------------------------------------------------
+  // Word Boundary
+  maskr = _mm_set1_epi8(63);
+  maskl = _mm_set1_epi8(64);
+  w6 = _mm512_loadu_si512(compressed + 6);
+  s0 = _mm512_extracti32x4_epi32(w6, 0);
+  s1 = _mm512_extracti32x4_epi32(w6, 1);
+  s2 = _mm512_extracti32x4_epi32(w6, 2);
+  s3 = _mm512_extracti32x4_epi32(w6, 3);
+  _mm512_storeu_si512(out, _mm512_cvtepu8_epi32(_mm_or_si128(
+                               _mm_and_si128(maskl, _mm_slli_epi32(s0, 6)),
+                               _mm_and_si128(maskr, _mm_srli_epi32(s4, 2)))));
+  _mm512_storeu_si512(
+      out + 1, _mm512_cvtepu8_epi32(
+                   _mm_or_si128(_mm_and_si128(maskl, _mm_slli_epi32(s1, 6)),
+                                _mm_and_si128(maskr, _mm_srli_epi32(s5, 2)))));
+  _mm512_storeu_si512(
+      out + 2, _mm512_cvtepu8_epi32(
+                   _mm_or_si128(_mm_and_si128(maskl, _mm_slli_epi32(s2, 6)),
+                                _mm_and_si128(maskr, _mm_srli_epi32(s6, 2)))));
+  _mm512_storeu_si512(
+      out + 3, _mm512_cvtepu8_epi32(
+                   _mm_or_si128(_mm_and_si128(maskl, _mm_slli_epi32(s3, 6)),
+                                _mm_and_si128(maskr, _mm_srli_epi32(s7, 2)))));
+  out += 4;
+  //---------------------------------------------------------------------------
+  _mm512_storeu_si512(
+      out, _mm512_cvtepu8_epi32(_mm_and_si128(mask, _mm_srli_epi32(s0, 1))));
+  _mm512_storeu_si512(out + 1, _mm512_cvtepu8_epi32(
+                                   _mm_and_si128(mask, _mm_srli_epi32(s1, 1))));
+  _mm512_storeu_si512(out + 2, _mm512_cvtepu8_epi32(
+                                   _mm_and_si128(mask, _mm_srli_epi32(s2, 1))));
+  _mm512_storeu_si512(out + 3, _mm512_cvtepu8_epi32(
+                                   _mm_and_si128(mask, _mm_srli_epi32(s3, 1))));
+  out += 4;
+}
+
 void packfast(const u32 *in, __m512i *out, const u8 bit) {
   switch (bit) {
   case 1:
@@ -760,6 +1014,9 @@ void packfast(const u32 *in, __m512i *out, const u8 bit) {
     break;
   case 6:
     packblockfast6(in, out);
+    break;
+  case 7:
+    packblockfast7(in, out);
     break;
   default:
     assert(false);
@@ -785,6 +1042,9 @@ void unpackfast(const __m512i *in, u32 *out, const u8 bit) {
     break;
   case 6:
     unpackblockfast6(in, out);
+    break;
+  case 7:
+    unpackblockfast7(in, out);
     break;
   default:
     assert(false);
