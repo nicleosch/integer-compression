@@ -356,18 +356,21 @@ static void packblockfast8(const u32 *pin, __m512i *compressed) {
   }
 }
 
+static void load4x128(const __m512i *in, __m128i &w0, __m128i &w1, __m128i &w2,
+                      __m128i &w3) {
+  w0 = _mm_load_si128(reinterpret_cast<const __m128i *>(in));
+  w1 = _mm_load_si128(reinterpret_cast<const __m128i *>(in) + 1);
+  w2 = _mm_load_si128(reinterpret_cast<const __m128i *>(in) + 2);
+  w3 = _mm_load_si128(reinterpret_cast<const __m128i *>(in) + 3);
+}
+
 static void unpackblockfast1(const __m512i *compressed, u32 *pout) {
   __m512i *out = (__m512i *)pout;
+  const __m128i mask = _mm_set1_epi8(1);
   //---------------------------------------------------------------------------
-  __m512i w;
   __m128i w0, w1, w2, w3;
   //---------------------------------------------------------------------------
-  w = _mm512_loadu_si512(compressed);
-  w0 = _mm512_extracti32x4_epi32(w, 0);
-  w1 = _mm512_extracti32x4_epi32(w, 1);
-  w2 = _mm512_extracti32x4_epi32(w, 2);
-  w3 = _mm512_extracti32x4_epi32(w, 3);
-  const __m128i mask = _mm_set1_epi8(1);
+  load4x128(compressed, w0, w1, w2, w3);
   for (u32 i = 0; i < 8; ++i) {
     _mm512_storeu_si512(out + 4 * i, _mm512_cvtepu8_epi32(_mm_and_si128(
                                          mask, _mm_srli_epi32(w0, i))));
@@ -384,41 +387,21 @@ static void unpackblockfast2(const __m512i *compressed, u32 *pout) {
   __m512i *out = (__m512i *)pout;
   const __m128i mask = _mm_set1_epi8(3);
   //---------------------------------------------------------------------------
-  __m512i w0, w1;
-  __m128i s0, s1, s2, s3;
+  __m128i w0, w1, w2, w3;
   //---------------------------------------------------------------------------
-  w0 = _mm512_loadu_si512(compressed);
-  s0 = _mm512_extracti32x4_epi32(w0, 0);
-  s1 = _mm512_extracti32x4_epi32(w0, 1);
-  s2 = _mm512_extracti32x4_epi32(w0, 2);
-  s3 = _mm512_extracti32x4_epi32(w0, 3);
-  for (u32 i = 0; i < 4; ++i) {
-    _mm512_storeu_si512(out, _mm512_cvtepu8_epi32(_mm_and_si128(
-                                 mask, _mm_srli_epi32(s0, 2 * i))));
-    _mm512_storeu_si512(out + 1, _mm512_cvtepu8_epi32(_mm_and_si128(
-                                     mask, _mm_srli_epi32(s1, 2 * i))));
-    _mm512_storeu_si512(out + 2, _mm512_cvtepu8_epi32(_mm_and_si128(
-                                     mask, _mm_srli_epi32(s2, 2 * i))));
-    _mm512_storeu_si512(out + 3, _mm512_cvtepu8_epi32(_mm_and_si128(
-                                     mask, _mm_srli_epi32(s3, 2 * i))));
-    out += 4;
-  }
-  //---------------------------------------------------------------------------
-  w1 = _mm512_loadu_si512(compressed + 1);
-  s0 = _mm512_extracti32x4_epi32(w1, 0);
-  s1 = _mm512_extracti32x4_epi32(w1, 1);
-  s2 = _mm512_extracti32x4_epi32(w1, 2);
-  s3 = _mm512_extracti32x4_epi32(w1, 3);
-  for (u32 i = 0; i < 4; ++i) {
-    _mm512_storeu_si512(out, _mm512_cvtepu8_epi32(_mm_and_si128(
-                                 mask, _mm_srli_epi32(s0, 2 * i))));
-    _mm512_storeu_si512(out + 1, _mm512_cvtepu8_epi32(_mm_and_si128(
-                                     mask, _mm_srli_epi32(s1, 2 * i))));
-    _mm512_storeu_si512(out + 2, _mm512_cvtepu8_epi32(_mm_and_si128(
-                                     mask, _mm_srli_epi32(s2, 2 * i))));
-    _mm512_storeu_si512(out + 3, _mm512_cvtepu8_epi32(_mm_and_si128(
-                                     mask, _mm_srli_epi32(s3, 2 * i))));
-    out += 4;
+  for (u32 k = 0; k < 2; ++k) {
+    load4x128(compressed + k, w0, w1, w2, w3);
+    for (u32 i = 0; i < 4; ++i) {
+      _mm512_storeu_si512(out, _mm512_cvtepu8_epi32(_mm_and_si128(
+                                   mask, _mm_srli_epi32(w0, 2 * i))));
+      _mm512_storeu_si512(out + 1, _mm512_cvtepu8_epi32(_mm_and_si128(
+                                       mask, _mm_srli_epi32(w1, 2 * i))));
+      _mm512_storeu_si512(out + 2, _mm512_cvtepu8_epi32(_mm_and_si128(
+                                       mask, _mm_srli_epi32(w2, 2 * i))));
+      _mm512_storeu_si512(out + 3, _mm512_cvtepu8_epi32(_mm_and_si128(
+                                       mask, _mm_srli_epi32(w3, 2 * i))));
+      out += 4;
+    }
   }
 }
 
@@ -426,97 +409,84 @@ static void unpackblockfast3(const __m512i *compressed, u32 *pout) {
   __m512i *out = (__m512i *)pout;
   const __m128i mask = _mm_set1_epi8(7);
   //---------------------------------------------------------------------------
-  __m512i w0, w1, w2;
-  __m128i s0, s1, s2, s3, s4, s5, s6, s7, maskr, maskl;
+  __m128i w0, w1, w2, w3, w4, w5, w6, w7, maskr, maskl;
   //---------------------------------------------------------------------------
-  w0 = _mm512_loadu_si512(compressed);
-  s0 = _mm512_extracti32x4_epi32(w0, 0);
-  s1 = _mm512_extracti32x4_epi32(w0, 1);
-  s2 = _mm512_extracti32x4_epi32(w0, 2);
-  s3 = _mm512_extracti32x4_epi32(w0, 3);
+  load4x128(compressed, w0, w1, w2, w3);
   for (u32 i = 0; i < 2; ++i) {
     _mm512_storeu_si512(out, _mm512_cvtepu8_epi32(_mm_and_si128(
-                                 mask, _mm_srli_epi32(s0, 3 * i))));
+                                 mask, _mm_srli_epi32(w0, 3 * i))));
     _mm512_storeu_si512(out + 1, _mm512_cvtepu8_epi32(_mm_and_si128(
-                                     mask, _mm_srli_epi32(s1, 3 * i))));
+                                     mask, _mm_srli_epi32(w1, 3 * i))));
     _mm512_storeu_si512(out + 2, _mm512_cvtepu8_epi32(_mm_and_si128(
-                                     mask, _mm_srli_epi32(s2, 3 * i))));
+                                     mask, _mm_srli_epi32(w2, 3 * i))));
     _mm512_storeu_si512(out + 3, _mm512_cvtepu8_epi32(_mm_and_si128(
-                                     mask, _mm_srli_epi32(s3, 3 * i))));
+                                     mask, _mm_srli_epi32(w3, 3 * i))));
     out += 4;
   }
   //---------------------------------------------------------------------------
   // Word Boundary
   maskr = _mm_set1_epi8(3);
   maskl = _mm_set1_epi8(4);
-  w1 = _mm512_loadu_si512(compressed + 1);
-  s4 = _mm512_extracti32x4_epi32(w1, 0);
-  s5 = _mm512_extracti32x4_epi32(w1, 1);
-  s6 = _mm512_extracti32x4_epi32(w1, 2);
-  s7 = _mm512_extracti32x4_epi32(w1, 3);
+  load4x128(compressed + 1, w4, w5, w6, w7);
   _mm512_storeu_si512(out, _mm512_cvtepu8_epi32(_mm_or_si128(
-                               _mm_and_si128(maskl, _mm_slli_epi32(s4, 2)),
-                               _mm_and_si128(maskr, _mm_srli_epi32(s0, 6)))));
+                               _mm_and_si128(maskl, _mm_slli_epi32(w4, 2)),
+                               _mm_and_si128(maskr, _mm_srli_epi32(w0, 6)))));
   _mm512_storeu_si512(
       out + 1, _mm512_cvtepu8_epi32(
-                   _mm_or_si128(_mm_and_si128(maskl, _mm_slli_epi32(s5, 2)),
-                                _mm_and_si128(maskr, _mm_srli_epi32(s1, 6)))));
+                   _mm_or_si128(_mm_and_si128(maskl, _mm_slli_epi32(w5, 2)),
+                                _mm_and_si128(maskr, _mm_srli_epi32(w1, 6)))));
   _mm512_storeu_si512(
       out + 2, _mm512_cvtepu8_epi32(
-                   _mm_or_si128(_mm_and_si128(maskl, _mm_slli_epi32(s6, 2)),
-                                _mm_and_si128(maskr, _mm_srli_epi32(s2, 6)))));
+                   _mm_or_si128(_mm_and_si128(maskl, _mm_slli_epi32(w6, 2)),
+                                _mm_and_si128(maskr, _mm_srli_epi32(w2, 6)))));
   _mm512_storeu_si512(
       out + 3, _mm512_cvtepu8_epi32(
-                   _mm_or_si128(_mm_and_si128(maskl, _mm_slli_epi32(s7, 2)),
-                                _mm_and_si128(maskr, _mm_srli_epi32(s3, 6)))));
+                   _mm_or_si128(_mm_and_si128(maskl, _mm_slli_epi32(w7, 2)),
+                                _mm_and_si128(maskr, _mm_srli_epi32(w3, 6)))));
   out += 4;
   //---------------------------------------------------------------------------
   for (u32 i = 0; i < 2; ++i) {
     _mm512_storeu_si512(out, _mm512_cvtepu8_epi32(_mm_and_si128(
-                                 mask, _mm_srli_epi32(s4, 3 * i + 1))));
+                                 mask, _mm_srli_epi32(w4, 3 * i + 1))));
     _mm512_storeu_si512(out + 1, _mm512_cvtepu8_epi32(_mm_and_si128(
-                                     mask, _mm_srli_epi32(s5, 3 * i + 1))));
+                                     mask, _mm_srli_epi32(w5, 3 * i + 1))));
     _mm512_storeu_si512(out + 2, _mm512_cvtepu8_epi32(_mm_and_si128(
-                                     mask, _mm_srli_epi32(s6, 3 * i + 1))));
+                                     mask, _mm_srli_epi32(w6, 3 * i + 1))));
     _mm512_storeu_si512(out + 3, _mm512_cvtepu8_epi32(_mm_and_si128(
-                                     mask, _mm_srli_epi32(s7, 3 * i + 1))));
+                                     mask, _mm_srli_epi32(w7, 3 * i + 1))));
     out += 4;
   }
   //---------------------------------------------------------------------------
   // Word Boundary
   maskr = _mm_set1_epi8(1);
   maskl = _mm_set1_epi8(6);
-  w2 = _mm512_loadu_si512(compressed + 2);
-  s0 = _mm512_extracti32x4_epi32(w2, 0);
-  s1 = _mm512_extracti32x4_epi32(w2, 1);
-  s2 = _mm512_extracti32x4_epi32(w2, 2);
-  s3 = _mm512_extracti32x4_epi32(w2, 3);
+  load4x128(compressed + 2, w0, w1, w2, w3);
   _mm512_storeu_si512(out, _mm512_cvtepu8_epi32(_mm_or_si128(
-                               _mm_and_si128(maskl, _mm_slli_epi32(s0, 1)),
-                               _mm_and_si128(maskr, _mm_srli_epi32(s4, 7)))));
+                               _mm_and_si128(maskl, _mm_slli_epi32(w0, 1)),
+                               _mm_and_si128(maskr, _mm_srli_epi32(w4, 7)))));
   _mm512_storeu_si512(
       out + 1, _mm512_cvtepu8_epi32(
-                   _mm_or_si128(_mm_and_si128(maskl, _mm_slli_epi32(s1, 1)),
-                                _mm_and_si128(maskr, _mm_srli_epi32(s5, 7)))));
+                   _mm_or_si128(_mm_and_si128(maskl, _mm_slli_epi32(w1, 1)),
+                                _mm_and_si128(maskr, _mm_srli_epi32(w5, 7)))));
   _mm512_storeu_si512(
       out + 2, _mm512_cvtepu8_epi32(
-                   _mm_or_si128(_mm_and_si128(maskl, _mm_slli_epi32(s2, 1)),
-                                _mm_and_si128(maskr, _mm_srli_epi32(s6, 7)))));
+                   _mm_or_si128(_mm_and_si128(maskl, _mm_slli_epi32(w2, 1)),
+                                _mm_and_si128(maskr, _mm_srli_epi32(w6, 7)))));
   _mm512_storeu_si512(
       out + 3, _mm512_cvtepu8_epi32(
-                   _mm_or_si128(_mm_and_si128(maskl, _mm_slli_epi32(s3, 1)),
-                                _mm_and_si128(maskr, _mm_srli_epi32(s7, 7)))));
+                   _mm_or_si128(_mm_and_si128(maskl, _mm_slli_epi32(w3, 1)),
+                                _mm_and_si128(maskr, _mm_srli_epi32(w7, 7)))));
   out += 4;
   //---------------------------------------------------------------------------
   for (u32 i = 0; i < 2; ++i) {
     _mm512_storeu_si512(out, _mm512_cvtepu8_epi32(_mm_and_si128(
-                                 mask, _mm_srli_epi32(s0, 3 * i + 2))));
+                                 mask, _mm_srli_epi32(w0, 3 * i + 2))));
     _mm512_storeu_si512(out + 1, _mm512_cvtepu8_epi32(_mm_and_si128(
-                                     mask, _mm_srli_epi32(s1, 3 * i + 2))));
+                                     mask, _mm_srli_epi32(w1, 3 * i + 2))));
     _mm512_storeu_si512(out + 2, _mm512_cvtepu8_epi32(_mm_and_si128(
-                                     mask, _mm_srli_epi32(s2, 3 * i + 2))));
+                                     mask, _mm_srli_epi32(w2, 3 * i + 2))));
     _mm512_storeu_si512(out + 3, _mm512_cvtepu8_epi32(_mm_and_si128(
-                                     mask, _mm_srli_epi32(s3, 3 * i + 2))));
+                                     mask, _mm_srli_epi32(w3, 3 * i + 2))));
     out += 4;
   }
 }
@@ -525,75 +495,21 @@ static void unpackblockfast4(const __m512i *compressed, u32 *pout) {
   __m512i *out = (__m512i *)pout;
   const __m128i mask = _mm_set1_epi8(15);
   //---------------------------------------------------------------------------
-  __m512i w0, w1, w2, w3;
-  __m128i s0, s1, s2, s3;
+  __m128i w0, w1, w2, w3;
   //---------------------------------------------------------------------------
-  w0 = _mm512_loadu_si512(compressed);
-  s0 = _mm512_extracti32x4_epi32(w0, 0);
-  s1 = _mm512_extracti32x4_epi32(w0, 1);
-  s2 = _mm512_extracti32x4_epi32(w0, 2);
-  s3 = _mm512_extracti32x4_epi32(w0, 3);
-  for (u32 i = 0; i < 2; ++i) {
-    _mm512_storeu_si512(out, _mm512_cvtepu8_epi32(_mm_and_si128(
-                                 mask, _mm_srli_epi32(s0, 4 * i))));
-    _mm512_storeu_si512(out + 1, _mm512_cvtepu8_epi32(_mm_and_si128(
-                                     mask, _mm_srli_epi32(s1, 4 * i))));
-    _mm512_storeu_si512(out + 2, _mm512_cvtepu8_epi32(_mm_and_si128(
-                                     mask, _mm_srli_epi32(s2, 4 * i))));
-    _mm512_storeu_si512(out + 3, _mm512_cvtepu8_epi32(_mm_and_si128(
-                                     mask, _mm_srli_epi32(s3, 4 * i))));
-    out += 4;
-  }
-  //---------------------------------------------------------------------------
-  w1 = _mm512_loadu_si512(compressed + 1);
-  s0 = _mm512_extracti32x4_epi32(w1, 0);
-  s1 = _mm512_extracti32x4_epi32(w1, 1);
-  s2 = _mm512_extracti32x4_epi32(w1, 2);
-  s3 = _mm512_extracti32x4_epi32(w1, 3);
-  for (u32 i = 0; i < 2; ++i) {
-    _mm512_storeu_si512(out, _mm512_cvtepu8_epi32(_mm_and_si128(
-                                 mask, _mm_srli_epi32(s0, 4 * i))));
-    _mm512_storeu_si512(out + 1, _mm512_cvtepu8_epi32(_mm_and_si128(
-                                     mask, _mm_srli_epi32(s1, 4 * i))));
-    _mm512_storeu_si512(out + 2, _mm512_cvtepu8_epi32(_mm_and_si128(
-                                     mask, _mm_srli_epi32(s2, 4 * i))));
-    _mm512_storeu_si512(out + 3, _mm512_cvtepu8_epi32(_mm_and_si128(
-                                     mask, _mm_srli_epi32(s3, 4 * i))));
-    out += 4;
-  }
-  //---------------------------------------------------------------------------
-  w2 = _mm512_loadu_si512(compressed + 2);
-  s0 = _mm512_extracti32x4_epi32(w2, 0);
-  s1 = _mm512_extracti32x4_epi32(w2, 1);
-  s2 = _mm512_extracti32x4_epi32(w2, 2);
-  s3 = _mm512_extracti32x4_epi32(w2, 3);
-  for (u32 i = 0; i < 2; ++i) {
-    _mm512_storeu_si512(out, _mm512_cvtepu8_epi32(_mm_and_si128(
-                                 mask, _mm_srli_epi32(s0, 4 * i))));
-    _mm512_storeu_si512(out + 1, _mm512_cvtepu8_epi32(_mm_and_si128(
-                                     mask, _mm_srli_epi32(s1, 4 * i))));
-    _mm512_storeu_si512(out + 2, _mm512_cvtepu8_epi32(_mm_and_si128(
-                                     mask, _mm_srli_epi32(s2, 4 * i))));
-    _mm512_storeu_si512(out + 3, _mm512_cvtepu8_epi32(_mm_and_si128(
-                                     mask, _mm_srli_epi32(s3, 4 * i))));
-    out += 4;
-  }
-  //---------------------------------------------------------------------------
-  w3 = _mm512_loadu_si512(compressed + 3);
-  s0 = _mm512_extracti32x4_epi32(w3, 0);
-  s1 = _mm512_extracti32x4_epi32(w3, 1);
-  s2 = _mm512_extracti32x4_epi32(w3, 2);
-  s3 = _mm512_extracti32x4_epi32(w3, 3);
-  for (u32 i = 0; i < 2; ++i) {
-    _mm512_storeu_si512(out, _mm512_cvtepu8_epi32(_mm_and_si128(
-                                 mask, _mm_srli_epi32(s0, 4 * i))));
-    _mm512_storeu_si512(out + 1, _mm512_cvtepu8_epi32(_mm_and_si128(
-                                     mask, _mm_srli_epi32(s1, 4 * i))));
-    _mm512_storeu_si512(out + 2, _mm512_cvtepu8_epi32(_mm_and_si128(
-                                     mask, _mm_srli_epi32(s2, 4 * i))));
-    _mm512_storeu_si512(out + 3, _mm512_cvtepu8_epi32(_mm_and_si128(
-                                     mask, _mm_srli_epi32(s3, 4 * i))));
-    out += 4;
+  for (u32 k = 0; k < 4; ++k) {
+    load4x128(compressed + k, w0, w1, w2, w3);
+    for (u32 i = 0; i < 2; ++i) {
+      _mm512_storeu_si512(out, _mm512_cvtepu8_epi32(_mm_and_si128(
+                                   mask, _mm_srli_epi32(w0, 4 * i))));
+      _mm512_storeu_si512(out + 1, _mm512_cvtepu8_epi32(_mm_and_si128(
+                                       mask, _mm_srli_epi32(w1, 4 * i))));
+      _mm512_storeu_si512(out + 2, _mm512_cvtepu8_epi32(_mm_and_si128(
+                                       mask, _mm_srli_epi32(w2, 4 * i))));
+      _mm512_storeu_si512(out + 3, _mm512_cvtepu8_epi32(_mm_and_si128(
+                                       mask, _mm_srli_epi32(w3, 4 * i))));
+      out += 4;
+    }
   }
 }
 
@@ -601,148 +517,127 @@ static void unpackblockfast5(const __m512i *compressed, u32 *pout) {
   __m512i *out = (__m512i *)pout;
   const __m128i mask = _mm_set1_epi8(31);
   //---------------------------------------------------------------------------
-  __m512i w0, w1, w2, w3, w4;
-  __m128i s0, s1, s2, s3, s4, s5, s6, s7, maskr, maskl;
+  __m128i w0, w1, w2, w3, w4, w5, w6, w7, maskr, maskl;
   //---------------------------------------------------------------------------
-  w0 = _mm512_loadu_si512(compressed);
-  s0 = _mm512_extracti32x4_epi32(w0, 0);
-  s1 = _mm512_extracti32x4_epi32(w0, 1);
-  s2 = _mm512_extracti32x4_epi32(w0, 2);
-  s3 = _mm512_extracti32x4_epi32(w0, 3);
-  _mm512_storeu_si512(out, _mm512_cvtepu8_epi32(_mm_and_si128(mask, s0)));
-  _mm512_storeu_si512(out + 1, _mm512_cvtepu8_epi32(_mm_and_si128(mask, s1)));
-  _mm512_storeu_si512(out + 2, _mm512_cvtepu8_epi32(_mm_and_si128(mask, s2)));
-  _mm512_storeu_si512(out + 3, _mm512_cvtepu8_epi32(_mm_and_si128(mask, s3)));
+  load4x128(compressed, w0, w1, w2, w3);
+  _mm512_storeu_si512(out, _mm512_cvtepu8_epi32(_mm_and_si128(mask, w0)));
+  _mm512_storeu_si512(out + 1, _mm512_cvtepu8_epi32(_mm_and_si128(mask, w1)));
+  _mm512_storeu_si512(out + 2, _mm512_cvtepu8_epi32(_mm_and_si128(mask, w2)));
+  _mm512_storeu_si512(out + 3, _mm512_cvtepu8_epi32(_mm_and_si128(mask, w3)));
   out += 4;
   //---------------------------------------------------------------------------
   // Word Boundary
   maskr = _mm_set1_epi8(7);
   maskl = _mm_set1_epi8(24);
-  w1 = _mm512_loadu_si512(compressed + 1);
-  s4 = _mm512_extracti32x4_epi32(w1, 0);
-  s5 = _mm512_extracti32x4_epi32(w1, 1);
-  s6 = _mm512_extracti32x4_epi32(w1, 2);
-  s7 = _mm512_extracti32x4_epi32(w1, 3);
+  load4x128(compressed + 1, w4, w5, w6, w7);
   _mm512_storeu_si512(out, _mm512_cvtepu8_epi32(_mm_or_si128(
-                               _mm_and_si128(maskl, _mm_slli_epi32(s4, 3)),
-                               _mm_and_si128(maskr, _mm_srli_epi32(s0, 5)))));
+                               _mm_and_si128(maskl, _mm_slli_epi32(w4, 3)),
+                               _mm_and_si128(maskr, _mm_srli_epi32(w0, 5)))));
   _mm512_storeu_si512(
       out + 1, _mm512_cvtepu8_epi32(
-                   _mm_or_si128(_mm_and_si128(maskl, _mm_slli_epi32(s5, 3)),
-                                _mm_and_si128(maskr, _mm_srli_epi32(s1, 5)))));
+                   _mm_or_si128(_mm_and_si128(maskl, _mm_slli_epi32(w5, 3)),
+                                _mm_and_si128(maskr, _mm_srli_epi32(w1, 5)))));
   _mm512_storeu_si512(
       out + 2, _mm512_cvtepu8_epi32(
-                   _mm_or_si128(_mm_and_si128(maskl, _mm_slli_epi32(s6, 3)),
-                                _mm_and_si128(maskr, _mm_srli_epi32(s2, 5)))));
+                   _mm_or_si128(_mm_and_si128(maskl, _mm_slli_epi32(w6, 3)),
+                                _mm_and_si128(maskr, _mm_srli_epi32(w2, 5)))));
   _mm512_storeu_si512(
       out + 3, _mm512_cvtepu8_epi32(
-                   _mm_or_si128(_mm_and_si128(maskl, _mm_slli_epi32(s7, 3)),
-                                _mm_and_si128(maskr, _mm_srli_epi32(s3, 5)))));
+                   _mm_or_si128(_mm_and_si128(maskl, _mm_slli_epi32(w7, 3)),
+                                _mm_and_si128(maskr, _mm_srli_epi32(w3, 5)))));
   out += 4;
   //---------------------------------------------------------------------------
   _mm512_storeu_si512(
-      out, _mm512_cvtepu8_epi32(_mm_and_si128(mask, _mm_srli_epi32(s4, 2))));
+      out, _mm512_cvtepu8_epi32(_mm_and_si128(mask, _mm_srli_epi32(w4, 2))));
   _mm512_storeu_si512(out + 1, _mm512_cvtepu8_epi32(
-                                   _mm_and_si128(mask, _mm_srli_epi32(s5, 2))));
+                                   _mm_and_si128(mask, _mm_srli_epi32(w5, 2))));
   _mm512_storeu_si512(out + 2, _mm512_cvtepu8_epi32(
-                                   _mm_and_si128(mask, _mm_srli_epi32(s6, 2))));
+                                   _mm_and_si128(mask, _mm_srli_epi32(w6, 2))));
   _mm512_storeu_si512(out + 3, _mm512_cvtepu8_epi32(
-                                   _mm_and_si128(mask, _mm_srli_epi32(s7, 2))));
+                                   _mm_and_si128(mask, _mm_srli_epi32(w7, 2))));
   out += 4;
   //---------------------------------------------------------------------------
   // Word Boundary
   maskr = _mm_set1_epi8(1);
   maskl = _mm_set1_epi8(30);
-  w2 = _mm512_loadu_si512(compressed + 2);
-  s0 = _mm512_extracti32x4_epi32(w2, 0);
-  s1 = _mm512_extracti32x4_epi32(w2, 1);
-  s2 = _mm512_extracti32x4_epi32(w2, 2);
-  s3 = _mm512_extracti32x4_epi32(w2, 3);
+  load4x128(compressed + 2, w0, w1, w2, w3);
   _mm512_storeu_si512(out, _mm512_cvtepu8_epi32(_mm_or_si128(
-                               _mm_and_si128(maskl, _mm_slli_epi32(s0, 1)),
-                               _mm_and_si128(maskr, _mm_srli_epi32(s4, 7)))));
+                               _mm_and_si128(maskl, _mm_slli_epi32(w0, 1)),
+                               _mm_and_si128(maskr, _mm_srli_epi32(w4, 7)))));
   _mm512_storeu_si512(
       out + 1, _mm512_cvtepu8_epi32(
-                   _mm_or_si128(_mm_and_si128(maskl, _mm_slli_epi32(s1, 1)),
-                                _mm_and_si128(maskr, _mm_srli_epi32(s5, 7)))));
+                   _mm_or_si128(_mm_and_si128(maskl, _mm_slli_epi32(w1, 1)),
+                                _mm_and_si128(maskr, _mm_srli_epi32(w5, 7)))));
   _mm512_storeu_si512(
       out + 2, _mm512_cvtepu8_epi32(
-                   _mm_or_si128(_mm_and_si128(maskl, _mm_slli_epi32(s2, 1)),
-                                _mm_and_si128(maskr, _mm_srli_epi32(s6, 7)))));
+                   _mm_or_si128(_mm_and_si128(maskl, _mm_slli_epi32(w2, 1)),
+                                _mm_and_si128(maskr, _mm_srli_epi32(w6, 7)))));
   _mm512_storeu_si512(
       out + 3, _mm512_cvtepu8_epi32(
-                   _mm_or_si128(_mm_and_si128(maskl, _mm_slli_epi32(s3, 1)),
-                                _mm_and_si128(maskr, _mm_srli_epi32(s7, 7)))));
+                   _mm_or_si128(_mm_and_si128(maskl, _mm_slli_epi32(w3, 1)),
+                                _mm_and_si128(maskr, _mm_srli_epi32(w7, 7)))));
   out += 4;
   //---------------------------------------------------------------------------
   // Word Boundary
   maskr = _mm_set1_epi8(15);
   maskl = _mm_set1_epi8(16);
-  w3 = _mm512_loadu_si512(compressed + 3);
-  s4 = _mm512_extracti32x4_epi32(w3, 0);
-  s5 = _mm512_extracti32x4_epi32(w3, 1);
-  s6 = _mm512_extracti32x4_epi32(w3, 2);
-  s7 = _mm512_extracti32x4_epi32(w3, 3);
+  load4x128(compressed + 3, w4, w5, w6, w7);
   _mm512_storeu_si512(out, _mm512_cvtepu8_epi32(_mm_or_si128(
-                               _mm_and_si128(maskl, _mm_slli_epi32(s4, 4)),
-                               _mm_and_si128(maskr, _mm_srli_epi32(s0, 4)))));
+                               _mm_and_si128(maskl, _mm_slli_epi32(w4, 4)),
+                               _mm_and_si128(maskr, _mm_srli_epi32(w0, 4)))));
   _mm512_storeu_si512(
       out + 1, _mm512_cvtepu8_epi32(
-                   _mm_or_si128(_mm_and_si128(maskl, _mm_slli_epi32(s5, 4)),
-                                _mm_and_si128(maskr, _mm_srli_epi32(s1, 4)))));
+                   _mm_or_si128(_mm_and_si128(maskl, _mm_slli_epi32(w5, 4)),
+                                _mm_and_si128(maskr, _mm_srli_epi32(w1, 4)))));
   _mm512_storeu_si512(
       out + 2, _mm512_cvtepu8_epi32(
-                   _mm_or_si128(_mm_and_si128(maskl, _mm_slli_epi32(s6, 4)),
-                                _mm_and_si128(maskr, _mm_srli_epi32(s2, 4)))));
+                   _mm_or_si128(_mm_and_si128(maskl, _mm_slli_epi32(w6, 4)),
+                                _mm_and_si128(maskr, _mm_srli_epi32(w2, 4)))));
   _mm512_storeu_si512(
       out + 3, _mm512_cvtepu8_epi32(
-                   _mm_or_si128(_mm_and_si128(maskl, _mm_slli_epi32(s7, 4)),
-                                _mm_and_si128(maskr, _mm_srli_epi32(s3, 4)))));
+                   _mm_or_si128(_mm_and_si128(maskl, _mm_slli_epi32(w7, 4)),
+                                _mm_and_si128(maskr, _mm_srli_epi32(w3, 4)))));
   out += 4;
   //---------------------------------------------------------------------------
   _mm512_storeu_si512(
-      out, _mm512_cvtepu8_epi32(_mm_and_si128(mask, _mm_srli_epi32(s4, 1))));
+      out, _mm512_cvtepu8_epi32(_mm_and_si128(mask, _mm_srli_epi32(w4, 1))));
   _mm512_storeu_si512(out + 1, _mm512_cvtepu8_epi32(
-                                   _mm_and_si128(mask, _mm_srli_epi32(s5, 1))));
+                                   _mm_and_si128(mask, _mm_srli_epi32(w5, 1))));
   _mm512_storeu_si512(out + 2, _mm512_cvtepu8_epi32(
-                                   _mm_and_si128(mask, _mm_srli_epi32(s6, 1))));
+                                   _mm_and_si128(mask, _mm_srli_epi32(w6, 1))));
   _mm512_storeu_si512(out + 3, _mm512_cvtepu8_epi32(
-                                   _mm_and_si128(mask, _mm_srli_epi32(s7, 1))));
+                                   _mm_and_si128(mask, _mm_srli_epi32(w7, 1))));
   out += 4;
   //---------------------------------------------------------------------------
   // Word Boundary
   maskr = _mm_set1_epi8(3);
   maskl = _mm_set1_epi8(28);
-  w4 = _mm512_loadu_si512(compressed + 4);
-  s0 = _mm512_extracti32x4_epi32(w4, 0);
-  s1 = _mm512_extracti32x4_epi32(w4, 1);
-  s2 = _mm512_extracti32x4_epi32(w4, 2);
-  s3 = _mm512_extracti32x4_epi32(w4, 3);
+  load4x128(compressed + 4, w0, w1, w2, w3);
   _mm512_storeu_si512(out, _mm512_cvtepu8_epi32(_mm_or_si128(
-                               _mm_and_si128(maskl, _mm_slli_epi32(s0, 2)),
-                               _mm_and_si128(maskr, _mm_srli_epi32(s4, 6)))));
+                               _mm_and_si128(maskl, _mm_slli_epi32(w0, 2)),
+                               _mm_and_si128(maskr, _mm_srli_epi32(w4, 6)))));
   _mm512_storeu_si512(
       out + 1, _mm512_cvtepu8_epi32(
-                   _mm_or_si128(_mm_and_si128(maskl, _mm_slli_epi32(s1, 2)),
-                                _mm_and_si128(maskr, _mm_srli_epi32(s5, 6)))));
+                   _mm_or_si128(_mm_and_si128(maskl, _mm_slli_epi32(w1, 2)),
+                                _mm_and_si128(maskr, _mm_srli_epi32(w5, 6)))));
   _mm512_storeu_si512(
       out + 2, _mm512_cvtepu8_epi32(
-                   _mm_or_si128(_mm_and_si128(maskl, _mm_slli_epi32(s2, 2)),
-                                _mm_and_si128(maskr, _mm_srli_epi32(s6, 6)))));
+                   _mm_or_si128(_mm_and_si128(maskl, _mm_slli_epi32(w2, 2)),
+                                _mm_and_si128(maskr, _mm_srli_epi32(w6, 6)))));
   _mm512_storeu_si512(
       out + 3, _mm512_cvtepu8_epi32(
-                   _mm_or_si128(_mm_and_si128(maskl, _mm_slli_epi32(s3, 2)),
-                                _mm_and_si128(maskr, _mm_srli_epi32(s7, 6)))));
+                   _mm_or_si128(_mm_and_si128(maskl, _mm_slli_epi32(w3, 2)),
+                                _mm_and_si128(maskr, _mm_srli_epi32(w7, 6)))));
   out += 4;
   //---------------------------------------------------------------------------
   _mm512_storeu_si512(
-      out, _mm512_cvtepu8_epi32(_mm_and_si128(mask, _mm_srli_epi32(s0, 3))));
+      out, _mm512_cvtepu8_epi32(_mm_and_si128(mask, _mm_srli_epi32(w0, 3))));
   _mm512_storeu_si512(out + 1, _mm512_cvtepu8_epi32(
-                                   _mm_and_si128(mask, _mm_srli_epi32(s1, 3))));
+                                   _mm_and_si128(mask, _mm_srli_epi32(w1, 3))));
   _mm512_storeu_si512(out + 2, _mm512_cvtepu8_epi32(
-                                   _mm_and_si128(mask, _mm_srli_epi32(s2, 3))));
+                                   _mm_and_si128(mask, _mm_srli_epi32(w2, 3))));
   _mm512_storeu_si512(out + 3, _mm512_cvtepu8_epi32(
-                                   _mm_and_si128(mask, _mm_srli_epi32(s3, 3))));
+                                   _mm_and_si128(mask, _mm_srli_epi32(w3, 3))));
   out += 4;
 }
 
@@ -750,79 +645,66 @@ static void unpackblockfast6(const __m512i *compressed, u32 *pout) {
   __m512i *out = (__m512i *)pout;
   const __m128i mask = _mm_set1_epi8(63);
   //---------------------------------------------------------------------------
-  __m512i w0, w1, w2;
-  __m128i s0, s1, s2, s3, s4, s5, s6, s7, maskr, maskl;
+  __m128i w0, w1, w2, w3, w4, w5, w6, w7, maskr, maskl;
   //---------------------------------------------------------------------------
   for (u32 i = 0; i < 2; ++i) {
-    w0 = _mm512_loadu_si512(compressed + 3 * i);
-    s0 = _mm512_extracti32x4_epi32(w0, 0);
-    s1 = _mm512_extracti32x4_epi32(w0, 1);
-    s2 = _mm512_extracti32x4_epi32(w0, 2);
-    s3 = _mm512_extracti32x4_epi32(w0, 3);
-    _mm512_storeu_si512(out, _mm512_cvtepu8_epi32(_mm_and_si128(mask, s0)));
-    _mm512_storeu_si512(out + 1, _mm512_cvtepu8_epi32(_mm_and_si128(mask, s1)));
-    _mm512_storeu_si512(out + 2, _mm512_cvtepu8_epi32(_mm_and_si128(mask, s2)));
-    _mm512_storeu_si512(out + 3, _mm512_cvtepu8_epi32(_mm_and_si128(mask, s3)));
+    load4x128(compressed + 3 * i, w0, w1, w2, w3);
+    _mm512_storeu_si512(out, _mm512_cvtepu8_epi32(_mm_and_si128(mask, w0)));
+    _mm512_storeu_si512(out + 1, _mm512_cvtepu8_epi32(_mm_and_si128(mask, w1)));
+    _mm512_storeu_si512(out + 2, _mm512_cvtepu8_epi32(_mm_and_si128(mask, w2)));
+    _mm512_storeu_si512(out + 3, _mm512_cvtepu8_epi32(_mm_and_si128(mask, w3)));
     out += 4;
     //---------------------------------------------------------------------------
     // Word Boundary
     maskr = _mm_set1_epi8(3);
     maskl = _mm_set1_epi8(60);
-    w1 = _mm512_loadu_si512(compressed + 3 * i + 1);
-    s4 = _mm512_extracti32x4_epi32(w1, 0);
-    s5 = _mm512_extracti32x4_epi32(w1, 1);
-    s6 = _mm512_extracti32x4_epi32(w1, 2);
-    s7 = _mm512_extracti32x4_epi32(w1, 3);
+    load4x128(compressed + 3 * i + 1, w4, w5, w6, w7);
     _mm512_storeu_si512(out, _mm512_cvtepu8_epi32(_mm_or_si128(
-                                 _mm_and_si128(maskl, _mm_slli_epi32(s4, 2)),
-                                 _mm_and_si128(maskr, _mm_srli_epi32(s0, 6)))));
+                                 _mm_and_si128(maskl, _mm_slli_epi32(w4, 2)),
+                                 _mm_and_si128(maskr, _mm_srli_epi32(w0, 6)))));
     _mm512_storeu_si512(out + 1,
                         _mm512_cvtepu8_epi32(_mm_or_si128(
-                            _mm_and_si128(maskl, _mm_slli_epi32(s5, 2)),
-                            _mm_and_si128(maskr, _mm_srli_epi32(s1, 6)))));
+                            _mm_and_si128(maskl, _mm_slli_epi32(w5, 2)),
+                            _mm_and_si128(maskr, _mm_srli_epi32(w1, 6)))));
     _mm512_storeu_si512(out + 2,
                         _mm512_cvtepu8_epi32(_mm_or_si128(
-                            _mm_and_si128(maskl, _mm_slli_epi32(s6, 2)),
-                            _mm_and_si128(maskr, _mm_srli_epi32(s2, 6)))));
+                            _mm_and_si128(maskl, _mm_slli_epi32(w6, 2)),
+                            _mm_and_si128(maskr, _mm_srli_epi32(w2, 6)))));
     _mm512_storeu_si512(out + 3,
                         _mm512_cvtepu8_epi32(_mm_or_si128(
-                            _mm_and_si128(maskl, _mm_slli_epi32(s7, 2)),
-                            _mm_and_si128(maskr, _mm_srli_epi32(s3, 6)))));
+                            _mm_and_si128(maskl, _mm_slli_epi32(w7, 2)),
+                            _mm_and_si128(maskr, _mm_srli_epi32(w3, 6)))));
     out += 4;
     //---------------------------------------------------------------------------
     // Word Boundary
     maskr = _mm_set1_epi8(15);
     maskl = _mm_set1_epi8(48);
-    w2 = _mm512_loadu_si512(compressed + 3 * i + 2);
-    s0 = _mm512_extracti32x4_epi32(w2, 0);
-    s1 = _mm512_extracti32x4_epi32(w2, 1);
-    s2 = _mm512_extracti32x4_epi32(w2, 2);
-    s3 = _mm512_extracti32x4_epi32(w2, 3);
+    load4x128(compressed + 3 * i + 2, w0, w1, w2, w3);
     _mm512_storeu_si512(out, _mm512_cvtepu8_epi32(_mm_or_si128(
-                                 _mm_and_si128(maskl, _mm_slli_epi32(s0, 4)),
-                                 _mm_and_si128(maskr, _mm_srli_epi32(s4, 4)))));
+                                 _mm_and_si128(maskl, _mm_slli_epi32(w0, 4)),
+                                 _mm_and_si128(maskr, _mm_srli_epi32(w4, 4)))));
     _mm512_storeu_si512(out + 1,
                         _mm512_cvtepu8_epi32(_mm_or_si128(
-                            _mm_and_si128(maskl, _mm_slli_epi32(s1, 4)),
-                            _mm_and_si128(maskr, _mm_srli_epi32(s5, 4)))));
+                            _mm_and_si128(maskl, _mm_slli_epi32(w1, 4)),
+                            _mm_and_si128(maskr, _mm_srli_epi32(w5, 4)))));
     _mm512_storeu_si512(out + 2,
                         _mm512_cvtepu8_epi32(_mm_or_si128(
-                            _mm_and_si128(maskl, _mm_slli_epi32(s2, 4)),
-                            _mm_and_si128(maskr, _mm_srli_epi32(s6, 4)))));
+                            _mm_and_si128(maskl, _mm_slli_epi32(w2, 4)),
+                            _mm_and_si128(maskr, _mm_srli_epi32(w6, 4)))));
     _mm512_storeu_si512(out + 3,
                         _mm512_cvtepu8_epi32(_mm_or_si128(
-                            _mm_and_si128(maskl, _mm_slli_epi32(s3, 4)),
-                            _mm_and_si128(maskr, _mm_srli_epi32(s7, 4)))));
+                            _mm_and_si128(maskl, _mm_slli_epi32(w3, 4)),
+                            _mm_and_si128(maskr, _mm_srli_epi32(w7, 4)))));
     out += 4;
     //---------------------------------------------------------------------------
     _mm512_storeu_si512(
-        out, _mm512_cvtepu8_epi32(_mm_and_si128(mask, _mm_srli_epi32(s0, 2))));
+        out, _mm512_cvtepu8_epi32(_mm_and_si128(mask, _mm_srli_epi32(w0, 2))));
     _mm512_storeu_si512(out + 1, _mm512_cvtepu8_epi32(_mm_and_si128(
-                                     mask, _mm_srli_epi32(s1, 2))));
+                                     mask, _mm_srli_epi32(w1, 2))));
     _mm512_storeu_si512(out + 2, _mm512_cvtepu8_epi32(_mm_and_si128(
-                                     mask, _mm_srli_epi32(s2, 2))));
+                                     mask, _mm_srli_epi32(w2, 2))));
     _mm512_storeu_si512(out + 3, _mm512_cvtepu8_epi32(_mm_and_si128(
-                                     mask, _mm_srli_epi32(s3, 2))));
+                                     mask, _mm_srli_epi32(w3, 2))));
     out += 4;
   }
 }
@@ -831,192 +713,158 @@ static void unpackblockfast7(const __m512i *compressed, u32 *pout) {
   __m512i *out = (__m512i *)pout;
   const __m128i mask = _mm_set1_epi8(127);
   //---------------------------------------------------------------------------
-  __m512i w0, w1, w2, w3, w4, w5, w6;
-  __m128i s0, s1, s2, s3, s4, s5, s6, s7, maskr, maskl;
+  __m128i w0, w1, w2, w3, w4, w5, w6, w7, maskr, maskl;
   //---------------------------------------------------------------------------
-  w0 = _mm512_loadu_si512(compressed);
-  s0 = _mm512_extracti32x4_epi32(w0, 0);
-  s1 = _mm512_extracti32x4_epi32(w0, 1);
-  s2 = _mm512_extracti32x4_epi32(w0, 2);
-  s3 = _mm512_extracti32x4_epi32(w0, 3);
-  _mm512_storeu_si512(out, _mm512_cvtepu8_epi32(_mm_and_si128(mask, s0)));
-  _mm512_storeu_si512(out + 1, _mm512_cvtepu8_epi32(_mm_and_si128(mask, s1)));
-  _mm512_storeu_si512(out + 2, _mm512_cvtepu8_epi32(_mm_and_si128(mask, s2)));
-  _mm512_storeu_si512(out + 3, _mm512_cvtepu8_epi32(_mm_and_si128(mask, s3)));
+  load4x128(compressed, w0, w1, w2, w3);
+  _mm512_storeu_si512(out, _mm512_cvtepu8_epi32(_mm_and_si128(mask, w0)));
+  _mm512_storeu_si512(out + 1, _mm512_cvtepu8_epi32(_mm_and_si128(mask, w1)));
+  _mm512_storeu_si512(out + 2, _mm512_cvtepu8_epi32(_mm_and_si128(mask, w2)));
+  _mm512_storeu_si512(out + 3, _mm512_cvtepu8_epi32(_mm_and_si128(mask, w3)));
   out += 4;
   //---------------------------------------------------------------------------
   // Word Boundary
   maskr = _mm_set1_epi8(1);
   maskl = _mm_set1_epi8(126);
-  w1 = _mm512_loadu_si512(compressed + 1);
-  s4 = _mm512_extracti32x4_epi32(w1, 0);
-  s5 = _mm512_extracti32x4_epi32(w1, 1);
-  s6 = _mm512_extracti32x4_epi32(w1, 2);
-  s7 = _mm512_extracti32x4_epi32(w1, 3);
+  load4x128(compressed + 1, w4, w5, w6, w7);
   _mm512_storeu_si512(out, _mm512_cvtepu8_epi32(_mm_or_si128(
-                               _mm_and_si128(maskl, _mm_slli_epi32(s4, 1)),
-                               _mm_and_si128(maskr, _mm_srli_epi32(s0, 7)))));
+                               _mm_and_si128(maskl, _mm_slli_epi32(w4, 1)),
+                               _mm_and_si128(maskr, _mm_srli_epi32(w0, 7)))));
   _mm512_storeu_si512(
       out + 1, _mm512_cvtepu8_epi32(
-                   _mm_or_si128(_mm_and_si128(maskl, _mm_slli_epi32(s5, 1)),
-                                _mm_and_si128(maskr, _mm_srli_epi32(s1, 7)))));
+                   _mm_or_si128(_mm_and_si128(maskl, _mm_slli_epi32(w5, 1)),
+                                _mm_and_si128(maskr, _mm_srli_epi32(w1, 7)))));
   _mm512_storeu_si512(
       out + 2, _mm512_cvtepu8_epi32(
-                   _mm_or_si128(_mm_and_si128(maskl, _mm_slli_epi32(s6, 1)),
-                                _mm_and_si128(maskr, _mm_srli_epi32(s2, 7)))));
+                   _mm_or_si128(_mm_and_si128(maskl, _mm_slli_epi32(w6, 1)),
+                                _mm_and_si128(maskr, _mm_srli_epi32(w2, 7)))));
   _mm512_storeu_si512(
       out + 3, _mm512_cvtepu8_epi32(
-                   _mm_or_si128(_mm_and_si128(maskl, _mm_slli_epi32(s7, 1)),
-                                _mm_and_si128(maskr, _mm_srli_epi32(s3, 7)))));
+                   _mm_or_si128(_mm_and_si128(maskl, _mm_slli_epi32(w7, 1)),
+                                _mm_and_si128(maskr, _mm_srli_epi32(w3, 7)))));
   out += 4;
   //---------------------------------------------------------------------------
   // Word Boundary
   maskr = _mm_set1_epi8(3);
   maskl = _mm_set1_epi8(124);
-  w2 = _mm512_loadu_si512(compressed + 2);
-  s0 = _mm512_extracti32x4_epi32(w2, 0);
-  s1 = _mm512_extracti32x4_epi32(w2, 1);
-  s2 = _mm512_extracti32x4_epi32(w2, 2);
-  s3 = _mm512_extracti32x4_epi32(w2, 3);
+  load4x128(compressed + 2, w0, w1, w2, w3);
   _mm512_storeu_si512(out, _mm512_cvtepu8_epi32(_mm_or_si128(
-                               _mm_and_si128(maskl, _mm_slli_epi32(s0, 2)),
-                               _mm_and_si128(maskr, _mm_srli_epi32(s4, 6)))));
+                               _mm_and_si128(maskl, _mm_slli_epi32(w0, 2)),
+                               _mm_and_si128(maskr, _mm_srli_epi32(w4, 6)))));
   _mm512_storeu_si512(
       out + 1, _mm512_cvtepu8_epi32(
-                   _mm_or_si128(_mm_and_si128(maskl, _mm_slli_epi32(s1, 2)),
-                                _mm_and_si128(maskr, _mm_srli_epi32(s5, 6)))));
+                   _mm_or_si128(_mm_and_si128(maskl, _mm_slli_epi32(w1, 2)),
+                                _mm_and_si128(maskr, _mm_srli_epi32(w5, 6)))));
   _mm512_storeu_si512(
       out + 2, _mm512_cvtepu8_epi32(
-                   _mm_or_si128(_mm_and_si128(maskl, _mm_slli_epi32(s2, 2)),
-                                _mm_and_si128(maskr, _mm_srli_epi32(s6, 6)))));
+                   _mm_or_si128(_mm_and_si128(maskl, _mm_slli_epi32(w2, 2)),
+                                _mm_and_si128(maskr, _mm_srli_epi32(w6, 6)))));
   _mm512_storeu_si512(
       out + 3, _mm512_cvtepu8_epi32(
-                   _mm_or_si128(_mm_and_si128(maskl, _mm_slli_epi32(s3, 2)),
-                                _mm_and_si128(maskr, _mm_srli_epi32(s7, 6)))));
+                   _mm_or_si128(_mm_and_si128(maskl, _mm_slli_epi32(w3, 2)),
+                                _mm_and_si128(maskr, _mm_srli_epi32(w7, 6)))));
   out += 4;
   //---------------------------------------------------------------------------
   // Word Boundary
   maskr = _mm_set1_epi8(7);
   maskl = _mm_set1_epi8(120);
-  w3 = _mm512_loadu_si512(compressed + 3);
-  s4 = _mm512_extracti32x4_epi32(w3, 0);
-  s5 = _mm512_extracti32x4_epi32(w3, 1);
-  s6 = _mm512_extracti32x4_epi32(w3, 2);
-  s7 = _mm512_extracti32x4_epi32(w3, 3);
+  load4x128(compressed + 3, w4, w5, w6, w7);
   _mm512_storeu_si512(out, _mm512_cvtepu8_epi32(_mm_or_si128(
-                               _mm_and_si128(maskl, _mm_slli_epi32(s4, 3)),
-                               _mm_and_si128(maskr, _mm_srli_epi32(s0, 5)))));
+                               _mm_and_si128(maskl, _mm_slli_epi32(w4, 3)),
+                               _mm_and_si128(maskr, _mm_srli_epi32(w0, 5)))));
   _mm512_storeu_si512(
       out + 1, _mm512_cvtepu8_epi32(
-                   _mm_or_si128(_mm_and_si128(maskl, _mm_slli_epi32(s5, 3)),
-                                _mm_and_si128(maskr, _mm_srli_epi32(s1, 5)))));
+                   _mm_or_si128(_mm_and_si128(maskl, _mm_slli_epi32(w5, 3)),
+                                _mm_and_si128(maskr, _mm_srli_epi32(w1, 5)))));
   _mm512_storeu_si512(
       out + 2, _mm512_cvtepu8_epi32(
-                   _mm_or_si128(_mm_and_si128(maskl, _mm_slli_epi32(s6, 3)),
-                                _mm_and_si128(maskr, _mm_srli_epi32(s2, 5)))));
+                   _mm_or_si128(_mm_and_si128(maskl, _mm_slli_epi32(w6, 3)),
+                                _mm_and_si128(maskr, _mm_srli_epi32(w2, 5)))));
   _mm512_storeu_si512(
       out + 3, _mm512_cvtepu8_epi32(
-                   _mm_or_si128(_mm_and_si128(maskl, _mm_slli_epi32(s7, 3)),
-                                _mm_and_si128(maskr, _mm_srli_epi32(s3, 5)))));
+                   _mm_or_si128(_mm_and_si128(maskl, _mm_slli_epi32(w7, 3)),
+                                _mm_and_si128(maskr, _mm_srli_epi32(w3, 5)))));
   out += 4;
   //---------------------------------------------------------------------------
   // Word Boundary
   maskr = _mm_set1_epi8(15);
   maskl = _mm_set1_epi8(112);
-  w4 = _mm512_loadu_si512(compressed + 4);
-  s0 = _mm512_extracti32x4_epi32(w4, 0);
-  s1 = _mm512_extracti32x4_epi32(w4, 1);
-  s2 = _mm512_extracti32x4_epi32(w4, 2);
-  s3 = _mm512_extracti32x4_epi32(w4, 3);
+  load4x128(compressed + 4, w0, w1, w2, w3);
   _mm512_storeu_si512(out, _mm512_cvtepu8_epi32(_mm_or_si128(
-                               _mm_and_si128(maskl, _mm_slli_epi32(s0, 4)),
-                               _mm_and_si128(maskr, _mm_srli_epi32(s4, 4)))));
+                               _mm_and_si128(maskl, _mm_slli_epi32(w0, 4)),
+                               _mm_and_si128(maskr, _mm_srli_epi32(w4, 4)))));
   _mm512_storeu_si512(
       out + 1, _mm512_cvtepu8_epi32(
-                   _mm_or_si128(_mm_and_si128(maskl, _mm_slli_epi32(s1, 4)),
-                                _mm_and_si128(maskr, _mm_srli_epi32(s5, 4)))));
+                   _mm_or_si128(_mm_and_si128(maskl, _mm_slli_epi32(w1, 4)),
+                                _mm_and_si128(maskr, _mm_srli_epi32(w5, 4)))));
   _mm512_storeu_si512(
       out + 2, _mm512_cvtepu8_epi32(
-                   _mm_or_si128(_mm_and_si128(maskl, _mm_slli_epi32(s2, 4)),
-                                _mm_and_si128(maskr, _mm_srli_epi32(s6, 4)))));
+                   _mm_or_si128(_mm_and_si128(maskl, _mm_slli_epi32(w2, 4)),
+                                _mm_and_si128(maskr, _mm_srli_epi32(w6, 4)))));
   _mm512_storeu_si512(
       out + 3, _mm512_cvtepu8_epi32(
-                   _mm_or_si128(_mm_and_si128(maskl, _mm_slli_epi32(s3, 4)),
-                                _mm_and_si128(maskr, _mm_srli_epi32(s7, 4)))));
+                   _mm_or_si128(_mm_and_si128(maskl, _mm_slli_epi32(w3, 4)),
+                                _mm_and_si128(maskr, _mm_srli_epi32(w7, 4)))));
   out += 4;
   //---------------------------------------------------------------------------
   // Word Boundary
   maskr = _mm_set1_epi8(31);
   maskl = _mm_set1_epi8(96);
-  w5 = _mm512_loadu_si512(compressed + 5);
-  s4 = _mm512_extracti32x4_epi32(w5, 0);
-  s5 = _mm512_extracti32x4_epi32(w5, 1);
-  s6 = _mm512_extracti32x4_epi32(w5, 2);
-  s7 = _mm512_extracti32x4_epi32(w5, 3);
+  load4x128(compressed + 5, w4, w5, w6, w7);
   _mm512_storeu_si512(out, _mm512_cvtepu8_epi32(_mm_or_si128(
-                               _mm_and_si128(maskl, _mm_slli_epi32(s4, 5)),
-                               _mm_and_si128(maskr, _mm_srli_epi32(s0, 3)))));
+                               _mm_and_si128(maskl, _mm_slli_epi32(w4, 5)),
+                               _mm_and_si128(maskr, _mm_srli_epi32(w0, 3)))));
   _mm512_storeu_si512(
       out + 1, _mm512_cvtepu8_epi32(
-                   _mm_or_si128(_mm_and_si128(maskl, _mm_slli_epi32(s5, 5)),
-                                _mm_and_si128(maskr, _mm_srli_epi32(s1, 3)))));
+                   _mm_or_si128(_mm_and_si128(maskl, _mm_slli_epi32(w5, 5)),
+                                _mm_and_si128(maskr, _mm_srli_epi32(w1, 3)))));
   _mm512_storeu_si512(
       out + 2, _mm512_cvtepu8_epi32(
-                   _mm_or_si128(_mm_and_si128(maskl, _mm_slli_epi32(s6, 5)),
-                                _mm_and_si128(maskr, _mm_srli_epi32(s2, 3)))));
+                   _mm_or_si128(_mm_and_si128(maskl, _mm_slli_epi32(w6, 5)),
+                                _mm_and_si128(maskr, _mm_srli_epi32(w2, 3)))));
   _mm512_storeu_si512(
       out + 3, _mm512_cvtepu8_epi32(
-                   _mm_or_si128(_mm_and_si128(maskl, _mm_slli_epi32(s7, 5)),
-                                _mm_and_si128(maskr, _mm_srli_epi32(s3, 3)))));
+                   _mm_or_si128(_mm_and_si128(maskl, _mm_slli_epi32(w7, 5)),
+                                _mm_and_si128(maskr, _mm_srli_epi32(w3, 3)))));
   out += 4;
   //---------------------------------------------------------------------------
   // Word Boundary
   maskr = _mm_set1_epi8(63);
   maskl = _mm_set1_epi8(64);
-  w6 = _mm512_loadu_si512(compressed + 6);
-  s0 = _mm512_extracti32x4_epi32(w6, 0);
-  s1 = _mm512_extracti32x4_epi32(w6, 1);
-  s2 = _mm512_extracti32x4_epi32(w6, 2);
-  s3 = _mm512_extracti32x4_epi32(w6, 3);
+  load4x128(compressed + 6, w0, w1, w2, w3);
   _mm512_storeu_si512(out, _mm512_cvtepu8_epi32(_mm_or_si128(
-                               _mm_and_si128(maskl, _mm_slli_epi32(s0, 6)),
-                               _mm_and_si128(maskr, _mm_srli_epi32(s4, 2)))));
+                               _mm_and_si128(maskl, _mm_slli_epi32(w0, 6)),
+                               _mm_and_si128(maskr, _mm_srli_epi32(w4, 2)))));
   _mm512_storeu_si512(
       out + 1, _mm512_cvtepu8_epi32(
-                   _mm_or_si128(_mm_and_si128(maskl, _mm_slli_epi32(s1, 6)),
-                                _mm_and_si128(maskr, _mm_srli_epi32(s5, 2)))));
+                   _mm_or_si128(_mm_and_si128(maskl, _mm_slli_epi32(w1, 6)),
+                                _mm_and_si128(maskr, _mm_srli_epi32(w5, 2)))));
   _mm512_storeu_si512(
       out + 2, _mm512_cvtepu8_epi32(
-                   _mm_or_si128(_mm_and_si128(maskl, _mm_slli_epi32(s2, 6)),
-                                _mm_and_si128(maskr, _mm_srli_epi32(s6, 2)))));
+                   _mm_or_si128(_mm_and_si128(maskl, _mm_slli_epi32(w2, 6)),
+                                _mm_and_si128(maskr, _mm_srli_epi32(w6, 2)))));
   _mm512_storeu_si512(
       out + 3, _mm512_cvtepu8_epi32(
-                   _mm_or_si128(_mm_and_si128(maskl, _mm_slli_epi32(s3, 6)),
-                                _mm_and_si128(maskr, _mm_srli_epi32(s7, 2)))));
+                   _mm_or_si128(_mm_and_si128(maskl, _mm_slli_epi32(w3, 6)),
+                                _mm_and_si128(maskr, _mm_srli_epi32(w7, 2)))));
   out += 4;
   //---------------------------------------------------------------------------
   _mm512_storeu_si512(
-      out, _mm512_cvtepu8_epi32(_mm_and_si128(mask, _mm_srli_epi32(s0, 1))));
+      out, _mm512_cvtepu8_epi32(_mm_and_si128(mask, _mm_srli_epi32(w0, 1))));
   _mm512_storeu_si512(out + 1, _mm512_cvtepu8_epi32(
-                                   _mm_and_si128(mask, _mm_srli_epi32(s1, 1))));
+                                   _mm_and_si128(mask, _mm_srli_epi32(w1, 1))));
   _mm512_storeu_si512(out + 2, _mm512_cvtepu8_epi32(
-                                   _mm_and_si128(mask, _mm_srli_epi32(s2, 1))));
+                                   _mm_and_si128(mask, _mm_srli_epi32(w2, 1))));
   _mm512_storeu_si512(out + 3, _mm512_cvtepu8_epi32(
-                                   _mm_and_si128(mask, _mm_srli_epi32(s3, 1))));
+                                   _mm_and_si128(mask, _mm_srli_epi32(w3, 1))));
   out += 4;
 }
 
 static void unpackblockfast8(const __m512i *compressed, u32 *pout) {
   __m512i *out = (__m512i *)pout;
-  __m512i w;
   __m128i w0, w1, w2, w3;
   //---------------------------------------------------------------------------
   for (u32 i = 0; i < 8; ++i) {
-    w = _mm512_loadu_si512(compressed + i);
-    w0 = _mm512_extracti32x4_epi32(w, 0);
-    w1 = _mm512_extracti32x4_epi32(w, 1);
-    w2 = _mm512_extracti32x4_epi32(w, 2);
-    w3 = _mm512_extracti32x4_epi32(w, 3);
+    load4x128(compressed + i, w0, w1, w2, w3);
     _mm512_storeu_si512(out + 4 * i, _mm512_cvtepu8_epi32(w0));
     _mm512_storeu_si512(out + 4 * i + 1, _mm512_cvtepu8_epi32(w1));
     _mm512_storeu_si512(out + 4 * i + 2, _mm512_cvtepu8_epi32(w2));
