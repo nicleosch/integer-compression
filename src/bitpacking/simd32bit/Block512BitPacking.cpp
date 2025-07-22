@@ -31359,6 +31359,96 @@ void filterfast(const __m512i *in, u8 *matches, const u8 bit,
     break;
   }
 }
+
+static void filterfastmaskeq1(const __m512i *in, __m512i *match_bitmap,
+                              const INTEGER comp) {
+  assert(comp < 2);
+  //---------------------------------------------------------------------------
+  __m512i w0;
+  auto out = reinterpret_cast<u64 *>(match_bitmap);
+  const __m512i mask = _mm512_set1_epi8(1);
+  const __m512i broadcomp = _mm512_set1_epi8(comp);
+  //---------------------------------------------------------------------------
+  w0 = _mm512_loadu_si512(in);
+  for (u32 i = 0; i < 8; ++i) {
+    *(out++) = _mm512_cmpeq_epi8_mask(
+        _mm512_and_si512(mask, _mm512_srli_epi32(w0, i)), broadcomp);
+  }
+}
+
+static void filterfastmaskeq2(const __m512i *in, __m512i *match_bitmap,
+                              const INTEGER comp) {
+  assert(comp < 4);
+  //---------------------------------------------------------------------------
+  __m512i w0;
+  auto out = reinterpret_cast<u64 *>(match_bitmap);
+  const __m512i mask = _mm512_set1_epi8(3);
+  const __m512i broadcomp = _mm512_set1_epi8(comp);
+  //---------------------------------------------------------------------------
+  for (u32 k = 0; k < 2; ++k) {
+    w0 = _mm512_loadu_si512(in + k);
+    for (u32 i = 0; i < 4; ++i) {
+      *(out++) = _mm512_cmpeq_epi8_mask(
+          _mm512_and_si512(mask, _mm512_srli_epi32(w0, 2 * i)), broadcomp);
+    }
+  }
+}
+
+static void filterfastmaskeq4(const __m512i *in, __m512i *match_bitmap,
+                              const INTEGER comp) {
+  assert(comp < 16);
+  //---------------------------------------------------------------------------
+  __m512i w0;
+  auto out = reinterpret_cast<u64 *>(match_bitmap);
+  const __m512i mask = _mm512_set1_epi8(15);
+  const __m512i broadcomp = _mm512_set1_epi8(comp);
+  //---------------------------------------------------------------------------
+  for (u32 k = 0; k < 4; ++k) {
+    w0 = _mm512_loadu_si512(in + k);
+    for (u32 i = 0; i < 2; ++i) {
+      *(out++) = _mm512_cmpeq_epi8_mask(
+          _mm512_and_si512(mask, _mm512_srli_epi32(w0, 4 * i)), broadcomp);
+    }
+  }
+}
+
+void filterfastmaskeq(const __m512i *in, __m512i *match_bitmap,
+                      const INTEGER comp, const u8 bit) {
+  switch (bit) {
+  case 1:
+    filterfastmaskeq1(in, match_bitmap, comp);
+    break;
+  case 2:
+    filterfastmaskeq2(in, match_bitmap, comp);
+    break;
+  case 4:
+    filterfastmaskeq4(in, match_bitmap, comp);
+    break;
+  default:
+    assert(false);
+  }
+}
+
+void filterfastmask(const __m512i *in, __m512i *match_bitmap, const u8 bit,
+                    const algebra::Predicate<INTEGER> &predicate) {
+  const INTEGER comp = predicate.getValue();
+  switch (predicate.getType()) {
+  case algebra::PredicateType::EQ:
+    filterfastmaskeq(in, match_bitmap, comp, bit);
+    break;
+  case algebra::PredicateType::INEQ:
+    assert(false);
+    break;
+  case algebra::PredicateType::GT:
+    assert(false);
+    break;
+  case algebra::PredicateType::LT:
+    assert(false);
+    break;
+  default:
+    break;
+  }
+}
 //---------------------------------------------------------------------------
 } // namespace avx512
 //---------------------------------------------------------------------------
