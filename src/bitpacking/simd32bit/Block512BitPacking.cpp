@@ -31715,6 +31715,148 @@ void filterfastmask(const __m512i *in, __m512i *match_bitmap, const u8 bit,
     break;
   }
 }
+
+static void filterbithackeq1(const __m512i *in, __m512i *match_bitmap,
+                             const INTEGER comp) {
+  assert(comp < 2);
+  //---------------------------------------------------------------------------
+  const __m512i pattern = internal::broadcast<1>(comp);
+  _mm512_store_si512(
+      match_bitmap,
+      _mm512_andnot_si512(_mm512_xor_si512(_mm512_loadu_si512(in), pattern),
+                          _mm512_set1_epi32(0xFFFFFFFF)));
+}
+
+static void filterbithackeq2(const __m512i *in, __m512i *match_bitmap,
+                             const INTEGER comp) {
+  assert(comp < 4);
+  //---------------------------------------------------------------------------
+  __m512i w0;
+  //---------------------------------------------------------------------------
+  const __m512i pattern = internal::broadcast<2>(comp);
+  const __m512i high = _mm512_set1_epi32(0xAAAAAAAA);
+  const __m512i low = _mm512_set1_epi32(0x55555555);
+  __m512i out = _mm512_setzero_si512();
+
+  for (u32 i = 0; i < 2; ++i) {
+    w0 = _mm512_loadu_si512(in + i);
+    __m512i high_not_set = _mm512_and_si512(
+        _mm512_andnot_si512(w0, _mm512_set1_epi32(0xFFFFFFFF)), high);
+    __m512i found = _mm512_andnot_si512(
+        _mm512_and_si512(
+            _mm512_add_epi32(
+                _mm512_xor_epi32(_mm512_and_si512(w0, low), pattern), low),
+            high),
+        _mm512_set1_epi32(0xFFFFFFFF));
+    out = _mm512_or_si512(
+        out,
+        _mm512_srli_epi32(
+            _mm512_slli_epi32(_mm512_and_si512(found, high_not_set), i), 1));
+  }
+  _mm512_store_si512(match_bitmap, out);
+}
+
+static void filterbithackeq4(const __m512i *in, __m512i *match_bitmap,
+                             const INTEGER comp) {
+  assert(comp < 16);
+  //---------------------------------------------------------------------------
+  __m512i w0;
+  //---------------------------------------------------------------------------
+  const __m512i pattern = internal::broadcast<4>(comp);
+  const __m512i high = _mm512_set1_epi32(0x88888888);
+  const __m512i low = _mm512_set1_epi32(0x77777777);
+  __m512i out = _mm512_setzero_si512();
+
+  for (u32 i = 0; i < 4; ++i) {
+    w0 = _mm512_loadu_si512(in + i);
+    __m512i high_not_set = _mm512_and_si512(
+        _mm512_andnot_si512(w0, _mm512_set1_epi32(0xFFFFFFFF)), high);
+    __m512i found = _mm512_andnot_si512(
+        _mm512_and_si512(
+            _mm512_add_epi32(
+                _mm512_xor_epi32(_mm512_and_si512(w0, low), pattern), low),
+            high),
+        _mm512_set1_epi32(0xFFFFFFFF));
+    // TODO: an issue is, that this produces a mask that depends on the packing
+    // layout. In particular this would produce a different mask for 8bit lanes
+    // compared to 32bit lanes.
+    out = _mm512_or_si512(
+        out,
+        _mm512_srli_epi32(
+            _mm512_slli_epi32(_mm512_and_si512(found, high_not_set), i), 3));
+  }
+  _mm512_store_si512(match_bitmap, out);
+}
+
+static void filterbithackeq8(const __m512i *in, __m512i *match_bitmap,
+                             const INTEGER comp) {
+  assert(comp < 256);
+  //---------------------------------------------------------------------------
+  __m512i w0;
+  //---------------------------------------------------------------------------
+  const __m512i pattern = internal::broadcast<8>(comp);
+  const __m512i high = _mm512_set1_epi32(0x80808080);
+  const __m512i low = _mm512_set1_epi32(0x7F7F7F7F);
+  __m512i out = _mm512_setzero_si512();
+
+  for (u32 i = 0; i < 8; ++i) {
+    w0 = _mm512_loadu_si512(in + i);
+    __m512i high_not_set = _mm512_and_si512(
+        _mm512_andnot_si512(w0, _mm512_set1_epi32(0xFFFFFFFF)), high);
+    __m512i found = _mm512_andnot_si512(
+        _mm512_and_si512(
+            _mm512_add_epi32(
+                _mm512_xor_epi32(_mm512_and_si512(w0, low), pattern), low),
+            high),
+        _mm512_set1_epi32(0xFFFFFFFF));
+    out = _mm512_or_si512(
+        out,
+        _mm512_srli_epi32(
+            _mm512_slli_epi32(_mm512_and_si512(found, high_not_set), i), 7));
+  }
+  _mm512_store_si512(match_bitmap, out);
+}
+
+static void filterbithackeq(const __m512i *in, __m512i *match_bitmap,
+                            const INTEGER comp, const u8 bit) {
+  switch (bit) {
+  case 1:
+    filterbithackeq1(in, match_bitmap, comp);
+    break;
+  case 2:
+    filterbithackeq2(in, match_bitmap, comp);
+    break;
+  case 4:
+    filterbithackeq4(in, match_bitmap, comp);
+    break;
+  case 8:
+    filterbithackeq8(in, match_bitmap, comp);
+    break;
+  default:
+    assert(false);
+  }
+}
+
+void filterbithack(const __m512i *in, __m512i *match_bitmap, const u8 bit,
+                   const algebra::Predicate<INTEGER> &predicate) {
+  const INTEGER comp = predicate.getValue();
+  switch (predicate.getType()) {
+  case algebra::PredicateType::EQ:
+    filterbithackeq(in, match_bitmap, comp, bit);
+    break;
+  case algebra::PredicateType::INEQ:
+    assert(false);
+    break;
+  case algebra::PredicateType::GT:
+    assert(false);
+    break;
+  case algebra::PredicateType::LT:
+    assert(false);
+    break;
+  default:
+    break;
+  }
+}
 //---------------------------------------------------------------------------
 } // namespace avx512
 //---------------------------------------------------------------------------

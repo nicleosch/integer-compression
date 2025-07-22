@@ -254,6 +254,8 @@ template <typename Config>
 class BP512FastCompDecompInvariant : public ::testing::Test {};
 template <typename Config> class BP512FastFilterEQ : public ::testing::Test {};
 template <typename Config>
+class BP512BitHackFilterEQ : public ::testing::Test {};
+template <typename Config>
 class BP512FastFilterMaskEQ : public ::testing::Test {};
 //---------------------------------------------------------------------------
 using C0 = Config<INTEGER, 0>;
@@ -294,6 +296,7 @@ using Configs =
                      C14, C15, C16, C17, C18, C19, C20, C21, C22, C23, C24, C25,
                      C26, C27, C28, C29, C30, C31, C32>;
 using FastPackConfigs = ::testing::Types<C1, C2, C3, C4, C5, C6, C7, C8>;
+using BitHackConfigs = ::testing::Types<C1, C2, C4, C8>;
 //---------------------------------------------------------------------------
 TYPED_TEST_CASE(BP512CompDecompInvariant, Configs);
 TYPED_TEST(BP512CompDecompInvariant, CompDecompInvariant) {
@@ -379,6 +382,42 @@ TYPED_TEST(BP512FastFilterEQ, FilterEQ) {
   for (u32 i = 0; i < matches.size(); ++i) {
     if (i != comp)
       ASSERT_EQ(matches[i], 0);
+  }
+}
+//---------------------------------------------------------------------------
+TYPED_TEST_CASE(BP512BitHackFilterEQ, BitHackConfigs);
+TYPED_TEST(BP512BitHackFilterEQ, FilterEQ) {
+  const u32 kSize = 512;
+  //---------------------------------------------------------------------------
+  algebra::Predicate<INTEGER> pred(algebra::PredicateType::EQ, 1);
+  //---------------------------------------------------------------------------
+  vector<INTEGER> vec(kSize);
+  for (u32 i = 0; i < vec.size(); ++i) {
+    vec[i] = 0;
+  }
+  vec[comp] = 1;
+  __m512i match_bitmap;
+  //---------------------------------------------------------------------------
+  auto compressed = std::make_unique<__m512i[]>(64);
+  bitpacking::simd32::avx512::packfast(reinterpret_cast<u32 *>(vec.data()),
+                                       compressed.get(), TypeParam::kPackSize);
+  //---------------------------------------------------------------------------
+  bitpacking::simd32::avx512::filterbithack(compressed.get(), &match_bitmap,
+                                            TypeParam::kPackSize, pred);
+  //---------------------------------------------------------------------------
+  // All values should be 0 except the value at the offset of value 42.
+  alignas(64) u8 ints[64];
+  _mm512_store_si512((__m512i *)ints, match_bitmap);
+  const u32 kIntPerReg = (sizeof(__m512) / sizeof(u8));
+  // Dealing with the interleaved layout.
+  const u32 pblock = comp % kIntPerReg;
+  const u32 pindex = comp / kIntPerReg;
+  for (u32 i = 0; i < 64; ++i) {
+    if (i == pblock) {
+      ASSERT_EQ(ints[i], 1 << pindex);
+    } else {
+      ASSERT_EQ(ints[i], 0);
+    }
   }
 }
 //---------------------------------------------------------------------------

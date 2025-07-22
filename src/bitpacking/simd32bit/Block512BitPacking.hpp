@@ -56,6 +56,44 @@ void filterfast(const __m512i *in, u8 *matches, const u8 bit,
 /// index will be set, else not.
 void filterfastmask(const __m512i *in, __m512i *match_bitmap, const u8 bit,
                     const algebra::Predicate<INTEGER> &predicate);
+//---------------------------------------------------------------------------
+/// @brief Reads "bit" 512-bit vectors from "in" and writes a 512 value bit mask
+/// to "matches". If there is a match with "predicate", the bit at respective
+/// index will be set, else not.
+/// Note: This uses a bithack to perform a filter operation.
+void filterbithack(const __m512i *in, __m512i *match_bitmap, const u8 bit,
+                   const algebra::Predicate<INTEGER> &predicate);
+//---------------------------------------------------------------------------
+namespace internal {
+//---------------------------------------------------------------------------
+template <u32 kBit> __m512i broadcast(const INTEGER pattern) {
+  const u32 base = static_cast<u32>(pattern) & (1 << kBit) - 1;
+  //---------------------------------------------------------------------------
+  if constexpr (kBit == 1) {
+    return _mm512_set1_epi32(-kBit);
+  } else if constexpr (kBit == 2) {
+    return _mm512_set1_epi32(base | (base << 2) | (base << 4) | (base << 6) |
+                             (base << 8) | (base << 10) | (base << 12) |
+                             (base << 14) | (base << 16) | (base << 18) |
+                             (base << 20) | (base << 22) | (base << 24) |
+                             (base << 26) | (base << 28) | (base << 30));
+  } else if constexpr (kBit == 4) {
+    return _mm512_set1_epi32(base | (base << 4) | (base << 8) | (base << 12) |
+                             (base << 16) | (base << 20) | (base << 24) |
+                             (base << 28));
+  } else if constexpr (kBit == 8) {
+    return _mm512_set1_epi32(base | (base << 8) | (base << 16) | (base << 24));
+  } else {
+    u32 result = 0;
+    for (int i = 0; i < 32; i += kBit) {
+      result |= base << i;
+    }
+    return _mm512_set1_epi32(result);
+  }
+}
+//---------------------------------------------------------------------------
+} // namespace internal
+//---------------------------------------------------------------------------
 } // namespace avx512
 //---------------------------------------------------------------------------
 } // namespace simd32
