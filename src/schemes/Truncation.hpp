@@ -15,18 +15,19 @@ public:
   //---------------------------------------------------------------------------
   CompressionDetails compress(const DataType *src, const u32 size, u8 *dest,
                               const Statistics<DataType> *stats) override {
+    return compress(src, size, dest, stats, nullptr);
+  }
+  //---------------------------------------------------------------------------
+  CompressionDetails compress(const DataType *src, const u32 size, u8 *dest,
+                              const Statistics<DataType> *stats,
+                              const u32 *cbytes) {
     const u32 block_count = size / kBlockSize;
     //---------------------------------------------------------------------------
     auto &header = *reinterpret_cast<Header *>(dest);
-    if (stats->diff_bits <= 8) {
-      header.cbytes = 1;
-    } else if (stats->diff_bits <= 16) {
-      header.cbytes = 2;
-    } else if (stats->diff_bits <= 32) {
-      header.cbytes = 4;
-    } else {
-      header.cbytes = 8;
-    }
+    if (cbytes)
+      header.cbytes = *cbytes;
+    else
+      header.cbytes = getCbytes(stats);
     dest += sizeof(header);
     //---------------------------------------------------------------------------
     for (u32 b = 0; b < block_count; ++b) {
@@ -54,6 +55,17 @@ public:
   bool isPartitioningScheme() override { return false; }
 
 private:
+  u32 getCbytes(const Statistics<DataType> *stats) {
+    if (stats->diff_bits <= 8) {
+      return 1;
+    } else if (stats->diff_bits <= 16) {
+      return 2;
+    } else if (stats->diff_bits <= 32) {
+      return 4;
+    } else {
+      return 8;
+    }
+  }
   //---------------------------------------------------------------------------
   void compressDispatch(const DataType *src, u8 *dest, const u32 cbytes) {
     switch (cbytes) {
