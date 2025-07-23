@@ -31716,6 +31716,364 @@ void filterfastmask(const __m512i *in, __m512i *match_bitmap, const u8 bit,
   }
 }
 
+static void filtermaskeq1(const __m512i *in, __m512i *match_bitmap,
+                          const INTEGER comp) {
+  assert(comp < 2);
+  //---------------------------------------------------------------------------
+  __m512i w0;
+  auto out = reinterpret_cast<u16 *>(match_bitmap);
+  const __m512i mask = _mm512_set1_epi32(1);
+  const __m512i broadcomp = _mm512_set1_epi32(comp);
+  //---------------------------------------------------------------------------
+  w0 = _mm512_loadu_si512(in);
+  for (u32 i = 0; i < 32; ++i) {
+    *(out++) = _mm512_cmpeq_epi32_mask(
+        _mm512_and_si512(mask, _mm512_srli_epi32(w0, i)), broadcomp);
+  }
+}
+
+static void filtermaskeq2(const __m512i *in, __m512i *match_bitmap,
+                          const INTEGER comp) {
+  assert(comp < 4);
+  //---------------------------------------------------------------------------
+  __m512i w0;
+  auto out = reinterpret_cast<u16 *>(match_bitmap);
+  const __m512i mask = _mm512_set1_epi32(3);
+  const __m512i broadcomp = _mm512_set1_epi32(comp);
+  //---------------------------------------------------------------------------
+  for (u32 k = 0; k < 2; ++k) {
+    w0 = _mm512_loadu_si512(in + k);
+    for (u32 i = 0; i < 16; ++i) {
+      *(out++) = _mm512_cmpeq_epi32_mask(
+          _mm512_and_si512(mask, _mm512_srli_epi32(w0, 2 * i)), broadcomp);
+    }
+  }
+}
+
+static void filtermaskeq3(const __m512i *in, __m512i *match_bitmap,
+                          const INTEGER comp) {
+  assert(comp < 8);
+  //---------------------------------------------------------------------------
+  __m512i w0, w1;
+  auto out = reinterpret_cast<u16 *>(match_bitmap);
+  const __m512i mask = _mm512_set1_epi32(7);
+  const __m512i broadcomp = _mm512_set1_epi32(comp);
+  //---------------------------------------------------------------------------
+  w0 = _mm512_loadu_si512(in);
+  for (u32 i = 0; i < 10; ++i) {
+    *(out++) = _mm512_cmpeq_epi32_mask(
+        _mm512_and_si512(mask, _mm512_srli_epi32(w0, 3 * i)), broadcomp);
+  }
+  //---------------------------------------------------------------------------
+  // Word Boundary
+  w1 = _mm512_loadu_si512(in + 1);
+  *(out++) = _mm512_cmpeq_epi32_mask(
+      _mm512_and_si512(mask, _mm512_or_si512(_mm512_slli_epi32(w1, 2),
+                                             _mm512_srli_epi32(w0, 30))),
+      broadcomp);
+  //---------------------------------------------------------------------------
+  for (u32 i = 0; i < 10; ++i) {
+    *(out++) = _mm512_cmpeq_epi32_mask(
+        _mm512_and_si512(mask, _mm512_srli_epi32(w1, 3 * i + 1)), broadcomp);
+  }
+  //---------------------------------------------------------------------------
+  // Word Boundary
+  w0 = _mm512_loadu_si512(in + 2);
+  *(out++) = _mm512_cmpeq_epi32_mask(
+      _mm512_and_si512(mask, _mm512_or_si512(_mm512_slli_epi32(w0, 1),
+                                             _mm512_srli_epi32(w1, 31))),
+      broadcomp);
+  //---------------------------------------------------------------------------
+  for (u32 i = 0; i < 10; ++i) {
+    *(out++) = _mm512_cmpeq_epi32_mask(
+        _mm512_and_si512(mask, _mm512_srli_epi32(w0, 3 * i + 2)), broadcomp);
+  }
+}
+
+static void filtermaskeq4(const __m512i *in, __m512i *match_bitmap,
+                          const INTEGER comp) {
+  assert(comp < 16);
+  //---------------------------------------------------------------------------
+  __m512i w0;
+  auto out = reinterpret_cast<u16 *>(match_bitmap);
+  const __m512i mask = _mm512_set1_epi32(15);
+  const __m512i broadcomp = _mm512_set1_epi32(comp);
+  //---------------------------------------------------------------------------
+  for (u32 k = 0; k < 4; ++k) {
+    w0 = _mm512_loadu_si512(in + k);
+    for (u32 i = 0; i < 8; ++i) {
+      *(out++) = _mm512_cmpeq_epi32_mask(
+          _mm512_and_si512(mask, _mm512_srli_epi32(w0, 4 * i)), broadcomp);
+    }
+  }
+}
+
+static void filtermaskeq5(const __m512i *in, __m512i *match_bitmap,
+                          const INTEGER comp) {
+  assert(comp < 32);
+  //---------------------------------------------------------------------------
+  __m512i w0, w1;
+  auto out = reinterpret_cast<u16 *>(match_bitmap);
+  const __m512i mask = _mm512_set1_epi32(31);
+  const __m512i broadcomp = _mm512_set1_epi32(comp);
+  //---------------------------------------------------------------------------
+  w0 = _mm512_loadu_si512(in);
+  for (u32 i = 0; i < 6; ++i) {
+    *(out++) = _mm512_cmpeq_epi32_mask(
+        _mm512_and_si512(mask, _mm512_srli_epi32(w0, 5 * i)), broadcomp);
+  }
+  //---------------------------------------------------------------------------
+  // Word Boundary
+  w1 = _mm512_loadu_si512(in + 1);
+  *(out++) = _mm512_cmpeq_epi32_mask(
+      _mm512_and_si512(mask, _mm512_or_si512(_mm512_slli_epi32(w1, 2),
+                                             _mm512_srli_epi32(w0, 30))),
+      broadcomp);
+  //---------------------------------------------------------------------------
+  for (u32 i = 0; i < 5; ++i) {
+    *(out++) = _mm512_cmpeq_epi32_mask(
+        _mm512_and_si512(mask, _mm512_srli_epi32(w1, 5 * i + 3)), broadcomp);
+  }
+  //---------------------------------------------------------------------------
+  // Word Boundary
+  w0 = _mm512_loadu_si512(in + 2);
+  *(out++) = _mm512_cmpeq_epi32_mask(
+      _mm512_and_si512(mask, _mm512_or_si512(_mm512_slli_epi32(w0, 4),
+                                             _mm512_srli_epi32(w1, 28))),
+      broadcomp);
+  //---------------------------------------------------------------------------
+  for (u32 i = 0; i < 6; ++i) {
+    *(out++) = _mm512_cmpeq_epi32_mask(
+        _mm512_and_si512(mask, _mm512_srli_epi32(w0, 5 * i + 1)), broadcomp);
+  }
+  //---------------------------------------------------------------------------
+  // Word Boundary
+  w1 = _mm512_loadu_si512(in + 3);
+  *(out++) = _mm512_cmpeq_epi32_mask(
+      _mm512_and_si512(mask, _mm512_or_si512(_mm512_slli_epi32(w1, 1),
+                                             _mm512_srli_epi32(w0, 31))),
+      broadcomp);
+  //---------------------------------------------------------------------------
+  for (u32 i = 0; i < 5; ++i) {
+    *(out++) = _mm512_cmpeq_epi32_mask(
+        _mm512_and_si512(mask, _mm512_srli_epi32(w1, 5 * i + 4)), broadcomp);
+  }
+  //---------------------------------------------------------------------------
+  // Word Boundary
+  w0 = _mm512_loadu_si512(in + 4);
+  *(out++) = _mm512_cmpeq_epi32_mask(
+      _mm512_and_si512(mask, _mm512_or_si512(_mm512_slli_epi32(w0, 3),
+                                             _mm512_srli_epi32(w1, 29))),
+      broadcomp);
+  //---------------------------------------------------------------------------
+  for (u32 i = 0; i < 6; ++i) {
+    *(out++) = _mm512_cmpeq_epi32_mask(
+        _mm512_and_si512(mask, _mm512_srli_epi32(w0, 5 * i + 2)), broadcomp);
+  }
+}
+
+static void filtermaskeq6(const __m512i *in, __m512i *match_bitmap,
+                          const INTEGER comp) {
+  assert(comp < 64);
+  //---------------------------------------------------------------------------
+  __m512i w0, w1;
+  auto out = reinterpret_cast<u16 *>(match_bitmap);
+  const __m512i mask = _mm512_set1_epi32(63);
+  const __m512i broadcomp = _mm512_set1_epi32(comp);
+  //---------------------------------------------------------------------------
+  for (u32 k = 0; k < 2; ++k) {
+    //---------------------------------------------------------------------------
+    w0 = _mm512_loadu_si512(in + 3 * k);
+    for (u32 i = 0; i < 5; ++i) {
+      *(out++) = _mm512_cmpeq_epi32_mask(
+          _mm512_and_si512(mask, _mm512_srli_epi32(w0, 6 * i)), broadcomp);
+    }
+    //---------------------------------------------------------------------------
+    // Word Boundary
+    w1 = _mm512_loadu_si512(in + 3 * k + 1);
+    *(out++) = _mm512_cmpeq_epi32_mask(
+        _mm512_and_si512(mask, _mm512_or_si512(_mm512_slli_epi32(w1, 2),
+                                               _mm512_srli_epi32(w0, 30))),
+        broadcomp);
+    //---------------------------------------------------------------------------
+    for (u32 i = 0; i < 4; ++i) {
+      *(out++) = _mm512_cmpeq_epi32_mask(
+          _mm512_and_si512(mask, _mm512_srli_epi32(w1, 6 * i + 4)), broadcomp);
+    }
+    //---------------------------------------------------------------------------
+    // Word Boundary
+    w0 = _mm512_loadu_si512(in + 3 * k + 2);
+    *(out++) = _mm512_cmpeq_epi32_mask(
+        _mm512_and_si512(mask, _mm512_or_si512(_mm512_slli_epi32(w0, 4),
+                                               _mm512_srli_epi32(w1, 28))),
+        broadcomp);
+    //---------------------------------------------------------------------------
+    for (u32 i = 0; i < 5; ++i) {
+      *(out++) = _mm512_cmpeq_epi32_mask(
+          _mm512_and_si512(mask, _mm512_srli_epi32(w0, 6 * i + 2)), broadcomp);
+    }
+  }
+}
+
+static void filtermaskeq7(const __m512i *in, __m512i *match_bitmap,
+                          const INTEGER comp) {
+  assert(comp < 128);
+  //---------------------------------------------------------------------------
+  __m512i w0, w1;
+  auto out = reinterpret_cast<u16 *>(match_bitmap);
+  const __m512i mask = _mm512_set1_epi32(127);
+  const __m512i broadcomp = _mm512_set1_epi32(comp);
+  //---------------------------------------------------------------------------
+  w0 = _mm512_loadu_si512(in);
+  for (u32 i = 0; i < 4; ++i) {
+    *(out++) = _mm512_cmpeq_epi32_mask(
+        _mm512_and_si512(mask, _mm512_srli_epi32(w0, 7 * i)), broadcomp);
+  }
+  //---------------------------------------------------------------------------
+  // Word Boundary
+  w1 = _mm512_loadu_si512(in + 1);
+  *(out++) = _mm512_cmpeq_epi32_mask(
+      _mm512_and_si512(mask, _mm512_or_si512(_mm512_slli_epi32(w1, 4),
+                                             _mm512_srli_epi32(w0, 28))),
+      broadcomp);
+  //---------------------------------------------------------------------------
+  for (u32 i = 0; i < 4; ++i) {
+    *(out++) = _mm512_cmpeq_epi32_mask(
+        _mm512_and_si512(mask, _mm512_srli_epi32(w1, 7 * i + 3)), broadcomp);
+  }
+  //---------------------------------------------------------------------------
+  // Word Boundary
+  w0 = _mm512_loadu_si512(in + 2);
+  *(out++) = _mm512_cmpeq_epi32_mask(
+      _mm512_and_si512(mask, _mm512_or_si512(_mm512_slli_epi32(w0, 1),
+                                             _mm512_srli_epi32(w1, 31))),
+      broadcomp);
+  //---------------------------------------------------------------------------
+  for (u32 i = 0; i < 3; ++i) {
+    *(out++) = _mm512_cmpeq_epi32_mask(
+        _mm512_and_si512(mask, _mm512_srli_epi32(w0, 7 * i + 6)), broadcomp);
+  }
+  //---------------------------------------------------------------------------
+  // Word Boundary
+  w1 = _mm512_loadu_si512(in + 3);
+  *(out++) = _mm512_cmpeq_epi32_mask(
+      _mm512_and_si512(mask, _mm512_or_si512(_mm512_slli_epi32(w1, 5),
+                                             _mm512_srli_epi32(w0, 27))),
+      broadcomp);
+  //---------------------------------------------------------------------------
+  for (u32 i = 0; i < 4; ++i) {
+    *(out++) = _mm512_cmpeq_epi32_mask(
+        _mm512_and_si512(mask, _mm512_srli_epi32(w1, 7 * i + 2)), broadcomp);
+  }
+  //---------------------------------------------------------------------------
+  // Word Boundary
+  w0 = _mm512_loadu_si512(in + 4);
+  *(out++) = _mm512_cmpeq_epi32_mask(
+      _mm512_and_si512(mask, _mm512_or_si512(_mm512_slli_epi32(w0, 2),
+                                             _mm512_srli_epi32(w1, 30))),
+      broadcomp);
+  //---------------------------------------------------------------------------
+  for (u32 i = 0; i < 3; ++i) {
+    *(out++) = _mm512_cmpeq_epi32_mask(
+        _mm512_and_si512(mask, _mm512_srli_epi32(w0, 7 * i + 5)), broadcomp);
+  }
+  //---------------------------------------------------------------------------
+  // Word Boundary
+  w1 = _mm512_loadu_si512(in + 5);
+  *(out++) = _mm512_cmpeq_epi32_mask(
+      _mm512_and_si512(mask, _mm512_or_si512(_mm512_slli_epi32(w1, 6),
+                                             _mm512_srli_epi32(w0, 26))),
+      broadcomp);
+  //---------------------------------------------------------------------------
+  for (u32 i = 0; i < 4; ++i) {
+    *(out++) = _mm512_cmpeq_epi32_mask(
+        _mm512_and_si512(mask, _mm512_srli_epi32(w1, 7 * i + 1)), broadcomp);
+  }
+  //---------------------------------------------------------------------------
+  // Word Boundary
+  w0 = _mm512_loadu_si512(in + 6);
+  *(out++) = _mm512_cmpeq_epi32_mask(
+      _mm512_and_si512(mask, _mm512_or_si512(_mm512_slli_epi32(w0, 3),
+                                             _mm512_srli_epi32(w1, 29))),
+      broadcomp);
+  //---------------------------------------------------------------------------
+  for (u32 i = 0; i < 4; ++i) {
+    *(out++) = _mm512_cmpeq_epi32_mask(
+        _mm512_and_si512(mask, _mm512_srli_epi32(w0, 7 * i + 4)), broadcomp);
+  }
+}
+
+static void filtermaskeq8(const __m512i *in, __m512i *match_bitmap,
+                          const INTEGER comp) {
+  assert(comp < 256);
+  //---------------------------------------------------------------------------
+  __m512i w0;
+  auto out = reinterpret_cast<u16 *>(match_bitmap);
+  const __m512i mask = _mm512_set1_epi32(255);
+  const __m512i broadcomp = _mm512_set1_epi32(comp);
+  //---------------------------------------------------------------------------
+  for (u32 k = 0; k < 8; ++k) {
+    w0 = _mm512_loadu_si512(in + k);
+    for (u32 i = 0; i < 4; ++i) {
+      *(out++) = _mm512_cmpeq_epi32_mask(
+          _mm512_and_si512(mask, _mm512_srli_epi32(w0, 8 * i)), broadcomp);
+    }
+  }
+}
+
+void filtermaskeq(const __m512i *in, __m512i *match_bitmap, const INTEGER comp,
+                  const u8 bit) {
+  switch (bit) {
+  case 1:
+    filtermaskeq1(in, match_bitmap, comp);
+    break;
+  case 2:
+    filtermaskeq2(in, match_bitmap, comp);
+    break;
+  case 3:
+    filtermaskeq3(in, match_bitmap, comp);
+    break;
+  case 4:
+    filtermaskeq4(in, match_bitmap, comp);
+    break;
+  case 5:
+    filtermaskeq5(in, match_bitmap, comp);
+    break;
+  case 6:
+    filtermaskeq6(in, match_bitmap, comp);
+    break;
+  case 7:
+    filtermaskeq7(in, match_bitmap, comp);
+    break;
+  case 8:
+    filtermaskeq8(in, match_bitmap, comp);
+    break;
+  default:
+    assert(false);
+  }
+}
+
+void filtermask(const __m512i *in, __m512i *match_bitmap, const u8 bit,
+                const algebra::Predicate<INTEGER> &predicate) {
+  const INTEGER comp = predicate.getValue();
+  switch (predicate.getType()) {
+  case algebra::PredicateType::EQ:
+    filtermaskeq(in, match_bitmap, comp, bit);
+    break;
+  case algebra::PredicateType::INEQ:
+    assert(false);
+    break;
+  case algebra::PredicateType::GT:
+    assert(false);
+    break;
+  case algebra::PredicateType::LT:
+    assert(false);
+    break;
+  default:
+    break;
+  }
+}
+
 static void filterbithackeq1(const __m512i *in, __m512i *match_bitmap,
                              const INTEGER comp) {
   assert(comp < 2);

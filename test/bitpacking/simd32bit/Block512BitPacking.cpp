@@ -257,6 +257,7 @@ template <typename Config>
 class BP512BitHackFilterEQ : public ::testing::Test {};
 template <typename Config>
 class BP512FastFilterMaskEQ : public ::testing::Test {};
+template <typename Config> class BP512FilterMaskEQ : public ::testing::Test {};
 //---------------------------------------------------------------------------
 using C0 = Config<INTEGER, 0>;
 using C1 = Config<INTEGER, 1>;
@@ -470,6 +471,67 @@ TYPED_TEST(BP512FastFilterMaskEQ, FilterEQMultiple) {
   //---------------------------------------------------------------------------
   bitpacking::simd32::avx512::filterfastmask(compressed.get(), &match_bitmap,
                                              TypeParam::kPackSize, pred);
+  //---------------------------------------------------------------------------
+  alignas(64) u32 ints[16];
+  _mm512_store_si512((__m512i *)ints, match_bitmap);
+  for (u32 i = 0; i < 16; ++i) {
+    if (i == comp / 32) {
+      ASSERT_EQ(ints[i], 0xFFFFFBFF);
+    } else {
+      ASSERT_EQ(ints[i], 0xFFFFFFFF);
+    }
+  }
+}
+//---------------------------------------------------------------------------
+TYPED_TEST_CASE(BP512FilterMaskEQ, FastPackConfigs);
+TYPED_TEST(BP512FilterMaskEQ, FilterEQSingle) {
+  const u32 kSize = 512;
+  //---------------------------------------------------------------------------
+  algebra::Predicate<INTEGER> pred(algebra::PredicateType::EQ, 1);
+  //---------------------------------------------------------------------------
+  vector<INTEGER> vec(kSize);
+  for (u32 i = 0; i < vec.size(); ++i) {
+    vec[i] = 0;
+  }
+  vec[comp] = 1;
+  __m512i match_bitmap = _mm512_setzero_si512();
+  //---------------------------------------------------------------------------
+  auto compressed = std::make_unique<__m512i[]>(64);
+  bitpacking::simd32::avx512::pack(reinterpret_cast<u32 *>(vec.data()),
+                                   compressed.get(), TypeParam::kPackSize);
+  //---------------------------------------------------------------------------
+  bitpacking::simd32::avx512::filtermask(compressed.get(), &match_bitmap,
+                                         TypeParam::kPackSize, pred);
+  //---------------------------------------------------------------------------
+  alignas(64) u32 ints[16];
+  _mm512_store_si512((__m512i *)ints, match_bitmap);
+  for (u32 i = 0; i < 16; ++i) {
+    if (i == comp / 32) {
+      ASSERT_EQ(ints[i], 1 << (comp % 32));
+    } else {
+      ASSERT_EQ(ints[i], 0);
+    }
+  }
+}
+//---------------------------------------------------------------------------
+TYPED_TEST(BP512FilterMaskEQ, FilterEQMultiple) {
+  const u32 kSize = 512;
+  //---------------------------------------------------------------------------
+  algebra::Predicate<INTEGER> pred(algebra::PredicateType::EQ, 1);
+  //---------------------------------------------------------------------------
+  vector<INTEGER> vec(kSize);
+  for (u32 i = 0; i < vec.size(); ++i) {
+    vec[i] = 1;
+  }
+  vec[comp] = 0;
+  __m512i match_bitmap = _mm512_setzero_si512();
+  //---------------------------------------------------------------------------
+  auto compressed = std::make_unique<__m512i[]>(64);
+  bitpacking::simd32::avx512::pack(reinterpret_cast<u32 *>(vec.data()),
+                                   compressed.get(), TypeParam::kPackSize);
+  //---------------------------------------------------------------------------
+  bitpacking::simd32::avx512::filtermask(compressed.get(), &match_bitmap,
+                                         TypeParam::kPackSize, pred);
   //---------------------------------------------------------------------------
   alignas(64) u32 ints[16];
   _mm512_store_si512((__m512i *)ints, match_bitmap);
