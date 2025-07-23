@@ -51,7 +51,7 @@ void filtermask(const __m512i *in, __m512i *match_bitmap, const u8 bit,
 /// @brief Reads "bit" 512-bit vectors from "in" and writes 512 values to
 /// "matches". If there is a match with "predicate", the value will be larger
 /// than 0, else 0.
-/// Note: This only works on the new layout, but using that layout this can
+/// Note: This only works on the adaptive layout, but using that layout this can
 /// perform comparisons up to 5 times faster than filters used to (for bit sizes
 /// <= 16 as otherwise the layout is the same).
 void filterfast(const __m512i *in, u8 *matches, const u8 bit,
@@ -60,7 +60,7 @@ void filterfast(const __m512i *in, u8 *matches, const u8 bit,
 /// @brief Reads "bit" 512-bit vectors from "in" and writes a 512 value bit mask
 /// to "matches". If there is a match with "predicate", the bit at respective
 /// index will be set, else not.
-/// Note: This only works on the new layout, but using that layout this can
+/// Note: This only works on the adaptive layout, but using that layout this can
 /// perform comparisons up to 5 times faster than filters used to (for bit sizes
 /// <= 16 as otherwise the layout is the same).
 void filterfastmask(const __m512i *in, __m512i *match_bitmap, const u8 bit,
@@ -69,7 +69,8 @@ void filterfastmask(const __m512i *in, __m512i *match_bitmap, const u8 bit,
 /// @brief Reads "bit" 512-bit vectors from "in" and writes a 512 value bit mask
 /// to "matches". If there is a match with "predicate", the bit at respective
 /// index will be set, else not.
-/// Note: This uses a bithack to perform a filter operation.
+/// Note: This uses a bithack to perform a filter operation and works on any
+/// layout, but produces different masks then.
 void filterbithack(const __m512i *in, __m512i *match_bitmap, const u8 bit,
                    const algebra::Predicate<INTEGER> &predicate);
 //---------------------------------------------------------------------------
