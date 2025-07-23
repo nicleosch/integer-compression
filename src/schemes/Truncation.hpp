@@ -73,13 +73,13 @@ private:
       compressImpl<u8>(src, dest);
       break;
     case 2:
-      compressImpl<u8>(src, dest);
+      compressImpl<u16>(src, dest);
       break;
     case 4:
-      compressImpl<u8>(src, dest);
+      compressImpl<u32>(src, dest);
       break;
     case 8:
-      compressImpl<u8>(src, dest);
+      compressImpl<u64>(src, dest);
       break;
     default:
       std::runtime_error("Truncation Compression Error: Size \"" +
