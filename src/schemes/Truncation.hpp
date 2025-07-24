@@ -1,5 +1,8 @@
 #pragma once
 //---------------------------------------------------------------------------
+#include <immintrin.h>
+//---------------------------------------------------------------------------
+#include "algebra/Predicate.hpp"
 #include "schemes/CompressionScheme.hpp"
 //---------------------------------------------------------------------------
 namespace compression {
@@ -43,12 +46,33 @@ public:
     const u32 block_count = size / kBlockSize;
     //---------------------------------------------------------------------------
     const auto &header = *reinterpret_cast<const Header *>(src);
-    src += sizeof(header);
+    src += sizeof(Header);
     //---------------------------------------------------------------------------
     for (u32 b = 0; b < block_count; ++b) {
       decompressDispatch(dest, src, header.cbytes);
       dest += kBlockSize;
       src += header.cbytes * kBlockSize;
+    }
+  }
+  //---------------------------------------------------------------------------
+  void filter(const u8 *in, const u32 size, u8 *match_bitmap,
+              const algebra::Predicate<DataType> &predicate) {
+    const u32 block_count = size / kBlockSize;
+    //---------------------------------------------------------------------------
+    const auto &header = *reinterpret_cast<const Header *>(in);
+    in += sizeof(Header);
+    //---------------------------------------------------------------------------
+    const DataType comp = predicate.getValue();
+    switch (predicate.getType()) {
+    case algebra::PredicateType::EQ:
+      for (u32 b = 0; b < block_count; ++b) {
+        filtereq(in, comp, match_bitmap, header.cbytes);
+        match_bitmap += kBlockSize / 8;
+        in += header.cbytes * kBlockSize;
+      }
+      return;
+    default:
+      std::runtime_error("TODO: Not implemented yet.");
     }
   }
   //---------------------------------------------------------------------------
@@ -118,6 +142,67 @@ private:
     const auto &data = reinterpret_cast<const T *>(src);
     for (u32 i = 0; i < kBlockSize; ++i) {
       dest[i] = data[i];
+    }
+  }
+  //---------------------------------------------------------------------------
+  void filtereq(const u8 *in, const DataType comp, u8 *match_bitmap,
+                const u32 cbytes) {
+    switch (cbytes) {
+    case 1:
+      filtereqImpl<1>(in, comp, match_bitmap);
+      return;
+    case 2:
+      filtereqImpl<2>(in, comp, match_bitmap);
+      return;
+    case 4:
+      filtereqImpl<4>(in, comp, match_bitmap);
+      return;
+    case 8:
+      filtereqImpl<8>(in, comp, match_bitmap);
+      return;
+    default:
+      assert(false);
+    }
+  }
+  //---------------------------------------------------------------------------
+  template <u32 kBytes>
+  void filtereqImpl(const u8 *in, const DataType comp, u8 *match_bitmap) {
+    __m512i w0;
+    auto pin = reinterpret_cast<const __m512i *>(in);
+    auto out = reinterpret_cast<u64 *>(match_bitmap);
+    //---------------------------------------------------------------------------
+    const u32 cregisters = kBlockSize * kBytes / sizeof(__m512i);
+    if constexpr (kBytes == 1) {
+      auto out = reinterpret_cast<u64 *>(match_bitmap);
+      const __m512i broadcomp = _mm512_set1_epi8(comp);
+      for (u32 i = 0; i < cregisters; ++i) {
+        w0 = _mm512_loadu_si512(pin + i);
+        *(out++) = _mm512_cmpeq_epi8_mask(w0, broadcomp);
+      }
+      //---------------------------------------------------------------------------
+    } else if constexpr (kBytes == 2) {
+      auto out = reinterpret_cast<u32 *>(match_bitmap);
+      const __m512i broadcomp = _mm512_set1_epi16(comp);
+      for (u32 i = 0; i < cregisters; ++i) {
+        w0 = _mm512_loadu_si512(pin + i);
+        *(out++) = _mm512_cmpeq_epi16_mask(w0, broadcomp);
+      }
+      //---------------------------------------------------------------------------
+    } else if constexpr (kBytes == 4) {
+      auto out = reinterpret_cast<u16 *>(match_bitmap);
+      const __m512i broadcomp = _mm512_set1_epi32(comp);
+      for (u32 i = 0; i < cregisters; ++i) {
+        w0 = _mm512_loadu_si512(pin + i);
+        *(out++) = _mm512_cmpeq_epi32_mask(w0, broadcomp);
+      }
+      //---------------------------------------------------------------------------
+    } else {
+      auto out = reinterpret_cast<u8 *>(match_bitmap);
+      const __m512i broadcomp = _mm512_set1_epi64(comp);
+      for (u32 i = 0; i < cregisters; ++i) {
+        w0 = _mm512_loadu_si512(pin + i);
+        *(out++) = _mm512_cmpeq_epi64_mask(w0, broadcomp);
+      }
     }
   }
 };
