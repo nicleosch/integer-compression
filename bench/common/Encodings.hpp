@@ -60,6 +60,9 @@ public:
   //---------------------------------------------------------------------------
   virtual void decompress(const u8 *src, vector<T> &dest) = 0;
   //---------------------------------------------------------------------------
+  virtual void filter(const u8 *data, const u32 size,
+                      algebra::Predicate<T> &predicate, MatchVector &mv) = 0;
+  //---------------------------------------------------------------------------
   virtual EncodingType getType() const = 0;
 };
 //---------------------------------------------------------------------------
@@ -73,6 +76,11 @@ public:
   //---------------------------------------------------------------------------
   void decompress(const u8 *src, vector<T> &dest) override {
     this->scheme.decompress(dest.data(), dest.size(), src);
+  }
+  //---------------------------------------------------------------------------
+  void filter(const u8 *data, const u32 size, algebra::Predicate<T> &predicate,
+              MatchVector &mv) {
+    assert(false);
   }
   //---------------------------------------------------------------------------
   EncodingType getType() const override { return EncodingType::kUncompressed; }
@@ -100,6 +108,11 @@ public:
   //---------------------------------------------------------------------------
   void decompress(const u8 *src, vector<T> &dest) override {
     this->scheme.decompress(dest.data(), dest.size(), src);
+  }
+  //---------------------------------------------------------------------------
+  void filter(const u8 *data, const u32 size, algebra::Predicate<T> &predicate,
+              MatchVector &mv) {
+    this->scheme.filter(data, size, predicate, mv.data());
   }
   //---------------------------------------------------------------------------
   EncodingType getType() const override {
@@ -159,6 +172,11 @@ public:
       btrblocks::Chunk decompressed =
           this->datablock->decompress(this->compressed_chunks[chunk_i]);
     }
+  }
+  //---------------------------------------------------------------------------
+  void filter(const u8 *data, const u32 size, algebra::Predicate<T> &predicate,
+              MatchVector &mv) {
+    assert(false);
   }
   //---------------------------------------------------------------------------
   EncodingType getType() const override {
