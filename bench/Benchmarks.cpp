@@ -1,4 +1,7 @@
-#include "cases/DecompressionSpeed.cpp"
+#include "cases/MicroBenchmarks.cpp"
 // ---------------------------------------------------------------------------
-int main(int argc, char **argv) { benchmarks::decompressionBenchmarks(); }
+int main(int argc, char **argv) {
+  benchmarks::filterBenchmarks();
+  benchmarks::decompressionBenchmarks();
+}
 // ---------------------------------------------------------------------------
