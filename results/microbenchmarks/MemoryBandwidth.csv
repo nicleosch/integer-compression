@@ -1,0 +1,2 @@
+cycles, kcycles, scycles, instructions, L1-misses, LLC-misses, branch-misses, task-clock, scale,  IPC, CPUs,  GHz , Cycles/Tuple, Instructions/Tuple, Seconds, UC-Bandwidth(GB/s), C-Bandwidth(GB/s), Bit
+20808305762.70, 122900998.22,    0.00, 4363923200.84, 1078355791.50, 1074057680.93,     136586.75, 5412688962.00,     1, 0.21, 1.00, 3.84 , 1.2112, 0.254014, 5.41349, 12.5612, 0, 0
