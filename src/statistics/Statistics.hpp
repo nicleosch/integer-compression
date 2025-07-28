@@ -10,6 +10,7 @@
 namespace compression {
 template <typename T> class MiniStatistics {
 public:
+  using U = typename std::make_unsigned<T>::type;
   //---------------------------------------------------------------------------
   static MiniStatistics generateFrom(const T *src, u32 count) {
     assert(count > 0);
@@ -27,6 +28,10 @@ public:
       if (current - src[i - 1] != step)
         step = -1;
     }
+    // TODO: The difference between two values of T might not fit into a T
+    // value. This is a bug and needs to be fixed.
+    stats.diff_bits = utils::requiredBits<U>(static_cast<U>(stats.max) -
+                                             static_cast<U>((stats.min)));
     stats.step_size = step;
     //---------------------------------------------------------------------------
     return stats;
@@ -46,6 +51,9 @@ public:
   T step_size;
   /// The number of values in the input.
   u32 count;
+  /// The number of bits required to store the difference between maximum
+  /// and minimum.
+  u8 diff_bits;
 };
 //---------------------------------------------------------------------------
 template <typename T> class Statistics {

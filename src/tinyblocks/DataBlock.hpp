@@ -16,6 +16,7 @@ constexpr u32 kDefaultSize = 65536;
 enum class Scheme : u8 {
   NONE = 0,
   MONOTONIC = 1,
+  TRUNCATION = 2,
 };
 //---------------------------------------------------------------------------
 /// The tag wrapping a scheme code and its payload.
@@ -26,8 +27,12 @@ struct Tag {
 static_assert(sizeof(Tag) == 2);
 //---------------------------------------------------------------------------
 /// A datablock abstraction for our tinyblocks.
-template <typename T, const u16 kTinyBlockSize,
-          const u32 kBlockSize = kDefaultSize>
+template <typename T,                     // The data type to be compressed.
+          const u16 kTinyBlockSize = 512, // The size of a tinyblocks block.
+          const u32 kBlockSize =
+              kDefaultSize, // The default size of a datablock.
+          const bool kTinyBlocksActive =
+              true> // Whether tinyblocks compression is active.
 class DataBlock {
 public:
   //---------------------------------------------------------------------------
@@ -152,35 +157,59 @@ private:
     header.min = db_stats.min;
     header.max = db_stats.max;
     header.cbytes = 0;
-    // Apply scheme to the whole datablock, if possible.
+    //---------------------------------------------------------------------------
+    // Apply MONOTONIC compression to the whole datablock, if possible.
     if (db_stats.step_size >= 0 && db_stats.step_size < 256) {
       header.tag = {Scheme::MONOTONIC, static_cast<u8>(db_stats.step_size)};
       return {sizeof(Header), 0};
     }
     //---------------------------------------------------------------------------
-    // Prepare the header for tinyblocks compression.
-    header.tag = {Scheme::NONE, 0};
-    //---------------------------------------------------------------------------
-    // Calculate statistics on each individual tinyblock.
-    vector<Statistics<T>> stats;
-    u32 block_count = size / kTinyBlockSize;
-    auto read_ptr = src;
-    for (u32 i = 0; i < block_count; ++i) {
-      stats.push_back(Statistics<T>::generateFrom(read_ptr + i * kTinyBlockSize,
-                                                  kTinyBlockSize));
+    if constexpr (!kTinyBlocksActive) {
+      /// Apply TRUNCATION if tinyblocks is DEACTIVATED.
+      if (db_stats.diff_bits <= 8) {
+        header.tag = {Scheme::TRUNCATION, sizeof(u8)};
+        header.cbytes = sizeof(u8) * size;
+        return truncate<u8>(src, size, dest + sizeof(Header), header.min);
+      } else if (db_stats.diff_bits <= 16) {
+        header.tag = {Scheme::TRUNCATION, sizeof(u16)};
+        header.cbytes = sizeof(u16) * size;
+        return truncate<u16>(src, size, dest + sizeof(Header), header.min);
+      } else if (db_stats.diff_bits <= 32) {
+        header.tag = {Scheme::TRUNCATION, sizeof(u32)};
+        header.cbytes = sizeof(u32) * size;
+        return truncate<u32>(src, size, dest + sizeof(Header), header.min);
+      } else {
+        header.tag = {Scheme::TRUNCATION, sizeof(u64)};
+        header.cbytes = sizeof(u64) * size;
+        return truncate<u64>(src, size, dest + sizeof(Header), header.min);
+      }
+    } else {
+      /// Apply TINYBLOCKS compression.
+      //---------------------------------------------------------------------------
+      // Prepare the header for tinyblocks compression.
+      header.tag = {Scheme::NONE, 0};
+      //---------------------------------------------------------------------------
+      // Calculate statistics on each individual tinyblock.
+      vector<Statistics<T>> stats;
+      u32 block_count = size / kTinyBlockSize;
+      auto read_ptr = src;
+      for (u32 i = 0; i < block_count; ++i) {
+        stats.push_back(Statistics<T>::generateFrom(
+            read_ptr + i * kTinyBlockSize, kTinyBlockSize));
+      }
+      //---------------------------------------------------------------------------
+      // Compress the tinyblocks.
+      TinyBlocks<T, kTinyBlockSize> tb;
+      CompressionDetails cd =
+          scheme == nullptr
+              ? tb.compress(src, size, dest + sizeof(Header), stats.data())
+              : tb.compress(src, size, dest + sizeof(Header), stats.data(),
+                            *scheme);
+      header.cbytes = cd.header_size + cd.payload_size;
+      cd.header_size += sizeof(Header);
+      //---------------------------------------------------------------------------
+      return cd;
     }
-    //---------------------------------------------------------------------------
-    // Compress the tinyblocks.
-    TinyBlocks<T, kTinyBlockSize> tb;
-    CompressionDetails cd =
-        scheme == nullptr
-            ? tb.compress(src, size, dest + sizeof(Header), stats.data())
-            : tb.compress(src, size, dest + sizeof(Header), stats.data(),
-                          *scheme);
-    header.cbytes = cd.header_size + cd.payload_size;
-    cd.header_size += sizeof(Header);
-    //---------------------------------------------------------------------------
-    return cd;
   }
   //---------------------------------------------------------------------------
   /// @brief Decompress given datablock.
@@ -202,9 +231,30 @@ private:
         dest[i] = header.min + i * header.tag.payload;
       }
     } else {
-      // Tinyblock decompression.
-      TinyBlocks<T, kTinyBlockSize> tb;
-      tb.decompress(dest, size, src + sizeof(Header));
+      if constexpr (!kTinyBlocksActive) {
+        /// Apply EXTENSION if tinyblocks is DEACTIVATED.
+        assert(header.tag.scheme == Scheme::TRUNCATION);
+        switch (header.tag.payload) {
+        case 1:
+          extend<u8>(dest, size, src + sizeof(Header), header.min);
+          break;
+        case 2:
+          extend<u16>(dest, size, src + sizeof(Header), header.min);
+          break;
+        case 4:
+          extend<u32>(dest, size, src + sizeof(Header), header.min);
+          break;
+        case 8:
+          extend<u64>(dest, size, src + sizeof(Header), header.min);
+          break;
+        default:
+          assert(false);
+        }
+      } else {
+        /// Apply TINYBLOCKS compression.
+        TinyBlocks<T, kTinyBlockSize> tb;
+        tb.decompress(dest, size, src + sizeof(Header));
+      }
     }
     //---------------------------------------------------------------------------
     return header.cbytes;
@@ -300,6 +350,36 @@ private:
       // Tinyblock filter.
       TinyBlocks<T, kTinyBlockSize> tb;
       tb.filter(data, size, predicate, matches);
+    }
+  }
+  //---------------------------------------------------------------------------
+  /// @brief Compression-Implementation of the TRUNCATION scheme.
+  /// @tparam D The datatype to truncate to.
+  /// @param src The data to be compressed.
+  /// @param size The number of values to be compressed.
+  /// @param dest The location to compress the data to.
+  /// @param reference The FOR reference.
+  template <typename D>
+  CompressionDetails truncate(const T *src, const u32 size, u8 *dest,
+                              const u32 reference) {
+    auto data = reinterpret_cast<D *>(dest);
+    for (u32 i = 0; i < size; ++i) {
+      data[i] = static_cast<D>(src[i] - reference);
+    }
+    return {sizeof(Header), sizeof(D) * size};
+  }
+  //---------------------------------------------------------------------------
+  /// @brief Decompression-Implementation of the TRUNCATION scheme.
+  /// @tparam D The datatype to extend from.
+  /// @param dest The location to decompress the data to.
+  /// @param size The number of compressed values.
+  /// @param src The compressed datablocks.
+  /// @param reference The FOR reference.
+  template <typename D>
+  void extend(T *dest, const u32 size, const u8 *src, const u32 reference) {
+    const auto &data = reinterpret_cast<const D *>(src);
+    for (u32 i = 0; i < size; ++i) {
+      dest[i] = src[i] + reference;
     }
   }
 };
