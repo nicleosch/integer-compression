@@ -250,6 +250,7 @@ private:
         default:
           assert(false);
         }
+        dest += size;
       } else {
         /// Apply TINYBLOCKS compression.
         TinyBlocks<T, kTinyBlockSize> tb;
@@ -379,7 +380,7 @@ private:
   void extend(T *dest, const u32 size, const u8 *src, const u32 reference) {
     const auto &data = reinterpret_cast<const D *>(src);
     for (u32 i = 0; i < size; ++i) {
-      dest[i] = src[i] + reference;
+      dest[i] = data[i] + reference;
     }
   }
 };
