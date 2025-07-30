@@ -173,6 +173,16 @@ template <typename T> inline T *align(T *ptr, u64 alignment, u64 &padding) {
   return reinterpret_cast<T *>(aligned);
 }
 //---------------------------------------------------------------------------
+/// @brief Reads a 1 GB block of data attempting to thrash CPU caches.
+static void thrashCPUCaches() {
+  const u64 size = 1000 * 1024 * 1024; // 1 GB
+  vector<uint8_t> block(size);
+  volatile u64 sink = 0;
+  for (u64 i = 0; i < block.size(); ++i) {
+    sink += block[i];
+  }
+}
+//---------------------------------------------------------------------------
 } // namespace utils
 //---------------------------------------------------------------------------
 } // namespace compression

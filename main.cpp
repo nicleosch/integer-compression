@@ -138,6 +138,9 @@ int compressionLogic(bootstrap::CLIOptions &cli) {
     // compress
     stats = compressor->compress(compress_out);
 
+    // Thrash the CPU caches to read compressed data from memory.
+    utils::thrashCPUCaches();
+
     // decompress
     if (cli.morsel) {
       timer.start();
