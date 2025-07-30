@@ -16,6 +16,7 @@ enum class CompressionSchemeType {
   kLZ4 = 7,
   kZstd = 8,
   kSnappy = 9,
+  kDataBlock = 10,
 };
 //---------------------------------------------------------------------------
 struct CompressionDetails {

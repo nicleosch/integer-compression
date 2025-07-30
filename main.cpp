@@ -128,6 +128,8 @@ int compressionLogic(bootstrap::CLIOptions &cli) {
       compressor->setScheme(CompressionSchemeType::kZstd);
     } else if (cli.scheme == "snappy") {
       compressor->setScheme(CompressionSchemeType::kSnappy);
+    } else if (cli.scheme == "datablock") {
+      compressor->setScheme(CompressionSchemeType::kDataBlock);
     } else {
       std::cout << "Unknown algorithm" << std::endl;
       return 1;

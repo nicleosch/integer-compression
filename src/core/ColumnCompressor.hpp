@@ -138,6 +138,12 @@ private:
     case CompressionSchemeType::kSnappy:
       details = compressSnappy(dest);
       break;
+    case CompressionSchemeType::kDataBlock:
+      tinyblocks::datablock::DataBlock<T, kTinyBlockSize, kDefaultDataBlockSize,
+                                       false>
+          db2;
+      details = db2.compress(this->column.data(), this->column.size(), dest);
+      break;
     default:
       throw std::runtime_error("Compression not supported for this scheme.");
     }
@@ -389,6 +395,12 @@ private:
       return;
     case CompressionSchemeType::kSnappy:
       decompressSnappy(dest, src);
+      return;
+    case CompressionSchemeType::kDataBlock:
+      tinyblocks::datablock::DataBlock<T, kTinyBlockSize, kDefaultDataBlockSize,
+                                       false>
+          db2;
+      db2.decompress(dest, this->column.size(), src);
       return;
     default:
       throw std::runtime_error(
