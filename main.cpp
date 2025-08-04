@@ -6,6 +6,7 @@
 #include "core/ColumnCompressor.hpp"
 #include "core/Compressor.hpp"
 #include "extern/BtrBlocks.hpp"
+#include "extern/FastLanes.hpp"
 #include "storage/Column.hpp"
 //---------------------------------------------------------------------------
 using namespace compression;
@@ -107,6 +108,39 @@ int compressionLogic(bootstrap::CLIOptions &cli) {
           datablock.decompress(compressed_chunks[chunk_i]);
     }
     timer.end();
+  } else if (cli.scheme == "fastlanes") {
+    using namespace fastlanes;
+    const path fls_path = path{cli.data.c_str()} / "fastlanes.fls";
+
+    Connection conn;
+    auto fls_reader = conn.reset().read_fls(fls_path);
+    auto table = fls_reader->materialize();
+    auto n_row_groups = table->get_n_rowgroups();
+
+    // Thrash the CPU caches to read compressed data from memory.
+    utils::thrashCPUCaches();
+
+    auto start = std::chrono::high_resolution_clock::now();
+    for (u32 i{0}; i < n_row_groups; ++i) {
+      auto first_rowgroup_reader = fls_reader->get_rowgroup_reader(i);
+      for (const auto &col :
+           first_rowgroup_reader->get_descriptor().m_column_descriptors) {
+        std::cout << std::endl;
+        for (const auto &token : col->encoding_rpn->operator_tokens) {
+        }
+      }
+      for (u32 vec_idx{0};
+           vec_idx < first_rowgroup_reader->get_descriptor().m_n_vec;
+           vec_idx++) {
+        first_rowgroup_reader->get_chunk(vec_idx);
+      };
+    }
+    const auto end = std::chrono::high_resolution_clock::now();
+    const std::chrono::duration<double, std::milli> elapsed =
+        end - start; // in milliseconds
+
+    std::cout << "FastLanes Decompression Time: " << elapsed.count() << " ms"
+              << std::endl;
   } else {
     if (cli.scheme == "uncompressed") {
       compressor->setScheme(CompressionSchemeType::kUncompressed);

@@ -37,6 +37,7 @@ include("${VENDOR_DIR}/LZ4/lz4.cmake")
 include("${VENDOR_DIR}/BtrBlocks/btrblocks.cmake")
 include("${VENDOR_DIR}/zstd/zstd.cmake")
 include("${VENDOR_DIR}/snappy/snappy.cmake")
+include("${VENDOR_DIR}/FastLanes/fastlanes.cmake")
 
 include_directories(
     ${SIMDCOMP_INCLUDE_DIR}
@@ -45,6 +46,7 @@ include_directories(
     ${BTRBLOCKS_INCLUDE_DIR}
     ${ZSTD_INCLUDE_DIR}
     ${SNAPPY_INCLUDE_DIR}
+    ${FASTLANES_INCLUDE_DIR}
 )
 
 # COMPONENTS
@@ -56,7 +58,7 @@ include("${CMAKE_SOURCE_DIR}/test/local.cmake")
 # EXECUTABLE
 # ---------------------------------------------------------------------------
 add_executable(ic main.cpp)
-target_link_libraries(ic ${PROJECT_NAME} SIMDcomp lz4 btrblocks zstd snappy)
+target_link_libraries(ic ${PROJECT_NAME} SIMDcomp lz4 btrblocks zstd snappy fastlanes)
 
 # BENCHMARKS
 # ---------------------------------------------------------------------------
