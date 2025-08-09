@@ -69,6 +69,6 @@ target_link_libraries(ic_bench ${PROJECT_NAME} SIMDcomp lz4 btrblocks zstd snapp
 # ---------------------------------------------------------------------------
 
 add_executable(ic_test test/test.cpp ${TEST_SRC})
-target_link_libraries(ic_test ${PROJECT_NAME} gtest SIMDcomp lz4 btrblocks zstd snappy)
+target_link_libraries(ic_test ${PROJECT_NAME} gtest SIMDcomp lz4 btrblocks zstd snappy fastlanes)
 enable_testing()
 add_test(${PROJECT_NAME} ic_test)
